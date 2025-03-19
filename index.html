@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<!-- saved from url=(0142)file:///C:/Users/bab/AppData/Local/Temp/%7B4768A40D-0F42-4608-87F6-EC011DD67F86%7D/%7BDD3D141F-81D9-4200-83DD-3282392E437D%7D/cointoss_v4.html -->
+<html lang="ko"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+    <title>동전 던지기</title>
+    <script src="./동전 던지기_files/chart.js.다운로드"></script>
+    <style>
+        body {
+            font-family: 'Nanum Gothic', sans-serif;
+            background-color: #f0f0f0;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 15px;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin: 10px 0;
+            font-size: 1.8em;
+        }
+        
+        .control-panel {
+            background-color: #ecf0f1;
+            border: 2px solid #bdc3c7;
+            border-radius: 8px;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        label {
+            font-size: 1em;
+            font-weight: bold;
+        }
+        
+        input[type="number"] {
+            width: 80px;
+            height: 30px;
+            font-size: 1em;
+            text-align: center;
+            border: 1px solid #bdc3c7;
+            border-radius: 4px;
+            padding: 0 5px;
+        }
+        
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            font-size: 1em;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: #2980b9;
+        }
+        
+        .coin-display {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 10px 0;
+        }
+        
+        #coinImg {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background-color: #f1c40f;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #333;
+            border: 2px solid #e67e22;
+        }
+        
+        .chart-container {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            height: 400px;
+            margin: 15px 0;
+        }
+        
+        .chart {
+            background-color: white;
+            border-radius: 8px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            width: 48%;
+            height: 100%;
+            position: relative;
+        }
+        
+        #results {
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            margin: 5px 0;
+            padding: 3px 0;
+            border-bottom: 1px dashed #ddd;
+        }
+        
+        .mario-decoration {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 60px;
+            opacity: 0.7;
+            pointer-events: none;
+        }
+    </style>
+
+            <style>
+                @keyframes spin {
+                    0% { transform: rotateY(0deg); }
+                    50% { transform: rotateY(90deg); }
+                    100% { transform: rotateY(180deg); }
+                }
+            </style>
+        </head>
+<body>
+    <h1>동전 던지기</h1>
+    
+    <div class="control-panel">
+        <label for="numFlips">동전을 몇 번 던질까요?</label>
+        <input type="number" id="numFlips" min="1" max="1000" value="30">
+        <button onclick="simulateFlips()">시작</button>
+    </div>
+    
+    <div class="coin-display">
+        <div id="coinImg">?</div>
+    </div>
+    
+    <div class="chart-container">
+        <div class="chart">
+            <canvas id="cumulativeChart" width="864" height="576" style="display: block; box-sizing: border-box; height: 384px; width: 576px;"></canvas>
+        </div>
+        <div class="chart">
+            <canvas id="relativeChart" width="864" height="432" style="display: block; box-sizing: border-box; height: 288px; width: 576px;"></canvas>
+        </div>
+    </div>
+    
+    <div id="results"></div>
+    
+    <!-- 마리오 꾸밈 요소 -->
+    <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgdmlld0JveD0iMCAwIDYwIDYwIj48cmVjdCB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIGZpbGw9IiNlNzRjM2MiIHg9IjIwIiB5PSIwIj48L3JlY3Q+PHJlY3Qgd2lkdGg9IjIwIiBoZWlnaHQ9IjIwIiBmaWxsPSIjZTc0YzNjIiB4PSI0MCIgeT0iMCI+PC9yZWN0PjxyZWN0IHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCIgZmlsbD0iI2U3NGMzYyIgeD0iMjAiIHk9IjIwIj48L3JlY3Q+PHJlY3Qgd2lkdGg9IjIwIiBoZWlnaHQ9IjIwIiBmaWxsPSIjMzMzIiB4PSI0MCIgeT0iMjAiPjwvcmVjdD48cmVjdCB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIGZpbGw9IiNlNzRjM2MiIHg9IjIwIiB5PSI0MCI+PC9yZWN0PjxyZWN0IHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCIgZmlsbD0iIzMzMyIgeD0iMCIgeT0iNDAiPjwvcmVjdD48cmVjdCB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIGZpbGw9IiNmMWM0MGYiIHg9IjAiIHk9IjAiPjwvcmVjdD48Y2lyY2xlIGN4PSIxMCIgY3k9IjEwIiByPSI2IiBmaWxsPSIjZmZmIj48L2NpcmNsZT48dGV4dCB4PSI3IiB5PSIxMyIgZmlsbD0iIzMzMyIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjEwIj4/PC90ZXh0Pjwvc3ZnPg==" alt="마리오 꾸밈" class="mario-decoration">
+    
+    <script>
+        let cumulativeChart;
+        let relativeChart;
+        let isSimulating = false;
+        
+        function simulateFlips() {
+            if (isSimulating) return;
+            isSimulating = true;
+            
+            const numFlips = parseInt(document.getElementById('numFlips').value);
+            if (numFlips < 1) {
+                alert('1 이상의 숫자를 입력해주세요');
+                isSimulating = false;
+                return;
+            }
+            
+            if (numFlips > 1000) {
+                alert('최대 1000번까지만 설정 가능합니다');
+                document.getElementById('numFlips').value = 1000;
+                isSimulating = false;
+                return;
+            }
+            
+            let headsCount = 0;
+            let tailsCount = 0;
+            const cumulativeData = [];
+            const relativeData = [];
+            
+            initializeCharts(numFlips);
+            
+            const coinImg = document.getElementById('coinImg');
+            coinImg.style.animation = 'spin 0.5s linear infinite';
+            coinImg.innerText = '?';
+            
+            let i = 0;
+            const interval = setInterval(() => {
+                if (i >= numFlips) {
+                    clearInterval(interval);
+                    coinImg.style.animation = '';
+                    displayResults(numFlips, headsCount, tailsCount);
+                    isSimulating = false;
+                    return;
+                }
+                
+                const flip = Math.random() < 0.5 ? 'heads' : 'tails';
+                if (flip === 'heads') {
+                    headsCount++;
+                    coinImg.innerText = '앞';
+                    coinImg.style.backgroundColor = '#3498db';
+                } else {
+                    tailsCount++;
+                    coinImg.innerText = '뒤';
+                    coinImg.style.backgroundColor = '#e74c3c';
+                }
+                
+                cumulativeData.push({ heads: headsCount, tails: tailsCount });
+                relativeData.push({ heads: headsCount / (i + 1), tails: tailsCount / (i + 1) });
+                
+                updateCharts(cumulativeData, relativeData, i + 1);
+                i++;
+            }, Math.max(10, 5000 / numFlips)); // 많은 수의 시뮬레이션은 빠르게, 적은 수는 천천히 처리
+        }
+        
+        function initializeCharts(numFlips) {
+            if (cumulativeChart) cumulativeChart.destroy();
+            if (relativeChart) relativeChart.destroy();
+            
+            const cumulativeCtx = document.getElementById('cumulativeChart').getContext('2d');
+            const relativeCtx = document.getElementById('relativeChart').getContext('2d');
+            
+            cumulativeChart = new Chart(cumulativeCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['앞면', '뒷면'],
+                    datasets: [
+                        {
+                            label: '횟수',
+                            data: [0, 0],
+                            backgroundColor: ['#3498db', '#e74c3c'],
+                            borderColor: ['#2980b9', '#c0392b'],
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    aspectRatio: 1.5,
+                    aspectRatio: 1.5,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: '누적 횟수',
+                            font: {
+                                size: 14
+                            }
+                        },
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: numFlips,
+                            title: {
+                                display: true,
+                                text: '횟수',
+                                font: {
+                                    size: 12
+                                }
+                            },
+                            ticks: {
+                                font: {
+                                    size: 10
+                                }
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                font: {
+                                    size: 10
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+            
+            relativeChart = new Chart(relativeCtx, {
+                type: 'line',
+                data: {
+                    labels: Array.from({ length: numFlips }, (_, i) => i + 1),
+                    datasets: [
+                        {
+                            label: '앞면 상대도수',
+                            data: [0.5],
+                            borderColor: '#3498db',
+                            backgroundColor: 'transparent',
+                            borderWidth: 2,
+                            tension: 0,
+                            fill: false,
+                            pointRadius: 2,
+                            pointBackgroundColor: '#3498db'
+                        },
+                        {
+                            label: '뒷면 상대도수',
+                            data: [0.5],
+                            borderColor: '#e74c3c',
+                            backgroundColor: 'transparent',
+                            borderWidth: 2,
+                            tension: 0,
+                            fill: false,
+                            pointRadius: 2,
+                            pointBackgroundColor: '#e74c3c'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    animation: {
+                        duration: 0 // 애니메이션 효과 제거
+                    },
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: '상대도수 변화',
+                            font: {
+                                size: 14
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: '시행 횟수',
+                                font: {
+                                    size: 12
+                                }
+                            },
+                            ticks: {
+                                maxTicksLimit: 10, // x축 레이블 수 제한
+                                font: {
+                                    size: 10
+                                }
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            max: 1,
+                            title: {
+                                display: true,
+                                text: '상대도수',
+                                font: {
+                                    size: 12
+                                }
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    return value.toFixed(1);
+                                },
+                                font: {
+                                    size: 10
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+            
+            document.getElementById('results').innerHTML = '';
+        }
+        
+        function updateCharts(cumulativeData, relativeData, currentFlip) {
+            const latestCumulative = cumulativeData[cumulativeData.length - 1];
+            cumulativeChart.data.datasets[0].data = [latestCumulative.heads, latestCumulative.tails];
+            cumulativeChart.update('none'); // 애니메이션 없이 업데이트
+            
+            relativeChart.data.labels = Array.from({ length: currentFlip }, (_, i) => i + 1);
+            relativeChart.data.datasets[0].data = relativeData.map(data => data.heads);
+            relativeChart.data.datasets[1].data = relativeData.map(data => data.tails);
+            relativeChart.update('none'); // 애니메이션 없이 업데이트
+        }
+        
+        function displayResults(totalFlips, headsCount, tailsCount) {
+            const resultsDiv = document.getElementById('results');
+            const headsPercent = (headsCount / totalFlips * 100).toFixed(2);
+            const tailsPercent = (tailsCount / totalFlips * 100).toFixed(2);
+            
+            resultsDiv.innerHTML = `
+                <div class="result-item">
+                    <strong>전체 횟수:</strong>
+                    <span>${totalFlips}</span>
+                </div>
+                <div class="result-item">
+                    <strong>앞면:</strong>
+                    <span>${headsCount} (${headsPercent}%)</span>
+                </div>
+                <div class="result-item">
+                    <strong>뒷면:</strong>
+                    <span>${tailsCount} (${tailsPercent}%)</span>
+                </div>
+            `;
+        }
+        
+        // CSS 애니메이션 정의
+        document.head.insertAdjacentHTML('beforeend', `
+            <style>
+                @keyframes spin {
+                    0% { transform: rotateY(0deg); }
+                    50% { transform: rotateY(90deg); }
+                    100% { transform: rotateY(180deg); }
+                }
+            </style>
+        `);
+        
+        // 페이지 로드 시 초기 차트 설정
+        window.onload = function() {
+            initializeCharts(30);
+        };
+    </script>
+
+</body></html>

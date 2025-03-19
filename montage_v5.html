@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>범인 카드 만들기</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Noto Sans KR', sans-serif;
+        }
+        
+        body {
+            min-height: 100vh;
+            background-color: #002868;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .header {
+            padding: 20px;
+            background-color: #fff9f5;
+            text-align: center;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header h1 {
+            color: #d82c20;
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .header p {
+            color: #333;
+            font-size: 1.2rem;
+            margin-bottom: 5px;
+        }
+        
+        .subtitle {
+            font-size: 0.9rem;
+            color: #555;
+            margin-bottom: 10px;
+        }
+        
+        .main-container {
+            flex: 1;
+            display: flex;
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+        }
+        
+        .selection-area {
+            flex: 6;
+            background-color: #fff9f5;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .preview-area {
+            flex: 4;
+            display: flex;
+            flex-direction: column;
+            background-color: #002868;
+            padding: 20px;
+            color: white;
+        }
+        
+        .feature-section {
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .feature-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .feature-title {
+            display: flex;
+            align-items: center;
+            font-size: 1.1rem;
+            color: #333;
+            font-weight: bold;
+            margin-right: 10px;
+            min-width: 80px;
+        }
+        
+        .feature-icon {
+            margin-right: 10px;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .feature-items {
+            display: flex;
+            gap: 12px;
+        }
+        
+        .option-group {
+            display: flex;
+            align-items: center;
+        }
+        
+        .items-container {
+            display: flex;
+            gap: 12px;
+        }
+        
+        .selected-display {
+            display: flex;
+            align-items: center;
+            margin-left: 20px;
+            background-color: #f8eae0;
+            border: 2px solid #ffcc80;
+            padding: 5px 10px;
+            border-radius: 8px;
+            min-width: 60px;
+            justify-content: center;
+        }
+        
+        .arrow-icon {
+            margin: 0 10px;
+            color: #777;
+            font-size: 1.5rem;
+        }
+        
+        .option-item {
+            position: relative;
+            width: 80px;
+            height: 80px;
+            background-color: white;
+            border-radius: 10px;
+            overflow: hidden;
+            cursor: pointer;
+            border: 2px solid #e9e9e9;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .option-item:hover {
+            border-color: #ffcc80;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+        
+        .option-item.selected {
+            border-color: #ff9800;
+            background-color: #fff3e0;
+        }
+        
+        .option-item img {
+            max-width: 90%;
+            max-height: 90%;
+            object-fit: contain;
+        }
+        
+        .option-number {
+            position: absolute;
+            bottom: 3px;
+            right: 3px;
+            background-color: #f0f0f0;
+            color: #333;
+            font-size: 0.7rem;
+            font-weight: bold;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .card-container {
+            background-color: white;
+            border-radius: 10px;
+            padding: 10px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .card-header {
+            background-color: #002868;
+            color: white;
+            padding: 10px 25px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            transform: translateY(-5px);
+        }
+        
+        .card-image {
+            flex: 1;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        
+        .card-image img {
+            position: absolute;
+            max-width: 90%;
+            max-height: 90%;
+            object-fit: contain;
+        }
+        
+        .selected-features {
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        
+        .selected-feature-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .feature-label {
+            font-weight: bold;
+            color: white;
+        }
+        
+        .feature-value {
+            padding: 2px 10px;
+            border-radius: 20px;
+            background-color: #fff;
+            color: #002868;
+            font-weight: bold;
+        }
+        
+        .buttons {
+            display: flex;
+            gap: 15px;
+            width: 100%;
+            margin-top: 20px;
+        }
+        
+        .btn {
+            flex: 1;
+            padding: 12px 20px;
+            border-radius: 30px;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+            color: white;
+        }
+        
+        .btn-random {
+            background-color: #218838;
+        }
+        
+        .btn-random:hover {
+            background-color: #1e7e34;
+        }
+        
+        .btn-done {
+            background-color: #dc3545;
+        }
+        
+        .btn-done:hover {
+            background-color: #c82333;
+        }
+        
+        .fullscreen-mode {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+        
+        .fullscreen-card {
+            background-color: white;
+            border-radius: 15px;
+            width: 80%;
+            max-width: 500px;
+            aspect-ratio: 3/4;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+        
+        .fullscreen-header {
+            background-color: #002868;
+            color: white;
+            padding: 10px 40px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+        }
+        
+        .fullscreen-image {
+            flex: 1;
+            width: 100%;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .fullscreen-image img {
+            position: absolute;
+            max-width: 90%;
+            max-height: 90%;
+            object-fit: contain;
+        }
+        
+        .btn-close {
+            margin-top: 20px;
+            background-color: white;
+            color: #333;
+            border: none;
+            border-radius: 30px;
+            padding: 12px 30px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        @media (max-width: 1024px) {
+            .main-container {
+                flex-direction: column;
+            }
+            
+            .selection-area, .preview-area {
+                width: 100%;
+                max-height: none;
+            }
+            
+            .preview-area {
+                min-height: 500px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .feature-items {
+                flex-wrap: wrap;
+            }
+            
+            .option-group {
+                width: 100%;
+                flex-direction: column;
+                align-items: flex-start;
+                margin-bottom: 15px;
+            }
+            
+            .items-container {
+                width: 100%;
+                flex-wrap: wrap;
+                justify-content: space-between;
+            }
+            
+            .option-item {
+                width: 70px;
+                height: 70px;
+            }
+            
+            .selected-display {
+                margin-left: 0;
+                margin-top: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <div class="subtitle">교과서 76쪽~77쪽</div>
+            <h1>범인 카드 만들기</h1>
+            <p>각 부분을 클릭하여 범인 카드를 만들어 보세요.</p>
+        </div>
+    </div>
+    
+    <div class="main-container">
+        <div class="selection-area">
+            <!-- 얼굴 형태 선택 -->
+            <div class="feature-section">
+                <div class="option-group">
+                    <div class="feature-title">
+                        <span class="feature-icon">👤</span>
+                        얼굴 모양
+                    </div>
+                    <div class="items-container">
+                        <div class="option-item" onclick="selectPart('face', 'head1.png', 1)">
+                            <img src="head1.png" alt="얼굴 1">
+                            <div class="option-number">1</div>
+                        </div>
+                        <div class="option-item" onclick="selectPart('face', 'head2.png', 2)">
+                            <img src="head2.png" alt="얼굴 2">
+                            <div class="option-number">2</div>
+                        </div>
+                        <div class="option-item" onclick="selectPart('face', 'head3.png', 3)">
+                            <img src="head3.png" alt="얼굴 3">
+                            <div class="option-number">3</div>
+                        </div>
+                        <div class="option-item" onclick="selectPart('face', 'head4.png', 4)">
+                            <img src="head4.png" alt="얼굴 4">
+                            <div class="option-number">4</div>
+                        </div>
+                    </div>
+                    <span class="arrow-icon">→</span>
+                    <div class="selected-display" id="selectedFaceDisplay">1</div>
+                </div>
+            </div>
+            
+            <!-- 머리 스타일 선택 -->
+            <div class="feature-section">
+                <div class="option-group">
+                    <div class="feature-title">
+                        <span class="feature-icon">💇</span>
+                        머리 모양
+                    </div>
+                    <div class="items-container">
+                        <div class="option-item" onclick="selectPart('hair', 'hair5.png', 5)">
+                            <img src="hair5.png" alt="머리 1">
+                            <div class="option-number">5</div>
+                        </div>
+                        <div class="option-item" onclick="selectPart('hair', 'hair6.png', 6)">
+                            <img src="hair6.png" alt="머리 2">
+                            <div class="option-number">6</div>
+                        </div>
+                        <div class="option-item" onclick="selectPart('hair', 'hair7.png', 7)">
+                            <img src="hair7.png" alt="머리 3">
+                            <div class="option-number">7</div>
+                        </div>
+                        <div class="option-item" onclick="selectPart('hair', 'hair8.png', 8)">
+                            <img src="hair8.png" alt="머리 4">
+                            <div class="option-number">8</div>
+                        </div>
+                    </div>
+                    <span class="arrow-icon">→</span>
+                    <div class="selected-display" id="selectedHairDisplay">5</div>
+                </div>
+            </div>
+            
+            <!-- 눈썹 선택 -->
+            <div class="feature-section">
+                <div class="option-group">
+                    <div class="feature-title">
+                        <span class="feature-icon">🧐</span>
+                        눈썹
+                    </div>
+                    <div class="items-container">
+                        <div class="option-item" onclick="selectPart('eyebrows', 'eyebrows9.png', 9)">
+                            <img src="eyebrows9.png" alt="눈썹 1">
+                            <div class="option-number">9</div>
+                        </div>
+                        <div class="option-item" onclick="selectPart('eyebrows', 'eyebrows10.png', 10)">
+                            <img src="eyebrows10.png" alt="눈썹 2">
+                            <div class="option-number">10</div>
+                        </div>
+                        <div class="option-item" onclick="selectPart('eyebrows', 'eyebrows11.png', 11)">
+                            <img src="eyebrows11.png" alt="눈썹 3">
+                            <div class="option-number">11</div>
+                        </div>
+                        <div class="option-item" onclick="selectPart('eyebrows', 'eyebrows12.png', 12)">
+                            <img src="eyebrows12.png" alt="눈썹 4">
+                            <div class="option-number">12</div>
+                        </div>
+                    </div>
+                    <span class="arrow-icon">→</span>
+                    <div class="selected-display" id="selectedEyebrowsDisplay">9</div>
+                </div>
+            </div>
+            
+            <!-- 눈 선택 -->
+            <div class="feature-section">
+                <div class="option-group">
+                    <div class="feature-title">
+                        <span class="feature-icon">👁️</span>
+                        눈
+                    </div>
+                    <div class="items-container">
+                        <div class="option-item" onclick="selectPart('eyes', 'eyes13.png', 13)">
+                            <img src="eyes13.png" alt="눈 1">
+                            <div class="option-number">13</div>
+                        </div>
+                        <div class="option-item" onclick="selectPart('eyes', 'eyes14.png', 14)">
+                            <img src="eyes14.png" alt="눈 2">
+                            <div class="option-number">14</div>
+                        </div>
+                        <div class="option-item" onclick="selectPart('eyes', 'eyes15.png', 15)">
+                            <img src="eyes15.png" alt="눈 3">
+                            <div class="option-number">15</div>
+                        </div>
+                        <div class="option-item" onclick="selectPart('eyes', 'eyes16.png', 16)">
+                            <img src="eyes16.png" alt="눈 4">
+                            <div class="option-number">16</div>
+                        </div>
+                    </div>
+                    <span class="arrow-icon">→</span>
+                    <div class="selected-display" id="selectedEyesDisplay">13</div>
+                </div>
+            </div>
+            
+            <!-- 코와 입 선택 -->
+            <div class="feature-section">
+                <div class="option-group">
+                    <div class="feature-title">
+                        <span class="feature-icon">👃</span>
+                        코, 입
+                    </div>
+                    <div class="items-container">
+                        <div class="option-item" onclick="selectPart('nose_mouth', 'nose_mouth17.png', 17)">
+                            <img src="nose_mouth17.png" alt="코와 입 1">
+                            <div class="option-number">17</div>
+                        </div>
+                        <div class="option-item" onclick="selectPart('nose_mouth', 'nose_mouth18.png', 18)">
+                            <img src="nose_mouth18.png" alt="코와 입 2">
+                            <div class="option-number">18</div>
+                        </div>
+                        <div class="option-item" onclick="selectPart('nose_mouth', 'nose_mouth19.png', 19)">
+                            <img src="nose_mouth19.png" alt="코와 입 3">
+                            <div class="option-number">19</div>
+                        </div>
+                        <div class="option-item" onclick="selectPart('nose_mouth', 'nose_mouth20.png', 20)">
+                            <img src="nose_mouth20.png" alt="코와 입 4">
+                            <div class="option-number">20</div>
+                        </div>
+                    </div>
+                    <span class="arrow-icon">→</span>
+                    <div class="selected-display" id="selectedNoseMouthDisplay">17</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="preview-area">
+            <div class="card-container">
+                <div class="card-header">범인 카드</div>
+                <div class="card-image" id="montage">
+                    <img id="face" src="" alt="얼굴">
+                    <img id="hair" src="" alt="머리">
+                    <img id="eyebrows" src="" alt="눈썹">
+                    <img id="eyes" src="" alt="눈">
+                    <img id="nose_mouth" src="" alt="코와 입">
+                </div>
+            </div>
+            
+            <div class="selected-features">
+                <div class="selected-feature-item">
+                    <span class="feature-label">얼굴 모양:</span>
+                    <span class="feature-value" id="selectedFace">1</span>
+                </div>
+                <div class="selected-feature-item">
+                    <span class="feature-label">머리 모양:</span>
+                    <span class="feature-value" id="selectedHair">5</span>
+                </div>
+                <div class="selected-feature-item">
+                    <span class="feature-label">눈썹:</span>
+                    <span class="feature-value" id="selectedEyebrows">9</span>
+                </div>
+                <div class="selected-feature-item">
+                    <span class="feature-label">눈:</span>
+                    <span class="feature-value" id="selectedEyes">13</span>
+                </div>
+                <div class="selected-feature-item">
+                    <span class="feature-label">코, 입:</span>
+                    <span class="feature-value" id="selectedNoseMouth">17</span>
+                </div>
+            </div>
+            
+            <div class="buttons">
+                <button class="btn btn-random" onclick="randomSelect()">무작위로 만들기</button>
+                <button class="btn btn-done" onclick="showMontage()">놀이 시작!</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="fullscreenView" style="display: none;" class="fullscreen-mode">
+        <div class="fullscreen-card">
+            <div class="fullscreen-header">범인 카드</div>
+            <div class="fullscreen-image">
+                <img id="fs-face" src="" alt="얼굴">
+                <img id="fs-hair" src="" alt="머리">
+                <img id="fs-eyebrows" src="" alt="눈썹">
+                <img id="fs-eyes" src="" alt="눈">
+                <img id="fs-nose_mouth" src="" alt="코와 입">
+            </div>
+        </div>
+        <button class="btn-close" onclick="hideMontage()">돌아가기</button>
+    </div>
+    
+    <script>
+        const selectedNumbers = {
+            face: 1,
+            hair: 5,
+            eyebrows: 9,
+            eyes: 13,
+            nose_mouth: 17
+        };
+        
+        const partTexts = {
+            1: "x≥7",
+            2: "x<-3",
+            3: "x<3",
+            4: "x>7",
+            5: "x≤7",
+            6: "x>1",
+            7: "x<-1/4",
+            8: "x≤-1",
+            9: "x≤4",
+            10: "x≤-2",
+            11: "x>3",
+            12: "x>2",
+            13: "x≤2",
+            14: "x≤5",
+            15: "x>-1",
+            16: "x<-5",
+            17: "x≤6",
+            18: "x≥-1",
+            19: "x>10",
+            20: "x≥12"
+        };
+
+        // 초기화 함수
+        function init() {
+            // 이미지 경로 기본 설정
+            selectPart('face', 'head1.png', 1);
+            selectPart('hair', 'hair5.png', 5);
+            selectPart('eyebrows', 'eyebrows9.png', 9);
+            selectPart('eyes', 'eyes13.png', 13);
+            selectPart('nose_mouth', 'nose_mouth17.png', 17);
+            
+            // 선택된 항목 표시
+            updateSelectedItems();
+        }
+
+        function selectPart(part, src, number) {
+            // 이미지 업데이트
+            const img = document.getElementById(part);
+            img.src = src;
+            
+            // 선택된 아이템 표시
+            const options = document.querySelectorAll(`.option-item`);
+            options.forEach(item => {
+                if (item.onclick.toString().includes(`'${part}'`) && item.onclick.toString().includes(number)) {
+                    item.classList.add('selected');
+                } else if (item.onclick.toString().includes(`'${part}'`)) {
+                    item.classList.remove('selected');
+                }
+            });
+            
+            // 선택된 값 저장
+            selectedNumbers[part] = number;
+            
+            // 전체화면 뷰도 업데이트
+            const fsImg = document.getElementById(`fs-${part}`);
+            fsImg.src = src;
+            
+            // 선택된 값 업데이트
+            updateSelectedItems();
+        }
+
+        function randomSelect() {
+            const parts = {
+                face: ['head1.png', 'head2.png', 'head3.png', 'head4.png'],
+                hair: ['hair5.png', 'hair6.png', 'hair7.png', 'hair8.png'],
+                eyebrows: ['eyebrows9.png', 'eyebrows10.png', 'eyebrows11.png', 'eyebrows12.png'],
+                eyes: ['eyes13.png', 'eyes14.png', 'eyes15.png', 'eyes16.png'],
+                nose_mouth: ['nose_mouth17.png', 'nose_mouth18.png', 'nose_mouth19.png', 'nose_mouth20.png']
+            };
+
+            for (const part in parts) {
+                const randomIndex = Math.floor(Math.random() * parts[part].length);
+                const number = randomIndex + 1 + (part === 'face' ? 0 : part === 'hair' ? 4 : part === 'eyebrows' ? 8 : part === 'eyes' ? 12 : 16);
+                selectPart(part, parts[part][randomIndex], number);
+            }
+        }
+
+        function updateSelectedItems() {
+            document.getElementById('selectedFace').innerText = `${selectedNumbers.face} ${partTexts[selectedNumbers.face]}`;
+            document.getElementById('selectedHair').innerText = `${selectedNumbers.hair} ${partTexts[selectedNumbers.hair]}`;
+            document.getElementById('selectedEyebrows').innerText = `${selectedNumbers.eyebrows} ${partTexts[selectedNumbers.eyebrows]}`;
+            document.getElementById('selectedEyes').innerText = `${selectedNumbers.eyes} ${partTexts[selectedNumbers.eyes]}`;
+            document.getElementById('selectedNoseMouth').innerText = `${selectedNumbers.nose_mouth} ${partTexts[selectedNumbers.nose_mouth]}`;
+            
+            // 선택된 숫자 표시
+            document.getElementById('selectedFaceDisplay').innerText = selectedNumbers.face;
+            document.getElementById('selectedHairDisplay').innerText = selectedNumbers.hair;
+            document.getElementById('selectedEyebrowsDisplay').innerText = selectedNumbers.eyebrows;
+            document.getElementById('selectedEyesDisplay').innerText = selectedNumbers.eyes;
+            document.getElementById('selectedNoseMouthDisplay').innerText = selectedNumbers.nose_mouth;
+        }
+
+        function showMontage() {
+            document.getElementById('fullscreenView').style.display = 'flex';
+        }
+
+        function hideMontage() {
+            document.getElementById('fullscreenView').style.display = 'none';
+        }
+        
+        // 페이지 로드시 초기화
+        window.onload = init;
+    </script>
+</body>
+</html>

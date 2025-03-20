@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>범인 카드 게임</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Noto Sans KR', sans-serif;
+        }
+        
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow-y: auto; /* 스크롤 가능하도록 변경 */
+        }
+        
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #002868;
+            padding: 2vmin;
+        }
+        
+        .game-container {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-template-rows: repeat(5, 1fr);
+            gap: 1vmin;
+            width: 80%;
+            height: 70vh; /* 높이 조정 */
+            max-width: 800px;
+            margin-bottom: 20px;
+        }
+        
+        .option-item {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            background-color: white;
+            border-radius: 1vmin;
+            overflow: hidden;
+            cursor: pointer;
+            border: 0.2vmin solid #e9e9e9;
+            box-shadow: 0 0.2vmin 0.5vmin rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+        
+        .option-item:hover {
+            border-color: #ffcc80;
+            transform: translateY(-0.2vmin);
+            box-shadow: 0 0.4vmin 0.8vmin rgba(0,0,0,0.15);
+        }
+        
+        .option-item img {
+            max-width: 90%;
+            max-height: 90%;
+            object-fit: contain;
+        }
+        
+        .option-number {
+            position: absolute;
+            bottom: 0.3vmin;
+            right: 0.3vmin;
+            background-color: #f0f0f0;
+            color: #333;
+            font-size: 1vmin;
+            font-weight: bold;
+            width: 2vmin;
+            height: 2vmin;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .problem-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.9);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            z-index: 10;
+            padding: 1vmin;
+            font-size: 1.5vmin;
+            line-height: 1.5;
+        }
+        
+        .montage-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 20;
+        }
+        
+        .montage-image {
+            position: relative;
+            width: 40vmin;
+            height: 40vmin;
+            background-color: white;
+            border-radius: 2vmin;
+        }
+        
+        .montage-image img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        
+        .montage-title {
+            color: white;
+            font-size: 3vmin;
+            margin-bottom: 2vmin;
+        }
+        
+        .montage-timer {
+            color: white;
+            font-size: 2.5vmin;
+            margin-top: 2vmin;
+        }
+        
+        .controls {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 2vmin;
+            width: 100%;
+        }
+        
+        .answer-input {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1vmin;
+            width: 100%;
+            max-width: 300px;
+        }
+        
+        .answer-input input {
+            flex: 1;
+            padding: 0.8vmin;
+            font-size: 1.5vmin;
+            border: 0.1vmin solid #ccc;
+            border-radius: 0.5vmin;
+        }
+        
+        .answer-input button {
+            margin-left: 1vmin;
+            padding: 0.8vmin 1.5vmin;
+            font-size: 1.5vmin;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 0.5vmin;
+            cursor: pointer;
+        }
+        
+        .answer-input button:hover {
+            background-color: #45a049;
+        }
+        
+        .collected-parts {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 2vmin;
+            width: 100%;
+        }
+        
+        .collected-part {
+            position: relative;
+            width: 10vmin;
+            height: 10vmin;
+            margin: 0 0.5vmin;
+            background-color: white;
+            border-radius: 1vmin;
+            overflow: hidden;
+            box-shadow: 0 0.2vmin 0.5vmin rgba(0,0,0,0.1);
+        }
+        
+        .collected-part img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        
+        .completed-face {
+            position: relative;
+            width: 20vmin;
+            height: 20vmin;
+            background-color: white;
+            border-radius: 1vmin;
+            overflow: hidden;
+            margin-top: 2vmin;
+        }
+        
+        .completed-face img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        
+        .header {
+            width: 100%;
+            color: white;
+            text-align: center;
+            margin-bottom: 1vmin;
+            font-size: 2vmin;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .start-button {
+            padding: 1vmin 2vmin;
+            font-size: 2vmin;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 0.5vmin;
+            cursor: pointer;
+            margin: 1vmin 0;
+        }
+        
+        .start-button:hover {
+            background-color: #45a049;
+        }
+        
+        .disabled {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+        
+        .message {
+            color: white;
+            font-size: 2vmin;
+            margin: 1vmin 0;
+            text-align: center;
+            min-height: 3vmin;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>범인 카드 게임</h1>
+        <p>5개의 얼굴 부위를 모아 범인의 얼굴을 완성하세요!</p>
+        <!-- 시작 버튼을 여기로 이동 -->
+        <button class="start-button" id="startButton">게임 시작</button>
+    </div>
+    
+    <div class="message" id="message"></div>
+    
+    <div class="collected-parts" id="collectedParts">
+        <!-- 수집된 부위가 여기에 표시됩니다 -->
+        <div class="collected-part" id="headPart"></div>
+        <div class="collected-part" id="hairPart"></div>
+        <div class="collected-part" id="eyebrowsPart"></div>
+        <div class="collected-part" id="eyesPart"></div>
+        <div class="collected-part" id="noseAndMouthPart"></div>
+    </div>
+    
+    <div id="completedFace" style="display: none;" class="completed-face">
+        <!-- 완성된 얼굴이 여기에 표시됩니다 -->
+    </div>
+    
+    <div class="game-container" id="gameContainer">
+        <!-- 얼굴 부위 조각들이 여기에 표시됩니다 -->
+        <div class="option-item" data-number="1" data-type="head">
+            <img src="head1.png" alt="얼굴형 1">
+            <div class="option-number">1</div>
+        </div>
+        <div class="option-item" data-number="2" data-type="head">
+            <img src="head2.png" alt="얼굴형 2">
+            <div class="option-number">2</div>
+        </div>
+        <div class="option-item" data-number="3" data-type="head">
+            <img src="head3.png" alt="얼굴형 3">
+            <div class="option-number">3</div>
+        </div>
+        <div class="option-item" data-number="4" data-type="head">
+            <img src="head4.png" alt="얼굴형 4">
+            <div class="option-number">4</div>
+        </div>
+        <div class="option-item" data-number="5" data-type="hair">
+            <img src="hair5.png" alt="머리카락 5">
+            <div class="option-number">5</div>
+        </div>
+        <div class="option-item" data-number="6" data-type="hair">
+            <img src="hair6.png" alt="머리카락 6">
+            <div class="option-number">6</div>
+        </div>
+        <div class="option-item" data-number="7" data-type="hair">
+            <img src="hair7.png" alt="머리카락 7">
+            <div class="option-number">7</div>
+        </div>
+        <div class="option-item" data-number="8" data-type="hair">
+            <img src="hair8.png" alt="머리카락 8">
+            <div class="option-number">8</div>
+        </div>
+        <div class="option-item" data-number="9" data-type="eyebrows">
+            <img src="eyebrows9.png" alt="눈썹 9">
+            <div class="option-number">9</div>
+        </div>
+        <div class="option-item" data-number="10" data-type="eyebrows">
+            <img src="eyebrows10.png" alt="눈썹 10">
+            <div class="option-number">10</div>
+        </div>
+        <div class="option-item" data-number="11" data-type="eyebrows">
+            <img src="eyebrows11.png" alt="눈썹 11">
+            <div class="option-number">11</div>
+        </div>
+        <div class="option-item" data-number="12" data-type="eyebrows">
+            <img src="eyebrows12.png" alt="눈썹 12">
+            <div class="option-number">12</div>
+        </div>
+        <div class="option-item" data-number="13" data-type="eyes">
+            <img src="eyes13.png" alt="눈 13">
+            <div class="option-number">13</div>
+        </div>
+        <div class="option-item" data-number="14" data-type="eyes">
+            <img src="eyes14.png" alt="눈 14">
+            <div class="option-number">14</div>
+        </div>
+        <div class="option-item" data-number="15" data-type="eyes">
+            <img src="eyes15.png" alt="눈 15">
+            <div class="option-number">15</div>
+        </div>
+        <div class="option-item" data-number="16" data-type="eyes">
+            <img src="eyes16.png" alt="눈 16">
+            <div class="option-number">16</div>
+        </div>
+        <div class="option-item" data-number="17" data-type="noseAndMouth">
+            <img src="nose_mouth17.png" alt="코와 입 17">
+            <div class="option-number">17</div>
+        </div>
+        <div class="option-item" data-number="18" data-type="noseAndMouth">
+            <img src="nose_mouth18.png" alt="코와 입 18">
+            <div class="option-number">18</div>
+        </div>
+        <div class="option-item" data-number="19" data-type="noseAndMouth">
+            <img src="nose_mouth19.png" alt="코와 입 19">
+            <div class="option-number">19</div>
+        </div>
+        <div class="option-item" data-number="20" data-type="noseAndMouth">
+            <img src="nose_mouth20.png" alt="코와 입 20">
+            <div class="option-number">20</div>
+        </div>
+    </div>
+    
+    <script>
+        // 문제와 해답 데이터
+        const problemData = [
+            { number: 1, problem: '3x-2=2x+5', solution: 'x≥7' },
+            { number: 2, problem: '3x-1=4x+2', solution: 'x<-3' },
+            { number: 3, problem: '2-x=8-3x', solution: 'x<3' },
+            { number: 4, problem: '12-6x=9-3x', solution: 'x>7' },
+            { number: 5, problem: '3(x+1)≥2(2x-1)', solution: 'x≤7' },
+            { number: 6, problem: '4(x+2)>3(5-x)', solution: 'x>1' },
+            { number: 7, problem: '3(x-1)<-5x-5', solution: 'x<-1/4' },
+            { number: 8, problem: '3(4-x)≤5(2-x)', solution: 'x≤-1' },
+            { number: 9, problem: '0.3x-0.2≤0.5x-1', solution: 'x≤4' },
+            { number: 10, problem: '0.2x-4≤0.7x-3', solution: 'x≤-2' },
+            { number: 11, problem: '0.02x>0.36-0.1x', solution: 'x>3' },
+            { number: 12, problem: '0.2x>1-0.3x', solution: 'x>2' },
+            { number: 13, problem: '3x-2≤2x-1', solution: 'x≤2' },
+            { number: 14, problem: '2/3-1/3x≤3/5', solution: 'x≤5' },
+            { number: 15, problem: 'x-3/2>3x-5/4', solution: 'x>-1' },
+            { number: 16, problem: 'x/2≤3/5-1/6', solution: 'x<-5' },
+            { number: 17, problem: '0.1(x-1)≤-0.75x+5', solution: 'x≤6' },
+            { number: 18, problem: '-1/2x≤0.45+1/5x', solution: 'x≥-1' },
+            { number: 19, problem: '1/(x-9)>3-1/4', solution: 'x>10' },
+            { number: 20, problem: 'x/8-8≥0.25x-5', solution: 'x≥12' }
+        ];
+        
+        // 게임 상태 변수
+        let gameStarted = false;
+        let targetParts = {
+            head: null,
+            hair: null,
+            eyebrows: null,
+            eyes: null,
+            noseAndMouth: null
+        };
+        let collectedParts = {
+            head: false,
+            hair: false,
+            eyebrows: false,
+            eyes: false,
+            noseAndMouth: false
+        };
+        let currentProblem = null;
+        
+        // DOM 요소
+        const gameContainer = document.getElementById('gameContainer');
+        const startButton = document.getElementById('startButton');
+        const messageElement = document.getElementById('message');
+        const collectedPartsElement = document.getElementById('collectedParts');
+        const completedFaceElement = document.getElementById('completedFace');
+        
+        // 초기 메시지
+        messageElement.textContent = "시작 버튼을 눌러 게임을 시작하세요!";
+        
+        // 게임 시작 버튼 이벤트 리스너
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('startButton').onclick = function() {
+                startGame();
+            };
+        });
+        
+        // 게임 시작 함수
+        function startGame() {
+            alert("게임을 시작합니다!");
+            console.log("게임 시작 버튼 클릭됨");
+            gameStarted = true;
+            
+            // 기존 수집 상태 초기화
+            for (const type in collectedParts) {
+                collectedParts[type] = false;
+                document.getElementById(`${type}Part`).innerHTML = '';
+            }
+            
+            // 완성된 얼굴 숨기기
+            completedFaceElement.style.display = 'none';
+            completedFaceElement.innerHTML = '';
+            
+            // 각 부위별로 랜덤하게 하나씩 선택
+            const headOptions = Array.from(document.querySelectorAll('.option-item[data-type="head"]'));
+            const hairOptions = Array.from(document.querySelectorAll('.option-item[data-type="hair"]'));
+            const eyebrowsOptions = Array.from(document.querySelectorAll('.option-item[data-type="eyebrows"]'));
+            const eyesOptions = Array.from(document.querySelectorAll('.option-item[data-type="eyes"]'));
+            const noseAndMouthOptions = Array.from(document.querySelectorAll('.option-item[data-type="noseAndMouth"]'));
+            
+            targetParts.head = headOptions[Math.floor(Math.random() * headOptions.length)].dataset.number;
+            targetParts.hair = hairOptions[Math.floor(Math.random() * hairOptions.length)].dataset.number;
+            targetParts.eyebrows = eyebrowsOptions[Math.floor(Math.random() * eyebrowsOptions.length)].dataset.number;
+            targetParts.eyes = eyesOptions[Math.floor(Math.random() * eyesOptions.length)].dataset.number;
+            targetParts.noseAndMouth = noseAndMouthOptions[Math.floor(Math.random() * noseAndMouthOptions.length)].dataset.number;
+            
+            console.log("선택된 타겟 부위:", targetParts);
+            
+            // 몽타주 표시
+            showMontage();
+            
+            // 시작 버튼 비활성화
+            startButton.disabled = true;
+            startButton.classList.add('disabled');
+            startButton.textContent = '게임 진행 중...';
+            
+            // 메시지 업데이트
+            messageElement.textContent = "범인의 얼굴을 기억하세요!";
+        }
+        
+        // 몽타주 표시 함수
+        function showMontage() {
+            const montageContainer = document.createElement('div');
+            montageContainer.className = 'montage-container';
+            
+            const montageTitle = document.createElement('div');
+            montageTitle.className = 'montage-title';
+            montageTitle.textContent = '범인의 얼굴을 기억하세요!';
+            
+            const montageImage = document.createElement('div');
+            montageImage.className = 'montage-image';
+            
+            // 선택된 부위 이미지 추가
+            for (const [type, number] of Object.entries(targetParts)) {
+                const img = document.createElement('img');
+                let fileName;
+                
+                switch(type) {
+                    case 'head':
+                        fileName = `head${number}.png`;
+                        break;
+                    case 'hair':
+                        fileName = `hair${number}.png`;
+                        break;
+                    case 'eyebrows':
+                        fileName = `eyebrows${number}.png`;
+                        break;
+                    case 'eyes':
+                        fileName = `eyes${number}.png`;
+                        break;
+                    case 'noseAndMouth':
+                        fileName = `nose_mouth${number}.png`;
+                        break;
+                }
+                
+                // 이미지 오류 처리
+                img.onerror = function() {
+                    console.log(`이미지 로드 실패: ${fileName}`);
+                    // 더미 이미지로 대체하기 위한 색상 배경
+                    this.style.width = '100%';
+                    this.style.height = '100%';
+                    this.style.backgroundColor = getRandomColor();
+                    this.alt = '이미지 로드 실패';
+                };
+                
+                img.src = fileName;
+                img.alt = `${type} ${number}`;
+                montageImage.appendChild(img);
+            }
+            
+            const montageTimer = document.createElement('div');
+            montageTimer.className = 'montage-timer';
+            montageTimer.textContent = '5';
+            
+            montageContainer.appendChild(montageTitle);
+            montageContainer.appendChild(montageImage);
+            montageContainer.appendChild(montageTimer);
+            
+            document.body.appendChild(montageContainer);
+            
+            // 타이머 설정
+            let timeLeft = 5;
+            const timerInterval = setInterval(() => {
+                timeLeft--;
+                montageTimer.textContent = timeLeft;
+                
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    document.body.removeChild(montageContainer);
+                    
+                    // 게임 시작
+                    initializeGame();
+                }
+            }, 1000);
+        }
+        
+        // 랜덤 색상 생성 함수
+        function getRandomColor() {
+            const letters = '0123456789ABCDEF';
+            let color = '#';
+            for (let i = 0; i < 6; i++) {
+                color += letters[Math.floor(Math.random() * 16)];
+            }
+            return color;
+        }
+        
+        // 게임 초기화 함수
+        function initializeGame() {
+            // 문제 해결을 위한 이벤트 리스너 등록
+            const optionItems = document.querySelectorAll('.option-item');
+            optionItems.forEach(item => {
+                // 기존 이벤트 리스너 제거 (중복 방지)
+                item.removeEventListener('click', showProblem);
+                // 새 이벤트 리스너 등록
+                item.addEventListener('click', showProblem);
+            });
+            
+            // 메시지 업데이트
+            messageElement.textContent = "각 부위를 선택하고 문제를 풀어 범인의 얼굴을 완성하세요!";
+            
+            console.log("게임이 초기화되었습니다. 부위들을 선택할 수 있습니다.");
+            console.log("타겟 부위:", targetParts);
+        }
+        
+        // 문제 표시 함수
+        function showProblem(event) {
+            if (!gameStarted) {
+                messageElement.textContent = "게임을 먼저 시작해주세요!";
+                return;
+            }
+            
+            console.log("조각 클릭됨");
+            
+            const optionItem = event.currentTarget;
+            const number = optionItem.dataset.number;
+            const type = optionItem.dataset.type;
+            
+            console.log(`선택된 조각: ${type} ${number}`);
+            
+            // 이미 수집한 부위인지 확인
+            if (collectedParts[type]) {
+                messageElement.textContent = `이미 ${getTypeDisplayName(type)} 부위를 획득했습니다.`;
+                return;
+            }
+            
+            // 기존에 보이는 문제 제거
+            const existingOverlays = document.querySelectorAll('.problem-overlay');
+            existingOverlays.forEach(overlay => overlay.remove());
+            
+            // 클릭된 조각의 문제 데이터 찾기
+            currentProblem = problemData.find(p => p.number === parseInt(number));
+            
+            if (!currentProblem) {
+                console.error(`문제를 찾을 수 없음: ${number}`);
+                return;
+            }
+            
+            console.log(`표시할 문제: ${currentProblem.problem}, 정답: ${currentProblem.solution}`);
+            
+            // 문제 오버레이 추가
+            const problemOverlay = document.createElement('div');
+            problemOverlay.className = 'problem-overlay';
+            problemOverlay.innerHTML = `
+                <p style="font-weight: bold; margin-bottom: 1vmin;">문제 ${number}</p>
+                <p style="margin-bottom: 1vmin;">${currentProblem.problem}</p>
+                <div class="answer-input">
+                    <input type="text" id="answerInput" placeholder="답을 입력하세요">
+                    <button id="submitAnswer">제출</button>
+                </div>
+            `;
+            
+            optionItem.appendChild(problemOverlay);
+            
+            // 답 제출 버튼 이벤트 리스너
+            const submitButton = document.getElementById('submitAnswer');
+            submitButton.addEventListener('click', () => checkAnswer(number, type));
+            
+            // 엔터 키 이벤트 리스너
+            const answerInput = document.getElementById('answerInput');
+            answerInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    checkAnswer(number, type);
+                }
+            });
+            
+            // 입력 필드에 포커스
+            setTimeout(() => {
+                answerInput.focus();
+            }, 100);
+        }
+        
+        // 답 체크 함수
+        function checkAnswer(number, type) {
+            const answerInput = document.getElementById('answerInput');
+            const userAnswer = answerInput.value.trim();
+            
+            // 답 비교 (공백, 대소문자 무시)
+            const normalizedUserAnswer = userAnswer.replace(/\s+/g, '').toLowerCase();
+            const normalizedCorrectAnswer = currentProblem.solution.replace(/\s+/g, '').toLowerCase();
+            
+            if (normalizedUserAnswer === normalizedCorrectAnswer) {
+                // 정답 처리
+                messageElement.textContent = `정답입니다! ${getTypeDisplayName(type)} 부위를 획득했습니다.`;
+                
+                // 해당 부위 수집 처리
+                collectedParts[type] = true;
+                
+                // 문제 오버레이 제거
+                const problemOverlay = document.querySelector('.problem-overlay');
+                if (problemOverlay) {
+                    problemOverlay.remove();
+                }
+                
+                // 수집된 부위 표시 업데이트
+                updateCollectedParts(type, number);
+                
+                // 모든 부위를 수집했는지 확인
+                checkCompletion();
+            } else {
+                // 오답 처리
+                messageElement.textContent = "틀렸습니다. 다시 시도해보세요.";
+                answerInput.value = "";
+                answerInput.focus();
+            }
+        }
+        
+        // 수집된 부위 표시 업데이트 함수
+        function updateCollectedParts(type, number) {
+            const partElement = document.getElementById(`${type}Part`);
+            const img = document.createElement('img');
+            
+            let fileName;
+            switch(type) {
+                case 'head':
+                    fileName = `head${number}.png`;
+                    break;
+                case 'hair':
+                    fileName = `hair${number}.png`;
+                    break;
+                case 'eyebrows':
+                    fileName = `eyebrows${number}.png`;
+                    break;
+                case 'eyes':
+                    fileName = `eyes${number}.png`;
+                    break;
+                case 'noseAndMouth':
+                    fileName = `nose_mouth${number}.png`;
+                    break;
+            }
+            
+            img.src = fileName;
+            img.alt = `${type} ${number}`;
+            
+            partElement.innerHTML = '';
+            partElement.appendChild(img);
+        }
+        
+        // 게임 완료 체크 함수
+        function checkCompletion() {
+            const allCollected = Object.values(collectedParts).every(collected => collected);
+            
+            if (allCollected) {
+                // 게임 완료 처리
+                messageElement.textContent = "축하합니다! 범인의 얼굴을 완성했습니다!";
+                
+                // 완성된 얼굴 표시
+                

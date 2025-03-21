@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>스톱워치 윷놀이</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        body {
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            grid-column: 1 / 3;
+        }
+        .game-area {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .rules-area {
+            background-color: #fff8e1;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            height: fit-content;
+        }
+        .rules-area h2 {
+            margin-top: 0;
+            color: #ff6f00;
+        }
+        .rules-area ul {
+            padding-left: 20px;
+        }
+        .rules-area li {
+            margin-bottom: 8px;
+        }
+        .teams-container {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        .team {
+            width: 48%;
+            padding: 10px;
+            text-align: center;
+            border-radius: 5px;
+        }
+        .team-red {
+            background-color: #ffebee;
+            border: 2px solid #ef5350;
+        }
+        .team-blue {
+            background-color: #e3f2fd;
+            border: 2px solid #42a5f5;
+        }
+        .team h3 {
+            margin-top: 0;
+        }
+        .stopwatch-container {
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 20px;
+            background-color: #f5f5f5;
+            border-radius: 10px;
+        }
+        .stopwatch {
+            font-size: 3em;
+            font-family: monospace;
+            margin-bottom: 10px;
+        }
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .btn-primary {
+            background-color: #4caf50;
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: #388e3c;
+        }
+        .btn-primary.stop {
+            background-color: #f44336;
+        }
+        .btn-primary.stop:hover {
+            background-color: #d32f2f;
+        }
+        .btn-reset {
+            background-color: #9e9e9e;
+            color: white;
+            margin-left: 10px;
+        }
+        .btn-reset:hover {
+            background-color: #757575;
+        }
+        .fraction-result {
+            font-size: 1.5em;
+            margin: 15px 0;
+        }
+        .move-result {
+            font-size: 1.5em;
+            margin: 15px 0;
+            font-weight: bold;
+            color: #0277bd;
+        }
+        .message {
+            padding: 10px;
+            background-color: #fff9c4;
+            border-left: 4px solid #ffc107;
+            margin-bottom: 20px;
+        }
+        .board-container {
+            position: relative;
+            width: 100%;
+            height: 350px;
+            background-color: #e0f7fa;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .board {
+            position: absolute;
+            top: 50px;
+            left: 50px;
+            width: 500px;
+            height: 250px;
+            border: 2px solid #333;
+        }
+        .board-path {
+            position: absolute;
+            stroke: #555;
+            stroke-width: 2px;
+            fill: none;
+        }
+        .board-spot {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background-color: white;
+            border: 1px solid #555;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+        }
+        .board-spot.start {
+            background-color: #ffeb3b;
+        }
+        .board-spot.center {
+            background-color: #81c784;
+            width: 40px;
+            height: 40px;
+        }
+        .piece {
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .piece.red {
+            background-color: #d50000;
+            border: 1px solid #9b0000;
+        }
+        .piece.blue {
+            background-color: #2962ff;
+            border: 1px solid #0039cb;
+        }
+        .piece-home {
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        .result-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        .result-table th, .result-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+        .result-table th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>스톱워치 윷놀이</h1>
+        
+        <div class="game-area">
+            <div class="teams-container">
+                <div class="team team-red">
+                    <h3>팀 1 (빨간색)</h3>
+                    <div id="team1-status">0 / 4 도착</div>
+                </div>
+                <div class="team team-blue">
+                    <h3>팀 2 (파란색)</h3>
+                    <div id="team2-status">0 / 4 도착</div>
+                </div>
+            </div>
+
+            <div class="message" id="game-message">
+                팀 1의 차례입니다. 스톱워치 버튼을 눌러 시작하세요.
+            </div>
+
+            <div class="stopwatch-container">
+                <div class="stopwatch" id="stopwatch">00:00.00</div>
+                <div class="fraction-result" id="fraction-result"></div>
+                <div class="move-result" id="move-result"></div>
+                <button class="btn btn-primary" id="toggle-btn">시작</button>
+                <button class="btn btn-reset" id="reset-btn">초기화</button>
+            </div>
+
+            <div class="board-container">
+                <div class="board">
+                    <!-- 윷판 경로와 점들은 JavaScript로 생성됩니다 -->
+                </div>
+            </div>
+
+            <table class="result-table">
+                <thead>
+                    <tr>
+                        <th>분수 유형</th>
+                        <th>윷 결과</th>
+                        <th>이동 칸수</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>도 (일반 분수)</td>
+                        <td>도 (Do)</td>
+                        <td>1칸</td>
+                    </tr>
+                    <tr>
+                        <td>순환소수</td>
+                        <td>개 (Gae)</td>
+                        <td>2칸</td>
+                    </tr>
+                    <tr>
+                        <td>유한소수</td>
+                        <td>걸 (Geol)</td>
+                        <td>3칸</td>
+                    </tr>
+                    <tr>
+                        <td>2 이상의 자연수</td>
+                        <td>윷 (Yut)</td>
+                        <td>4칸</td>
+                    </tr>
+                    <tr>
+                        <td>분모가 0인 경우</td>
+                        <td>모 (Mo)</td>
+                        <td>5칸</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="rules-area">
+            <h2>게임 규칙</h2>
+            <ul>
+                <li>각 팀은 말 4개씩을 가지고 게임을 진행합니다.</li>
+                <li>차례가 되면 스톱워치 버튼을 눌러 시작하고, 다시 눌러 정지합니다.</li>
+                <li>스톱워치에서 초 단위의 수를 분자(위), 초 단위 아래의 수를 분모(아래)로 하는 분수를 만듭니다.</li>
+                <li>만들어진 분수의 특성에 따라 다음과 같이 말을 이동합니다:
+                    <ul>
+                        <li><strong>도 (1칸)</strong>: 일반 분수인 경우</li>
+                        <li><strong>개 (2칸)</strong>: 순환소수인 경우</li>
+                        <li><strong>걸 (3칸)</strong>: 유한소수인 경우</li>
+                        <li><strong>윷 (4칸)</strong>: 2 이상의 자연수인 경우</li>
+                        <li><strong>모 (5칸)</strong>: 분모가 0인 경우</li>
+                    </ul>
+                </li>
+                <li>윷이나 모가 나오면 한 번 더 차례를 진행할 수 있습니다.</li>
+                <li>이동할 말을 선택하려면 해당 말을 클릭하세요.</li>
+                <li>모든 말을 골인 지점에 먼저 도착시키는 팀이 승리합니다.</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // 게임 상태 변수
+        let isRunning = false;
+        let startTime = 0;
+        let elapsedTime = 0;
+        let timerInterval = null;
+        let currentTeam = 1;
+        let currentMove = 0;
+        let gameOver = false;
+        
+        // 팀 정보
+        const teams = [
+            { 
+                id: 1, 
+                name: '팀 1', 
+                color: 'red',
+                pieces: [0, 0, 0, 0] // 0: 시작점, 1-16: 경로상 위치, 17: 도착
+            },
+            { 
+                id: 2, 
+                name: '팀 2', 
+                color: 'blue',
+                pieces: [0, 0, 0, 0]
+            }
+        ];
+
+        // 윷판 경로 정의
+        const boardPath = [
+            { x: 50, y: 250 }, // 시작점 (0)
+            { x: 125, y: 250 }, // 1
+            { x: 200, y: 250 }, // 2
+            { x: 275, y: 250 }, // 3
+            { x: 350, y: 250 }, // 4
+            { x: 425, y: 250 }, // 5
+            { x: 425, y: 175 }, // 6
+            { x: 425, y: 100 }, // 7
+            { x: 425, y: 25 }, // 8
+            { x: 350, y: 25 }, // 9
+            { x: 275, y: 25 }, // 10
+            { x: 200, y: 25 }, // 11
+            { x: 125, y: 25 }, // 12
+            { x: 50, y: 25 }, // 13
+            { x: 50, y: 100 }, // 14
+            { x: 50, y: 175 }, // 15
+            { x: 50, y: 250 }, // 돌아옴 (16)
+            { x: 250, y: 140 }  // 중앙 (골인) (17)
+        ];
+
+        // DOM 요소 참조
+        const stopwatchDisplay = document.getElementById('stopwatch');
+        const toggleBtn = document.getElementById('toggle-btn');
+        const resetBtn = document.getElementById('reset-btn');
+        const fractionResultDisplay = document.getElementById('fraction-result');
+        const moveResultDisplay = document.getElementById('move-result');
+        const gameMessageDisplay = document.getElementById('game-message');
+        const team1StatusDisplay = document.getElementById('team1-status');
+        const team2StatusDisplay = document.getElementById('team2-status');
+        const boardContainer = document.querySelector('.board');
+
+        // 윷판 그리기
+        function drawBoard() {
+            // 십자 경로 그리기
+            const horizontalPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            horizontalPath.setAttribute('d', 'M50,250 H450 V25 H50 V250 Z');
+            horizontalPath.setAttribute('class', 'board-path');
+            
+            const diagonalPath1 = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            diagonalPath1.setAttribute('d', 'M50,250 L425,25');
+            diagonalPath1.setAttribute('class', 'board-path');
+            diagonalPath1.style.strokeDasharray = '5,5';
+            
+            const diagonalPath2 = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            diagonalPath2.setAttribute('d', 'M50,25 L425,250');
+            diagonalPath2.setAttribute('class', 'board-path');
+            diagonalPath2.style.strokeDasharray = '5,5';
+            
+            const svgContainer = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            svgContainer.setAttribute('width', '500');
+            svgContainer.setAttribute('height', '250');
+            
+            svgContainer.appendChild(horizontalPath);
+            svgContainer.appendChild(diagonalPath1);
+            svgContainer.appendChild(diagonalPath2);
+            
+            boardContainer.appendChild(svgContainer);
+            
+            // 경로 지점 그리기
+            boardPath.forEach((pos, index) => {
+                const spot = document.createElement('div');
+                spot.className = 'board-spot';
+                if (index === 0) {
+                    spot.classList.add('start');
+                } else if (index === 17) {
+                    spot.classList.add('center');
+                    spot.innerText = '골';
+                    spot.style.display = 'flex';
+                    spot.style.justifyContent = 'center';
+                    spot.style.alignItems = 'center';
+                    spot.style.fontSize = '16px';
+                }
+                spot.style.left = `${pos.x}px`;
+                spot.style.top = `${pos.y}px`;
+                boardContainer.appendChild(spot);
+            });
+            
+            // 말 배치
+            drawPieces();
+        }
+        
+        // 말 그리기
+        function drawPieces() {
+            // 기존 말 제거
+            document.querySelectorAll('.piece, .piece-home').forEach(piece => piece.remove());
+            
+            // 각 팀의 말 그리기
+            teams.forEach((team, teamIdx) => {
+                // 홈 위치 말 (아직 출발하지 않은 말)
+                const homeCount = team.pieces.filter(pos => pos === 0).length;
+                for (let i = 0; i < homeCount; i++) {
+                    const piece = document.createElement('div');
+                    piece.className = `piece-home ${team.color}`;
+                    piece.dataset.team = teamIdx;
+                    piece.dataset.index = team.pieces.findIndex(pos => pos === 0);
+                    
+                    // 홈 위치 설정 (보드 좌측 하단)
+                    const homeX = teamIdx === 0 ? 25 : 475;
+                    const homeY = 300 - i * 20;
+                    
+                    piece.style.left = `${homeX}px`;
+                    piece.style.top = `${homeY}px`;
+                    piece.style.backgroundColor = team.color === 'red' ? '#d50000' : '#2962ff';
+                    
+                    // 클릭 이벤트 추가
+                    if (currentTeam === team.id && currentMove > 0) {
+                        piece.style.cursor = 'pointer';
+                        piece.addEventListener('click', () => {
+                            const pieceIndex = parseInt(piece.dataset.index);
+                            movePiece(teamIdx, pieceIndex);
+                        });
+                    }
+                    
+                    boardContainer.appendChild(piece);
+                }
+                
+                // 보드 위의 말 (이동 중인 말)
+                team.pieces.forEach((position, pieceIdx) => {
+                    if (position > 0 && position < 17) {
+                        const pos = boardPath[position];
+                        const piece = document.createElement('div');
+                        piece.className = `piece ${team.color}`;
+                        piece.dataset.team = teamIdx;
+                        piece.dataset.index = pieceIdx;
+                        
+                        // 같은 위치에 있는 말 겹치지 않게 오프셋 적용
+                        const samePositionCount = team.pieces.filter(p => p === position).indexOf(position);
+                        const offsetX = (samePositionCount % 2) * 10 - 5;
+                        const offsetY = Math.floor(samePositionCount / 2) * 10 - 5;
+                        
+                        piece.style.left = `${pos.x + offsetX}px`;
+                        piece.style.top = `${pos.y + offsetY}px`;
+                        
+                        // 클릭 이벤트 추가
+                        if (currentTeam === team.id && currentMove > 0) {
+                            piece.style.cursor = 'pointer';
+                            piece.addEventListener('click', () => {
+                                const pieceIndex = parseInt(piece.dataset.index);
+                                movePiece(teamIdx, pieceIdx);
+                            });
+                        }
+                        
+                        boardContainer.appendChild(piece);
+                    }
+                    // 골인한 말
+                    else if (position === 17) {
+                        const centerPos = boardPath[17];
+                        const piece = document.createElement('div');
+                        piece.className = `piece ${team.color}`;
+                        
+                        // 중앙에 있는 말들 배치
+                        const goalCount = team.pieces.filter(p => p === 17).length;
+                        const angle = (pieceIdx / goalCount) * Math.PI * 2;
+                        const radius = 10;
+                        const offsetX = Math.cos(angle) * radius;
+                        const offsetY = Math.sin(angle) * radius;
+                        
+                        piece.style.left = `${centerPos.x + offsetX}px`;
+                        piece.style.top = `${centerPos.y + offsetY}px`;
+                        
+                        boardContainer.appendChild(piece);
+                    }
+                });
+            });
+            
+            // 팀 상태 업데이트
+            updateTeamStatus();
+        }
+        
+        // 팀 상태 업데이트
+        function updateTeamStatus() {
+            team1StatusDisplay.textContent = `${teams[0].pieces.filter(p => p === 17).length} / 4 도착`;
+            team2StatusDisplay.textContent = `${teams[1].pieces.filter(p => p === 17).length} / 4 도착`;
+        }
+        
+        // 스톱워치 포맷팅
+        function formatTime(time) {
+            const minutes = Math.floor(time / 60000);
+            const seconds = Math.floor((time % 60000) / 1000);
+            const milliseconds = Math.floor((time % 1000) / 10);
+            
+            return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}.${milliseconds.toString().padStart(2, '0')}`;
+        }
+        
+        // 스톱워치 시작/정지
+        function toggleStopwatch() {
+            if (!isRunning) {
+                // 스톱워치 시작
+                isRunning = true;
+                toggleBtn.textContent = '정지';
+                toggleBtn.classList.add('stop');
+                startTime = Date.now() - elapsedTime;
+                timerInterval = setInterval(updateTime, 10);
+                gameMessageDisplay.textContent = '스톱워치가 실행 중입니다. 정지 버튼을 누르세요.';
+                fractionResultDisplay.textContent = '';
+                moveResultDisplay.textContent = '';
+            } else {
+                // 스톱워치 정지
+                isRunning = false;
+                toggleBtn.textContent = '시작';
+                toggleBtn.classList.remove('stop');
+                clearInterval(timerInterval);
+                
+                // 결과 계산
+                calculateResult();
+            }
+        }
+        
+        // 스톱워치 시간 업데이트
+        function updateTime() {
+            elapsedTime = Date.now() - startTime;
+            stopwatchDisplay.textContent = formatTime(elapsedTime);
+        }
+        
+        // 스톱워치 초기화
+        function resetStopwatch() {
+            clearInterval(timerInterval);
+            isRunning = false;
+            elapsedTime = 0;
+            stopwatchDisplay.textContent = '00:00.00';
+            toggleBtn.textContent = '시작';
+            toggleBtn.classList.remove('stop');
+            fractionResultDisplay.textContent = '';
+            moveResultDisplay.textContent = '';
+            currentMove = 0;
+            gameMessageDisplay.textContent = `팀 ${currentTeam}의 차례입니다. 스톱워치 버튼을 눌러 시작하세요.`;
+        }
+        
+        // 소수가 순환소수인지 확인
+        function isRecurringDecimal(numerator, denominator) {
+            if (denominator === 0) return false;
+            
+            // 소수 표현 구하기
+            const decimal = numerator / denominator;
+            
+            // 문자열로 변환하여 순환 패턴 확인
+            const decimalStr = decimal.toString();
+            
+            // 간단한 구현: 길이가 10자리 이상이고 유한소수가 아닌 경우 순환소수로 간주
+            return decimalStr.length > 10 && !isFiniteDecimal(numerator, denominator);
+        }
+        
+        // 소수가 유한소수인지 확인
+        function isFiniteDecimal(numerator, denominator) {
+            if (denominator === 0) return false;
+            
+            // 분모의 소인수가 2와 5만 있으면 유한소수
+            let d = denominator;
+            while (d % 2 === 0) d /= 2;
+            while (d % 5 === 0) d /= 5;
+            
+            return d === 1;
+        }
+        
+        // 결과 계산
+        function calculateResult() {
+            // 초와 밀리초 추출
+            const timeStr = stopwatchDisplay.textContent.split(':')[1];
+            const seconds = parseInt(timeStr.split('.')[0]);
+            const milliseconds = parseInt(timeStr.split('.')[1]);
+            
+            // 분수 표시
+            fractionResultDisplay.textContent = `분수: ${seconds}/${milliseconds}`;
+            
+            // 이동 유형 결정
+            let moveType = '';
+            let moveSpaces = 0;
+            
+            if (seconds >= 2) {
+                moveType = '윷 (Yut)';
+                moveSpaces = 4;
+            } else if (milliseconds === 0) {
+                moveType = '모 (Mo)';
+                moveSpaces = 5;
+            } else if (isRecurringDecimal(seconds, milliseconds)) {
+                moveType = '개 (Gae)';
+                moveSpaces = 2;
+            } else if (isFiniteDecimal(seconds, milliseconds)) {
+                moveType = '걸 (Geol)';
+                moveSpaces = 3;
+            } else {
+                moveType = '도 (Do)';
+                moveSpaces = 1;
+            }
+            
+            moveResultDisplay.textContent = `결과: ${moveType} (${moveSpaces}칸)`;
+            currentMove = moveSpaces;
+            
+            // 이동할 말 선택 안내
+            gameMessageDisplay.textContent = `${moveType}! ${moveSpaces}칸 이동할 수 있습니다. 이동할 말을 선택하세요.`;
+            
+            // 보너스 턴 확인
+            const getsBonusTurn = seconds >= 2 || milliseconds === 0;
+            
+            // 말 이동 가능하도록 업데이트
+            drawPieces();
+            
+            // 보너스 턴이 없으면 다음 턴 준비
+            if (!getsBonusTurn) {
+                // 말 이동 후 다음 턴으로 넘어감
+            }
+        }
+        
+        // 말 이동
+        function movePiece(teamIdx, pieceIdx) {
+            if (currentMove <= 0) return;
+            
+            const newTeams = [...teams];
+            let currentPosition = newTeams[teamIdx].pieces[pieceIdx];
+            let newPosition = currentPosition + currentMove;
+            
+            // 말이 윷판을 한 바퀴 돌았는지 확인
+            if (newPosition >= 16) {
+                newPosition = 17; // 골인 위치
+            }
+            
+            newTeams[teamIdx].pieces[pieceIdx] = newPosition;
+            teams[teamIdx].pieces[pieceIdx] = newPosition;
+            
+            // 승리 조건 확인
+            if (teams[teamIdx].pieces.every(pos => pos === 17)) {
+                gameMessageDisplay.textContent = `${teams[teamIdx].name}이(가) 승리했습니다!`;
+                gameOver = true;
+                currentMove = 0;
+                drawPieces();
+                return;
+            }
+            
+            // 보너스 턴 확인
+            const getsBonusTurn = currentMove === 4 || currentMove === 5;
+            
+            // 다음 턴 설정
+            if (!getsBonusTurn) {
+                currentTeam = currentTeam === 1 ? 2 : 1;
+            }
+            
+            // 게임 상태 초기화
+            currentMove = 0;
+            resetStopwatch();
+            gameMessageDisplay.textContent = `팀 ${currentTeam}의 차례입니다. 스톱워치 버튼을 눌러 시작하세요.`;
+            
+            // 말 다시 그리기
+            drawPieces();
+        }
+        
+        // 이벤트 리스너 등록
+        toggleBtn.addEventListener('click', toggleStopwatch);
+        resetBtn.addEventListener('click', resetStopwatch);
+        
+        // 초기화
+        drawBoard();
+    </script>
+</body>
+</html>

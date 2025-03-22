@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>사각형 카드 놀이</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f0f7ff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            width: 100%;
+        }
+        
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #2a4365;
+            font-size: 2rem;
+        }
+        
+        .game-info {
+            background-color: white;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .message {
+            text-align: center;
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+        
+        .scores {
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .score {
+            font-size: 1.1rem;
+        }
+        
+        .player-score {
+            color: #3182ce;
+            font-weight: bold;
+        }
+        
+        .npc-score {
+            color: #e53e3e;
+            font-weight: bold;
+        }
+        
+        .npc-thinking {
+            text-align: center;
+            font-size: 0.9rem;
+            color: #718096;
+            margin-top: 8px;
+        }
+        
+        .cards-container {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .card {
+            background-color: white;
+            border-radius: 8px;
+            width: 200px;
+            height: 280px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 15px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .card-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        
+        .card-shape {
+            width: 120px;
+            height: 120px;
+            background-color: #f0f0f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+        
+        .card-property {
+            text-align: center;
+            padding: 10px;
+            line-height: 1.5;
+        }
+        
+        .controls {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .bell-button {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background-color: #e53e3e;
+            color: white;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+            transition: transform 0.1s, background-color 0.2s;
+        }
+        
+        .bell-button:hover {
+            background-color: #c53030;
+        }
+        
+        .bell-button:active {
+            transform: scale(0.95);
+        }
+        
+        .bell-button:disabled {
+            background-color: #cbd5e0;
+            color: #718096;
+            cursor: not-allowed;
+        }
+        
+        .skip-button {
+            padding: 8px 16px;
+            background-color: #e2e8f0;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        
+        .skip-button:hover {
+            background-color: #cbd5e0;
+        }
+        
+        .start-button {
+            padding: 12px 24px;
+            background-color: #3182ce;
+            color: white;
+            font-size: 1.1rem;
+            font-weight: 500;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .start-button:hover {
+            background-color: #2c5282;
+        }
+        
+        .rules {
+            background-color: white;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 30px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .rules h2 {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            color: #2d3748;
+        }
+        
+        .rules ol {
+            padding-left: 20px;
+        }
+        
+        .rules li {
+            margin-bottom: 8px;
+            line-height: 1.5;
+        }
+        
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>사각형 카드 놀이</h1>
+        
+        <!-- Game Info -->
+        <div class="game-info">
+            <p id="gameMessage" class="message">게임을 시작합니다! 카드가 맞으면 종을 쳐주세요.</p>
+            <div class="scores">
+                <div class="score">
+                    <span>나: </span>
+                    <span id="playerScore" class="player-score">0점</span>
+                    <span id="playerPairs" class="small-text">(0 쌍)</span>
+                </div>
+                <div class="score">
+                    <span>NPC: </span>
+                    <span id="npcScore" class="npc-score">0점</span>
+                    <span id="npcPairs" class="small-text">(0 쌍)</span>
+                </div>
+            </div>
+            <div id="npcThinking" class="npc-thinking hidden">
+                NPC가 생각 중입니다...
+            </div>
+        </div>
+        
+        <!-- Game Area -->
+        <div id="gameArea" class="hidden">
+            <!-- Cards -->
+            <div class="cards-container">
+                <div class="card">
+                    <div class="card-title" id="quadCardTitle">사각형 카드</div>
+                    <div class="card-shape" id="quadCardShape"></div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-title">속성 카드</div>
+                    <div class="card-property" id="propertyCardText"></div>
+                </div>
+            </div>
+            
+            <!-- Controls -->
+            <div class="controls">
+                <button id="bellButton" class="bell-button">종 치기</button>
+                <button id="skipButton" class="skip-button">넘어가기</button>
+            </div>
+        </div>
+        
+        <div id="startArea" class="controls">
+            <button id="startButton" class="start-button">게임 시작하기</button>
+        </div>
+        
+        <!-- Game Rules -->
+        <div class="rules">
+            <h2>게임 방법</h2>
+            <ol>
+                <li>한 명은 사각형 카드, 다른 한 명은 성질 카드를 가진다.</li>
+                <li>뒷면이 보이게 쌓아 둔 카드에서 각자 한 장씩 뽑아 앞면이 보이게 뒤집는다.</li>
+                <li>사각형과 성질이 바르게 짝 지어졌을 때 먼저 종을 친 사람이 앞면이 보이게 뒤집은 카드를 모두 가져간다.</li>
+                <li>사각형과 성질이 잘못 짝 지어졌을 때 종을 치면 카드를 가져가지 못하고, 다음 차례에는 종을 칠 수 없다.</li>
+                <li>아무도 종을 치지 않았다면 카드를 그대로 두고, 놀이를 이어 간다.</li>
+                <li>카드를 모두 뒤집었을 때, 가지고 있는 카드가 더 많은 사람이 이긴다.</li>
+            </ol>
+        </div>
+    </div>
+
+    <script>
+        // 게임 요소 참조
+        const gameMessage = document.getElementById('gameMessage');
+        const playerScore = document.getElementById('playerScore');
+        const npcScore = document.getElementById('npcScore');
+        const playerPairs = document.getElementById('playerPairs');
+        const npcPairs = document.getElementById('npcPairs');
+        const npcThinking = document.getElementById('npcThinking');
+        const gameArea = document.getElementById('gameArea');
+        const startArea = document.getElementById('startArea');
+        const quadCardTitle = document.getElementById('quadCardTitle');
+        const quadCardShape = document.getElementById('quadCardShape');
+        const propertyCardText = document.getElementById('propertyCardText');
+        const bellButton = document.getElementById('bellButton');
+        const skipButton = document.getElementById('skipButton');
+        const startButton = document.getElementById('startButton');
+        
+        // 게임 상태
+        let playerCardsCount = 0;
+        let npcCardsCount = 0;
+        let canPlayerRing = true;
+        let gameStarted = false;
+        let gameEnded = false;
+        let npcTimeout = null;
+        let currentQuadCard = null;
+        let currentPropertyCard = null;
+        
+        // 카드 데이터
+        const quadrilateralCards = [
+            { id: 1, name: '사다리꼴', properties: ['한 쌍의 대변이 평행하다.'] },
+            { id: 2, name: '등변사다리꼴', properties: ['한 쌍의 대변이 평행하고, 그 길이가 같다.'] },
+            { id: 3, name: '직사각형', properties: ['네 내각의 크기가 모두 같다.', '두 대각선의 길이가 같다.'] },
+            { id: 4, name: '정사각형', properties: ['네 변의 길이가 모두 같고, 네 내각의 크기도 모두 같다.', '두 대각선이 서로를 수직이등분한다.', '네 변의 길이가 모두 같다.', '네 내각의 크기가 모두 같다.', '두 대각선의 길이가 같다.'] },
+            { id: 5, name: '마름모', properties: ['네 변의 길이가 모두 같다.', '두 대각선이 서로를 이등분한다.'] },
+            { id: 6, name: '평행사변형', properties: ['두 대각선이 서로를 이등분한다.'] }
+        ];
+        
+        const propertyCards = [
+            { id: 1, property: '한 쌍의 대변이 평행하다.' },
+            { id: 2, property: '네 내각의 크기가 모두 같다.' },
+            { id: 3, property: '두 대각선의 길이가 같다.' },
+            { id: 4, property: '네 변의 길이가 모두 같다.' },
+            { id: 5, property: '두 대각선이 서로를 이등분한다.' },
+            { id: 6, property: '두 대각선이 서로를 수직이등분한다.' },
+            { id: 7, property: '한 쌍의 대변이 평행하고, 그 길이가 같다.' },
+            { id: 8, property: '네 변의 길이가 모두 같고, 네 내각의 크기도 모두 같다.' }
+        ];
+        
+        let quadDeck = [];
+        let propertyDeck = [];
+        
+        // 게임 초기화
+        function startGame() {
+            // 카드 덱 섞기
+            quadDeck = [...quadrilateralCards].sort(() => Math.random() - 0.5);
+            propertyDeck = [...propertyCards].sort(() => Math.random() - 0.5);
+            
+            // 게임 상태 초기화
+            playerCardsCount = 0;
+            npcCardsCount = 0;
+            playerScore.textContent = '0점';
+            npcScore.textContent = '0점';
+            playerPairs.textContent = '(0 쌍)';
+            npcPairs.textContent = '(0 쌍)';
+            canPlayerRing = true;
+            gameStarted = true;
+            gameEnded = false;
+            
+            // UI 업데이트
+            gameArea.classList.remove('hidden');
+            startArea.classList.add('hidden');
+            gameMessage.textContent = '게임을 시작합니다! 카드가 맞으면 종을 쳐주세요.';
+            bellButton.disabled = false;
+            
+            // 첫 카드 뽑기
+            drawCards();
+        }
+        
+        // 카드 뽑기
+        function drawCards() {
+            if (quadDeck.length === 0 || propertyDeck.length === 0) {
+                endGame();
+                return;
+            }
+            
+            // 새 카드 뽑기
+            currentQuadCard = quadDeck.shift();
+            currentPropertyCard = propertyDeck.shift();
+            
+            // UI 업데이트
+            quadCardTitle.textContent = currentQuadCard.name;
+            quadCardShape.textContent = currentQuadCard.name;
+            propertyCardText.textContent = currentPropertyCard.property;
+            
+            // NPC 판단
+            npcThinking.classList.remove('hidden');
+            
+            // 기존 NPC 타이머 제거
+            if (npcTimeout) {
+                clearTimeout(npcTimeout);
+            }
+            
+            // NPC 응답 시간 설정
+            const isMatch = isCardMatch(currentQuadCard, currentPropertyCard);
+            const npcDelay = Math.random() * (isMatch ? 2000 : 5000) + 1000; // 맞으면 더 빠르게 반응
+            
+            npcTimeout = setTimeout(() => {
+                if (isMatch && canPlayerRing) {
+                    npcRingBell();
+                }
+                npcThinking.classList.add('hidden');
+            }, npcDelay);
+        }
+        
+        // 카드 일치 여부 확인
+        function isCardMatch(quadCard, propertyCard) {
+            return quadCard.properties.includes(propertyCard.property);
+        }
+        
+        // 플레이어 종 치기
+        function playerRingBell() {
+            if (!canPlayerRing || !gameStarted || gameEnded) return;
+            
+            // NPC 타이머 제거
+            if (npcTimeout) {
+                clearTimeout(npcTimeout);
+                npcTimeout = null;
+            }
+            
+            npcThinking.classList.add('hidden');
+            
+            const isMatch = isCardMatch(currentQuadCard, currentPropertyCard);
+            
+            if (isMatch) {
+                // 맞은 경우
+                playerCardsCount += 2;
+                playerScore.textContent = `${playerCardsCount}점`;
+                playerPairs.textContent = `(${playerCardsCount / 2} 쌍)`;
+                gameMessage.textContent = '정답입니다! 카드를 가져갑니다.';
+                
+                // 약간의 딜레이 후 다음 카드
+                setTimeout(drawCards, 1500);
+            } else {
+                // 틀린 경우
+                gameMessage.textContent = '오답입니다! 다음 차례에는 종을 칠 수 없습니다.';
+                bellButton.disabled = true;
+                canPlayerRing = false;
+                
+                // 다음 라운드에 다시 종을 칠 수 있도록 설정
+                setTimeout(() => {
+                    canPlayerRing = true;
+                    bellButton.disabled = false;
+                    gameMessage.textContent = '다시 종을 칠 수 있습니다.';
+                }, 3000);
+            }
+        }
+        
+        // NPC 종 치기
+        function npcRingBell() {
+            if (gameEnded) return;
+            
+            const isMatch = isCardMatch(currentQuadCard, currentPropertyCard);
+            
+            if (isMatch) {
+                npcCardsCount += 2;
+                npcScore.textContent = `${npcCardsCount}점`;
+                npcPairs.textContent = `(${npcCardsCount / 2} 쌍)`;
+                gameMessage.textContent = 'NPC가 종을 쳤습니다! NPC가 카드를 가져갑니다.';
+                
+                // 약간의 딜레이 후 다음 카드
+                setTimeout(drawCards, 1500);
+            }
+        }
+        
+        // 카드 넘기기
+        function skipCards() {
+            if (gameEnded) return;
+            
+            // NPC 타이머 제거
+            if (npcTimeout) {
+                clearTimeout(npcTimeout);
+                npcTimeout = null;
+            }
+            
+            gameMessage.textContent = '아무도 종을 치지 않았습니다. 다음 카드로 넘어갑니다.';
+            npcThinking.classList.add('hidden');
+            drawCards();
+        }
+        
+        // 게임 종료
+        function endGame() {
+            gameEnded = true;
+            gameStarted = false;
+            
+            // NPC 타이머 제거
+            if (npcTimeout) {
+                clearTimeout(npcTimeout);
+                npcTimeout = null;
+            }
+            
+            npcThinking.classList.add('hidden');
+            gameArea.classList.add('hidden');
+            startArea.classList.remove('hidden');
+            startButton.textContent = '다시 시작하기';
+            
+            if (playerCardsCount > npcCardsCount) {
+                gameMessage.textContent = `게임 종료! 당신이 ${playerCardsCount}점으로 NPC(${npcCardsCount}점)를 이겼습니다!`;
+            } else if (npcCardsCount > playerCardsCount) {
+                gameMessage.textContent = `게임 종료! NPC가 ${npcCardsCount}점으로 당신(${playerCardsCount}점)을 이겼습니다.`;
+            } else {
+                gameMessage.textContent = `게임 종료! ${playerCardsCount}점으로 비겼습니다!`;
+            }
+        }
+        
+        // 이벤트 리스너
+        startButton.addEventListener('click', startGame);
+        bellButton.addEventListener('click', playerRingBell);
+        skipButton.addEventListener('click', skipCards);
+        
+        // 페이지 로드 시 게임 시작 영역 표시
+        window.addEventListener('load', () => {
+            gameArea.classList.add('hidden');
+            startArea.classList.remove('hidden');
+        });
+    </script>
+</body>
+</html>

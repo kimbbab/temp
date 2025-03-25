@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>사각형 카드 게임</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #f0f0f0;
+            padding: 20px;
+        }
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 800px;
+        }
+        .cards-container {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin: 20px 0;
+        }
+        .card {
+            width: 200px;
+            height: 300px;
+            background-color: #fff;
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+        .card.number-card {
+            background-color: #FFD700; /* 숫자 카드 배경색 (노란색) */
+        }
+        .card.shape-card {
+            background-color: #4169E1; /* 도형 카드 배경색 (파란색) */
+        }
+        .card-back {
+            background-color: #333;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .bell-container {
+            margin-top: 30px;
+        }
+        .bell {
+            width: 100px;
+            height: 100px;
+            background-color: #FF0000;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 32px;
+            color: white;
+            cursor: pointer;
+            user-select: none;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        .bell:active {
+            transform: scale(0.95);
+        }
+        .score-board {
+            display: flex;
+            justify-content: space-around;
+            width: 100%;
+            margin: 20px 0;
+        }
+        .score-container {
+            text-align: center;
+            padding: 10px;
+            background-color: #fff;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            width: 150px;
+        }
+        .message {
+            margin: 20px 0;
+            padding: 10px 20px;
+            background-color: #fff;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            min-height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .controls {
+            margin-top: 20px;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 0 10px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        .card-label {
+            position: absolute;
+            bottom: 10px;
+            font-size: 14px;
+        }
+        .card-image {
+            max-width: 80%;
+            max-height: 80%;
+        }
+        .bell-animation {
+            animation: bellRing 0.5s;
+        }
+        @keyframes bellRing {
+            0% { transform: rotate(0deg); }
+            25% { transform: rotate(-15deg); }
+            50% { transform: rotate(0deg); }
+            75% { transform: rotate(15deg); }
+            100% { transform: rotate(0deg); }
+        }
+    </style>
+</head>
+<body>
+    <h1>사각형 카드 게임</h1>
+    
+    <div class="game-container">
+        <div class="score-board">
+            <div class="score-container">
+                <h3>플레이어</h3>
+                <p id="player-score">0</p>
+            </div>
+            <div class="score-container">
+                <h3>컴퓨터</h3>
+                <p id="computer-score">0</p>
+            </div>
+        </div>
+        
+        <div class="message" id="message">게임을 시작하려면 '카드 뒤집기' 버튼을 클릭하세요.</div>
+        
+        <div class="cards-container">
+            <div class="card number-card card-back" id="number-card">
+                <span>숫자카드</span>
+                <div class="card-label" id="number-card-label"></div>
+            </div>
+            <div class="card shape-card card-back" id="shape-card">
+                <span>도형카드</span>
+                <div class="card-label" id="shape-card-label"></div>
+            </div>
+        </div>
+        
+        <div class="bell-container">
+            <div class="bell" id="bell">종</div>
+        </div>
+        
+        <div class="controls">
+            <button id="flip-btn">카드 뒤집기</button>
+            <button id="restart-btn">다시 시작</button>
+        </div>
+    </div>
+    
+    <script>
+        // 카드 정보
+        const numberCards = Array.from({length: 12}, (_, i) => ({
+            id: i + 1,
+            imageName: `card_${i + 1}.png`,
+            displayName: `숫자 ${i + 1}`
+        }));
+        
+        const shapeCards = Array.from({length: 12}, (_, i) => ({
+            id: String.fromCharCode(65 + i), // A부터 L까지
+            imageName: `card_${String.fromCharCode(65 + i)}.png`,
+            displayName: `도형 ${String.fromCharCode(65 + i)}`
+        }));
+        
+        // 규칙 정의 (카드 매칭 규칙)
+        const matchingRules = {
+            '1': ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'],
+            '2': ['C', 'D', 'E', 'F'],
+            '3': ['C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'],
+            '4': ['B', 'C', 'D', 'E', 'F'],
+            '5': ['D', 'E', 'G', 'H', 'I'],
+            '6': ['C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'],
+            '7': ['C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'],
+            '8': ['D', 'E', 'G', 'H', 'I'],
+            '9': ['C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'],
+            '10': ['D', 'E'],
+            '11': ['C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'],
+            '12': ['D', 'E']
+        };
+        
+        // 게임 상태
+        let gameState = {
+            playerScore: 0,
+            computerScore: 0,
+            currentNumberCard: null,
+            currentShapeCard: null,
+            isNumberCardVisible: false,
+            isShapeCardVisible: false,
+            cardDrawingState: 0, // 0: 아무것도 없음, 1: 숫자 카드만, 2: 숫자+도형 카드
+            computerTimeout: null,
+            gameActive: true
+        };
+        
+        // DOM 요소
+        const numberCardElem = document.getElementById('number-card');
+        const shapeCardElem = document.getElementById('shape-card');
+        const numberCardLabel = document.getElementById('number-card-label');
+        const shapeCardLabel = document.getElementById('shape-card-label');
+        const playerScoreElem = document.getElementById('player-score');
+        const computerScoreElem = document.getElementById('computer-score');
+        const messageElem = document.getElementById('message');
+        const bellElem = document.getElementById('bell');
+        const flipBtn = document.getElementById('flip-btn');
+        const restartBtn = document.getElementById('restart-btn');
+        
+        // 이미지로 카드 표시
+        function displayCard(cardElem, card, isNumberCard) {
+            cardElem.innerHTML = '';
+            cardElem.classList.remove('card-back');
+            
+            // 이미지로 카드 표시
+            const cardImage = document.createElement('img');
+            cardImage.src = card.imageName; // card_1.png, card_A.png 등의 파일명 사용
+            cardImage.alt = card.displayName;
+            cardImage.className = 'card-image';
+            cardElem.appendChild(cardImage);
+            
+            // 개발용 백업 표시 (이미지가 로드되지 않을 경우를 대비)
+            cardImage.onerror = function() {
+                const cardContent = document.createElement('div');
+                cardContent.textContent = isNumberCard ? `${card.id}` : `${card.id}`;
+                cardContent.style.fontSize = '48px';
+                cardContent.style.fontWeight = 'bold';
+                cardElem.appendChild(cardContent);
+            };
+            
+            // 카드 라벨 업데이트
+            const labelElem = isNumberCard ? numberCardLabel : shapeCardLabel;
+            labelElem.textContent = card.displayName;
+            
+            // 상태 업데이트
+            if (isNumberCard) {
+                gameState.isNumberCardVisible = true;
+                gameState.currentNumberCard = card;
+            } else {
+                gameState.isShapeCardVisible = true;
+                gameState.currentShapeCard = card;
+            }
+        }
+        
+        // 카드 뒤집기 - 번갈아가며 숫자/도형 카드 표시
+        function flipCard() {
+            if (!gameState.gameActive) return;
+            
+            // 이전 컴퓨터 타이머 취소
+            if (gameState.computerTimeout) {
+                clearTimeout(gameState.computerTimeout);
+                gameState.computerTimeout = null;
+            }
+            
+            // 현재 상태에 따라 다음 카드 표시
+            if (gameState.cardDrawingState === 0) {
+                // 숫자 카드 표시
+                const randomNumberCard = numberCards[Math.floor(Math.random() * numberCards.length)];
+                displayCard(numberCardElem, randomNumberCard, true);
+                gameState.cardDrawingState = 1;
+                messageElem.textContent = '도형 카드를 뒤집으려면 다시 버튼을 클릭하세요.';
+                
+                // 숫자 카드가 나왔을 때 이미 도형 카드가 있으면 매치 확인
+                if (gameState.currentShapeCard) {
+                    const isMatched = isMatch(gameState.currentNumberCard.id, gameState.currentShapeCard.id);
+                    if (isMatched) {
+                        gameState.computerTimeout = setTimeout(computerRingBell, 2000);
+                    }
+                }
+            } else if (gameState.cardDrawingState === 1) {
+                // 도형 카드 표시
+                const randomShapeCard = shapeCards[Math.floor(Math.random() * shapeCards.length)];
+                displayCard(shapeCardElem, randomShapeCard, false);
+                gameState.cardDrawingState = 2;
+                
+                // 매치 확인 및 컴퓨터 반응 설정
+                const isMatched = isMatch(gameState.currentNumberCard.id, gameState.currentShapeCard.id);
+                if (isMatched) {
+                    gameState.computerTimeout = setTimeout(computerRingBell, 2000);
+                }
+                messageElem.textContent = '카드를 확인하세요.';
+            } else {
+                // 카드가 모두 보이는 상태에서 다시 숫자 카드 업데이트 (도형 카드는 유지)
+                const randomNumberCard = numberCards[Math.floor(Math.random() * numberCards.length)];
+                displayCard(numberCardElem, randomNumberCard, true);
+                gameState.cardDrawingState = 1;
+                
+                // 새 숫자 카드와 현재 도형 카드 매치 확인
+                const isMatched = isMatch(gameState.currentNumberCard.id, gameState.currentShapeCard.id);
+                if (isMatched) {
+                    gameState.computerTimeout = setTimeout(computerRingBell, 2000);
+                }
+                messageElem.textContent = '다음 카드를 뒤집으려면 버튼을 클릭하세요.';
+            }
+        }
+        
+        // 카드가 매치되는지 확인
+        function isMatch(numberCardId, shapeCardId) {
+            return matchingRules[numberCardId].includes(shapeCardId);
+        }
+        
+        // 종 치기 (플레이어)
+        function playerRingBell() {
+            // 숫자 카드와 도형 카드가 최소 1개씩 있는지 확인
+            if (!gameState.gameActive || !gameState.currentNumberCard || !gameState.currentShapeCard) return;
+            
+            // 컴퓨터 타이머 취소
+            if (gameState.computerTimeout) {
+                clearTimeout(gameState.computerTimeout);
+                gameState.computerTimeout = null;
+            }
+            
+            // 종 애니메이션 적용
+            bellElem.classList.add('bell-animation');
+            setTimeout(() => {
+                bellElem.classList.remove('bell-animation');
+            }, 500);
+            
+            const isMatched = isMatch(gameState.currentNumberCard.id, gameState.currentShapeCard.id);
+            
+            if (isMatched) {
+                // 정답인 경우
+                gameState.playerScore++;
+                playerScoreElem.textContent = gameState.playerScore;
+                messageElem.textContent = '정답입니다! 플레이어가 종을 쳤습니다.';
+                
+                // 정답인 경우 라운드 종료 및 카드 리셋
+                setTimeout(() => {
+                    resetCards(); // 모든 카드 초기화
+                    messageElem.textContent = '다음 카드를 뒤집으려면 버튼을 클릭하세요.';
+                    checkGameEnd();
+                }, 1500);
+            } else {
+                // 오답인 경우
+                gameState.computerScore++;
+                computerScoreElem.textContent = gameState.computerScore;
+                messageElem.textContent = '오답입니다! 컴퓨터가 점수를 획득했습니다.';
+                
+                // 오답인 경우 카드는 그대로 유지하고 게임 계속 진행
+                setTimeout(() => {
+                    messageElem.textContent = '카드를 계속 확인하세요. 매치되면 종을 치세요!';
+                    checkGameEnd();
+                }, 1500);
+            }
+        }
+        
+        // 컴퓨터가 종 치기
+        function computerRingBell() {
+            if (!gameState.gameActive || !gameState.currentNumberCard || !gameState.currentShapeCard) return;
+            
+            // 종 애니메이션 적용
+            bellElem.classList.add('bell-animation');
+            setTimeout(() => {
+                bellElem.classList.remove('bell-animation');
+            }, 500);
+            
+            // 컴퓨터 점수 증가
+            gameState.computerScore++;
+            computerScoreElem.textContent = gameState.computerScore;
+            messageElem.textContent = '컴퓨터가 종을 쳤습니다!';
+            
+            // 정답인 경우 라운드 종료 및 카드 리셋
+            setTimeout(() => {
+                resetCards(); // 모든 카드 초기화
+                messageElem.textContent = '다음 카드를 뒤집으려면 버튼을 클릭하세요.';
+                checkGameEnd();
+            }, 1500);
+        }
+        
+        // 게임 시작 또는 재시작을 위한 카드 초기화
+        function resetCards() {
+            // 카드 뒤집어 놓기
+            numberCardElem.innerHTML = '<span>숫자카드</span>';
+            shapeCardElem.innerHTML = '<span>도형카드</span>';
+            numberCardElem.classList.add('card-back');
+            shapeCardElem.classList.add('card-back');
+            numberCardLabel.textContent = '';
+            shapeCardLabel.textContent = '';
+            
+            // 게임 상태 업데이트
+            gameState.isNumberCardVisible = false;
+            gameState.isShapeCardVisible = false;
+            gameState.cardDrawingState = 0;
+            gameState.currentNumberCard = null;
+            gameState.currentShapeCard = null;
+        }
+        
+        // 게임 종료 확인
+        function checkGameEnd() {
+            if (gameState.playerScore >= 10 || gameState.computerScore >= 10) {
+                const winner = gameState.playerScore > gameState.computerScore ? '플레이어' : '컴퓨터';
+                messageElem.textContent = `게임 종료! ${winner}가 이겼습니다.`;
+                gameState.gameActive = false;
+                flipBtn.disabled = true;
+            }
+        }
+        
+        // 게임 재시작
+        function restartGame() {
+            gameState = {
+                playerScore: 0,
+                computerScore: 0,
+                currentNumberCard: null,
+                currentShapeCard: null,
+                isNumberCardVisible: false,
+                isShapeCardVisible: false,
+                cardDrawingState: 0,
+                computerTimeout: null,
+                gameActive: true
+            };
+            
+            playerScoreElem.textContent = '0';
+            computerScoreElem.textContent = '0';
+            messageElem.textContent = '게임을 시작하려면 \'카드 뒤집기\' 버튼을 클릭하세요.';
+            
+            resetCards();
+            flipBtn.disabled = false;
+        }
+        
+        // 이벤트 리스너
+        flipBtn.addEventListener('click', flipCard);
+        bellElem.addEventListener('click', playerRingBell);
+        restartBtn.addEventListener('click', restartGame);
+    </script>
+</body>
+</html>

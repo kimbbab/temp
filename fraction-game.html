@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>분수 점수 대결 게임</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Noto Sans KR', sans-serif;
+        }
+        body {
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f9ff;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+        h1 {
+            text-align: center;
+            color: #1a237e;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #455a64;
+            margin-top: 0;
+            margin-bottom: 20px;
+        }
+        .game-area {
+            background-color: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        .players-container {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        .player {
+            width: 48%;
+            padding: 15px;
+            text-align: center;
+            border-radius: 8px;
+            position: relative;
+        }
+        .player-human {
+            background-color: #e3f2fd;
+            border: 2px solid #42a5f5;
+        }
+        .player-computer {
+            background-color: #ffebee;
+            border: 2px solid #ef5350;
+        }
+        .player h3 {
+            margin-top: 0;
+            margin-bottom: 5px;
+        }
+        .score {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin: 5px 0;
+        }
+        .score-human {
+            color: #0d47a1;
+        }
+        .score-computer {
+            color: #b71c1c;
+        }
+        .needed {
+            font-size: 1em;
+            color: #666;
+        }
+        .current-player-indicator {
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #ff9800;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-weight: bold;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            white-space: nowrap;
+        }
+        .message {
+            padding: 15px;
+            background-color: #fff9c4;
+            border-left: 4px solid #ffc107;
+            margin-bottom: 20px;
+            font-size: 1.1em;
+        }
+        .stopwatch-container {
+            text-align: center;
+            margin-bottom: 25px;
+            padding: 20px;
+            background-color: #f5f5f5;
+            border-radius: 10px;
+        }
+        .stopwatch {
+            font-size: 3.5em;
+            font-family: monospace;
+            margin-bottom: 15px;
+            color: #333;
+        }
+        .fraction-result {
+            font-size: 1.5em;
+            margin: 12px 0;
+            font-weight: bold;
+            color: #0277bd;
+        }
+        .factorized-fraction {
+            font-size: 1.3em;
+            margin: 12px 0;
+            color: #555;
+            font-family: 'Courier New', monospace;
+        }
+        .btn {
+            padding: 10px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin: 5px;
+            font-weight: bold;
+        }
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .btn-primary {
+            background-color: #4caf50;
+            color: white;
+        }
+        .btn-primary:hover:not(:disabled) {
+            background-color: #388e3c;
+            transform: translateY(-2px);
+        }
+        .btn-danger {
+            background-color: #f44336;
+            color: white;
+        }
+        .btn-danger:hover:not(:disabled) {
+            background-color: #d32f2f;
+            transform: translateY(-2px);
+        }
+        .btn-secondary {
+            background-color: #9e9e9e;
+            color: white;
+        }
+        .btn-secondary:hover:not(:disabled) {
+            background-color: #757575;
+            transform: translateY(-2px);
+        }
+        .answer-btn {
+            min-width: 130px;
+            background-color: #2196f3;
+            color: white;
+            margin: 8px;
+        }
+        .answer-btn:hover:not(:disabled) {
+            background-color: #1976d2;
+            transform: translateY(-2px);
+        }
+        .answer-options {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin: 15px 0;
+        }
+        .hidden {
+            display: none;
+        }
+        .correct {
+            background-color: #4caf50 !important;
+        }
+        .incorrect {
+            background-color: #f44336 !important;
+        }
+        .computer-thinking {
+            font-style: italic;
+            color: #666;
+            margin-top: 15px;
+        }
+        .result-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+        .result-table th, .result-table td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: center;
+        }
+        .result-table th {
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        .result-table tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .history-container {
+            margin-top: 20px;
+            background-color: #f5f5f5;
+            border-radius: 8px;
+            padding: 15px;
+        }
+        .history-title {
+            margin-top: 0;
+            color: #333;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+            margin-bottom: 10px;
+        }
+        .history-list {
+            max-height: 200px;
+            overflow-y: auto;
+            padding: 5px;
+        }
+        .history-item {
+            padding: 8px;
+            margin-bottom: 5px;
+            border-radius: 5px;
+        }
+        .history-item.player {
+            background-color: #e3f2fd;
+        }
+        .history-item.computer {
+            background-color: #ffebee;
+        }
+        .winner-banner {
+            text-align: center;
+            margin-top: 20px;
+            padding: 20px;
+            background-color: #f0f4c3;
+            border-radius: 10px;
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #33691e;
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>분수 점수 대결 게임</h1>
+        <p class="subtitle">분수 유형을 맞추고 점수를 쌓아 30점을 먼저 달성하세요!</p>
+        
+        <div class="game-area">
+            <div class="players-container">
+                <div class="player player-human">
+                    <h3>플레이어</h3>
+                    <div class="score score-human" id="player-score">0</div>
+                    <div class="needed" id="player-needed">승리까지 30점 필요</div>
+                    <div class="current-player-indicator hidden" id="player-indicator">내 차례</div>
+                </div>
+                <div class="player player-computer">
+                    <h3>컴퓨터</h3>
+                    <div class="score score-computer" id="computer-score">0</div>
+                    <div class="needed" id="computer-needed">승리까지 30점 필요</div>
+                    <div class="current-player-indicator hidden" id="computer-indicator">컴퓨터 차례</div>
+                </div>
+            </div>
+
+            <div class="message" id="game-message">
+                플레이어 차례입니다. 스톱워치 버튼을 눌러 시작하세요.
+            </div>
+
+            <div class="stopwatch-container">
+                <div class="stopwatch" id="stopwatch">00:00.00</div>
+                <div class="fraction-result" id="fraction-result"></div>
+                <div class="factorized-fraction" id="factorized-fraction"></div>
+                <div id="move-result"></div>
+                
+                <div>
+                    <button class="btn btn-primary" id="start-btn">시작</button>
+                    <button class="btn btn-danger hidden" id="stop-btn">정지</button>
+                    <button class="btn btn-secondary" id="reset-btn">새 게임</button>
+                </div>
+                
+                <div id="answer-options" class="answer-options hidden">
+                    <button class="btn answer-btn" data-type="0또는1">0 또는 1</button>
+                    <button class="btn answer-btn" data-type="순환소수">순환소수</button>
+                    <button class="btn answer-btn" data-type="유한소수">유한소수</button>
+                    <button class="btn answer-btn" data-type="자연수">2 이상의 자연수</button>
+                    <button class="btn answer-btn" data-type="분모0">분모가 0</button>
+                </div>
+                <div id="computer-thinking" class="computer-thinking hidden">
+                    컴퓨터가 생각하고 있습니다...
+                </div>
+            </div>
+
+            <table class="result-table">
+                <thead>
+                    <tr>
+                        <th>분수 유형</th>
+                        <th>획득 점수</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>0 또는 1</td>
+                        <td>1점</td>
+                    </tr>
+                    <tr>
+                        <td>순환소수</td>
+                        <td>2점</td>
+                    </tr>
+                    <tr>
+                        <td>유한소수</td>
+                        <td>3점</td>
+                    </tr>
+                    <tr>
+                        <td>2 이상의 자연수</td>
+                        <td>4점</td>
+                    </tr>
+                    <tr>
+                        <td>분모가 0인 경우</td>
+                        <td>5점</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="history-container">
+                <h3 class="history-title">게임 기록</h3>
+                <div class="history-list" id="history-list">
+                    <!-- 기록은 자바스크립트로 추가됩니다 -->
+                </div>
+            </div>
+
+            <div class="winner-banner hidden" id="winner-banner">
+                승리자!
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // DOM 요소 참조
+        const stopwatchDisplay = document.getElementById('stopwatch');
+        const startBtn = document.getElementById('start-btn');
+        const stopBtn = document.getElementById('stop-btn');
+        const resetBtn = document.getElementById('reset-btn');
+        const fractionResultDisplay = document.getElementById('fraction-result');
+        const factorizedFractionDisplay = document.getElementById('factorized-fraction');
+        const moveResultDisplay = document.getElementById('move-result');
+        const gameMessageDisplay = document.getElementById('game-message');
+        const playerScoreDisplay = document.getElementById('player-score');
+        const computerScoreDisplay = document.getElementById('computer-score');
+        const playerNeededDisplay = document.getElementById('player-needed');
+        const computerNeededDisplay = document.getElementById('computer-needed');
+        const playerIndicator = document.getElementById('player-indicator');
+        const computerIndicator = document.getElementById('computer-indicator');
+        const answerOptions = document.getElementById('answer-options');
+        const computerThinking = document.getElementById('computer-thinking');
+        const answerButtons = document.querySelectorAll('.answer-btn');
+        const historyList = document.getElementById('history-list');
+        const winnerBanner = document.getElementById('winner-banner');
+
+        // 게임 상태 변수
+        let isRunning = false;
+        let startTime = 0;
+        let elapsedTime = 0;
+        let timerInterval = null;
+        let currentPlayer = 'player'; // 'player' 또는 'computer'
+        let pointsToAdd = 0;
+        let gameOver = false;
+        let correctAnswer = ''; // 현재 분수 유형의 정답
+        let isComputerThinking = false; // 컴퓨터 생각 중 플래그
+        let computerTurnTimeout = null; // 컴퓨터 턴 타임아웃 ID
+        
+        // 점수 정보
+        const scores = {
+            player: 0,
+            computer: 0
+        };
+        
+        // 점수 관련 상수
+        const TARGET_SCORE = 30; // 승리 조건 점수
+        const POINTS = {
+            '0또는1': 1,
+            '순환소수': 2,
+            '유한소수': 3,
+            '자연수': 4,
+            '분모0': 5
+        };
+
+        // 스톱워치 포맷팅
+        function formatTime(time) {
+            const minutes = Math.floor(time / 60000);
+            const seconds = Math.floor((time % 60000) / 1000);
+            const milliseconds = Math.floor((time % 1000) / 10);
+            
+            return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}.${milliseconds.toString().padStart(2, '0')}`;
+        }
+        
+        // 버튼 상태 업데이트
+        function updateButtonState() {
+            // 현재 상태에 따라 버튼 활성화/비활성화
+            const isPlayerTurn = currentPlayer === 'player';
+            const isComputerActive = currentPlayer === 'computer' || isComputerThinking;
+            
+            startBtn.disabled = isRunning || gameOver || isComputerActive;
+            stopBtn.disabled = !isRunning || gameOver || isComputerActive;
+            resetBtn.disabled = isComputerThinking;
+            
+            // 답변 버튼 상태
+            answerButtons.forEach(btn => {
+                btn.disabled = isComputerActive || gameOver;
+            });
+            
+            // 현재 플레이어 표시
+            playerIndicator.classList.toggle('hidden', !isPlayerTurn || gameOver);
+            computerIndicator.classList.toggle('hidden', !(currentPlayer === 'computer') || gameOver);
+        }
+        
+        // 점수 업데이트
+        function updateScores() {
+            playerScoreDisplay.textContent = scores.player;
+            computerScoreDisplay.textContent = scores.computer;
+            
+            const playerNeeded = Math.max(0, TARGET_SCORE - scores.player);
+            const computerNeeded = Math.max(0, TARGET_SCORE - scores.computer);
+            
+            playerNeededDisplay.textContent = playerNeeded > 0 ? 
+                `승리까지 ${playerNeeded}점 필요` : '승리 달성!';
+            computerNeededDisplay.textContent = computerNeeded > 0 ? 
+                `승리까지 ${computerNeeded}점 필요` : '승리 달성!';
+        }
+        
+        // 기록 추가
+        function addHistory(player, fractionStr, answerType, points, correct) {
+            const historyItem = document.createElement('div');
+            historyItem.className = `history-item ${player}`;
+            
+            const playerText = player === 'player' ? '플레이어' : '컴퓨터';
+            const resultText = correct ? '정답' : '오답';
+            const pointsText = correct ? `+${points}점` : '+0점';
+            
+            historyItem.innerHTML = `
+                <strong>${playerText}:</strong> ${fractionStr} → ${answerType} (${resultText}, ${pointsText})
+            `;
+            
+            historyList.insertBefore(historyItem, historyList.firstChild);
+        }
+        
+        // 승자 확인
+        function checkWinner() {
+            if (scores.player >= TARGET_SCORE) {
+                gameOver = true;
+                winnerBanner.textContent = '플레이어 승리! 🎉';
+                winnerBanner.classList.remove('hidden');
+                gameMessageDisplay.textContent = '게임 종료! 플레이어가 승리했습니다!';
+                return true;
+            } else if (scores.computer >= TARGET_SCORE) {
+                gameOver = true;
+                winnerBanner.textContent = '컴퓨터 승리! 🤖';
+                winnerBanner.classList.remove('hidden');
+                gameMessageDisplay.textContent = '게임 종료! 컴퓨터가 승리했습니다!';
+                return true;
+            }
+            return false;
+        }
+        
+        // 스톱워치 시작
+        function startStopwatch() {
+            if (isRunning || gameOver || isComputerThinking) return;
+            
+            isRunning = true;
+            startBtn.classList.add('hidden');
+            stopBtn.classList.remove('hidden');
+            startTime = Date.now() - elapsedTime;
+            timerInterval = setInterval(updateTime, 10);
+            gameMessageDisplay.textContent = '스톱워치가 실행 중입니다. 정지 버튼을 누르세요.';
+            
+            // 결과 초기화
+            fractionResultDisplay.textContent = '';
+            factorizedFractionDisplay.textContent = '';
+            moveResultDisplay.textContent = '';
+            answerOptions.classList.add('hidden');
+            
+            updateButtonState();
+        }
+        
+        // 스톱워치 정지
+        function stopStopwatch() {
+            if (!isRunning || gameOver || isComputerThinking) return;
+            
+            isRunning = false;
+            startBtn.classList.remove('hidden');
+            stopBtn.classList.add('hidden');
+            clearInterval(timerInterval);
+            
+            // 결과 계산
+            calculateResult();
+            
+            // 플레이어 턴일 때 답변 옵션 표시
+            if (currentPlayer === 'player') {
+                answerOptions.classList.remove('hidden');
+                gameMessageDisplay.textContent = '분수 유형을 맞춰보세요!';
+            } else {
+                // 컴퓨터 턴일 때
+                isComputerThinking = true;
+                computerThinking.classList.remove('hidden');
+                gameMessageDisplay.textContent = '컴퓨터가 분수 유형을 맞춰야 합니다...';
+                
+                // 컴퓨터가 답변 선택할 수 있도록 버튼 보여주기
+            setTimeout(() => {
+                // 정답 버튼 모두 비활성화 (컴퓨터 차례라서)
+                answerButtons.forEach(btn => {
+                    btn.disabled = true;
+                });
+                answerOptions.classList.remove('hidden');
+                
+                // 2초 후 컴퓨터가 답변 선택
+                setTimeout(() => {
+                    computerGuess();
+                }, 2000);
+            }, 1000);
+            }
+            
+            updateButtonState();
+        }
+        
+        // 스톱워치 시간 업데이트
+        function updateTime() {
+            elapsedTime = Date.now() - startTime;
+            stopwatchDisplay.textContent = formatTime(elapsedTime);
+        }
+        
+        // 게임 초기화 (새 게임)
+        function resetGame() {
+            if (isComputerThinking) return;
+            
+            // 컴퓨터 턴 타임아웃 있으면 취소
+            if (computerTurnTimeout) {
+                clearTimeout(computerTurnTimeout);
+                computerTurnTimeout = null;
+            }
+            
+            clearInterval(timerInterval);
+            isRunning = false;
+            isComputerThinking = false;
+            elapsedTime = 0;
+            stopwatchDisplay.textContent = '00:00.00';
+            startBtn.classList.remove('hidden');
+            stopBtn.classList.add('hidden');
+            
+            fractionResultDisplay.textContent = '';
+            factorizedFractionDisplay.textContent = '';
+            moveResultDisplay.textContent = '';
+            pointsToAdd = 0;
+            currentPlayer = 'player';
+            
+            answerOptions.classList.add('hidden');
+            computerThinking.classList.add('hidden');
+            winnerBanner.classList.add('hidden');
+            
+            // 정답 버튼들 리셋
+            answerButtons.forEach(btn => {
+                btn.classList.remove('correct', 'incorrect');
+            });
+            
+            gameMessageDisplay.textContent = `새 게임을 시작합니다. 플레이어 차례입니다. 스톱워치 버튼을 눌러 시작하세요.`;
+            
+            // 점수 초기화
+            scores.player = 0;
+            scores.computer = 0;
+            updateScores();
+            
+            // 기록 초기화
+            historyList.innerHTML = '';
+            
+            gameOver = false;
+            updateButtonState();
+        }
+        
+        // 소인수분해 함수
+        function getPrimeFactors(num) {
+            if (num === 0) return "0";
+            if (num === 1) return "1";
+            
+            const factors = [];
+            let divisor = 2;
+            
+            while (num >= 2) {
+                if (num % divisor === 0) {
+                    let count = 0;
+                    while (num % divisor === 0) {
+                        num = num / divisor;
+                        count++;
+                    }
+                    if (count === 1) {
+                        factors.push(divisor.toString());
+                    } else {
+                        factors.push(`${divisor}^${count}`);
+                    }
+                }
+                divisor++;
+                
+                // 최적화: 남은 숫자가 소수일 경우
+                if (divisor * divisor > num && num > 1) {
+                    factors.push(num.toString());
+                    break;
+                }
+            }
+            
+            return factors.length ? factors.join(" × ") : "1";  // 빈 배열인 경우 1 반환
+        }
+        
+        // 소수가 순환소수인지 확인
+        function isRecurringDecimal(numerator, denominator) {
+            if (denominator === 0) return false;
+            
+            // 유한소수가 아니면 순환소수
+            return !isFiniteDecimal(numerator, denominator);
+        }
+        
+        // 최대공약수 계산 (기약분수를 위해)
+        function gcd(a, b) {
+            if (b === 0) return a;
+            return gcd(b, a % b);
+        }
+        
+        // 소수가 유한소수인지 확인
+        function isFiniteDecimal(numerator, denominator) {
+            if (denominator === 0) return false;
+            
+            // 기약분수로 만들기
+            const divisor = gcd(Math.abs(numerator), Math.abs(denominator));
+            let simplifiedDenominator = Math.abs(denominator) / divisor;
+            
+            // 분모의 소인수가 2와 5만 있으면 유한소수
+            while (simplifiedDenominator % 2 === 0) simplifiedDenominator /= 2;
+            while (simplifiedDenominator % 5 === 0) simplifiedDenominator /= 5;
+            
+            return simplifiedDenominator === 1;
+        }
+        
+        // 결과 계산
+        function calculateResult() {
+            // 초와 밀리초 추출
+            const timeStr = stopwatchDisplay.textContent.split(':')[1];
+            const seconds = parseInt(timeStr.split('.')[0]);
+            const milliseconds = parseInt(timeStr.split('.')[1]);
+            
+            // 분수 표시
+            const fractionStr = `${seconds}/${milliseconds}`;
+            fractionResultDisplay.textContent = `분수: ${fractionStr}`;
+            
+            // 소인수분해 표시
+            const numeratorFactors = getPrimeFactors(seconds);
+            const denominatorFactors = getPrimeFactors(milliseconds);
+            
+            // 소인수분해 결과 표시
+            factorizedFractionDisplay.textContent = 
+                `소인수분해: ${numeratorFactors} / ${denominatorFactors === "0" ? "0" : "{" + denominatorFactors + "}"}`;
+            
+            // 분수 유형 결정 (정답 판별)
+            if (milliseconds === 0) {
+                correctAnswer = '분모0';
+                pointsToAdd = POINTS['분모0'];
+            } else if (seconds === 0 || seconds === 1) {
+                correctAnswer = '0또는1';
+                pointsToAdd = POINTS['0또는1'];
+            } else if (seconds >= 2) {
+                correctAnswer = '자연수';
+                pointsToAdd = POINTS['자연수'];
+            } else if (isFiniteDecimal(seconds, milliseconds)) {
+                correctAnswer = '유한소수';
+                pointsToAdd = POINTS['유한소수'];
+            } else if (isRecurringDecimal(seconds, milliseconds)) {
+                correctAnswer = '순환소수';
+                pointsToAdd = POINTS['순환소수'];
+            }
+        }
+        
+        // 플레이어 답변 처리
+        function handlePlayerAnswer(selectedType) {
+            // 이미 답변했거나 게임이 끝났으면 무시
+            if (gameOver || isComputerThinking) return;
+            
+            let correctSelected = false;
+            let earnedPoints = 0;
+            const fractionStr = fractionResultDisplay.textContent.replace('분수: ', '');
+            
+            // 선택한 버튼 하이라이트
+            answerButtons.forEach(btn => {
+                if (btn.dataset.type === selectedType) {
+                    if (selectedType === correctAnswer) {
+                        btn.classList.add('correct');
+                        earnedPoints = POINTS[selectedType];
+                        correctSelected = true;
+                        
+                        gameMessageDisplay.textContent = `정답입니다! ${earnedPoints}점을 획득했습니다.`;
+                        scores.player += earnedPoints;
+                    } else {
+                        btn.classList.add('incorrect');
+                        
+                        // 오답일 경우 정답 표시
+                        answerButtons.forEach(correctBtn => {
+                            if (correctBtn.dataset.type === correctAnswer) {
+                                correctBtn.classList.add('correct');
+                            }
+                        });
+                        
+                        gameMessageDisplay.textContent = `틀렸습니다! 정답은 ${correctAnswer}입니다. 점수를 획득하지 못했습니다.`;
+                    }
+                }
+            });
+            
+            // 기록 추가
+            addHistory('player', fractionStr, selectedType, earnedPoints, correctSelected);
+            
+            // 점수 업데이트
+            updateScores();
+            
+            // 승자 확인
+            if (checkWinner()) {
+                updateButtonState();
+                return;
+            }
+            
+            // 다음 턴 준비
+            setTimeout(() => {
+                // 답변 버튼 상태 초기화
+                answerButtons.forEach(btn => {
+                    btn.classList.remove('correct', 'incorrect');
+                });
+                
+                // 결과 초기화
+                fractionResultDisplay.textContent = '';
+                factorizedFractionDisplay.textContent = '';
+                moveResultDisplay.textContent = '';
+                answerOptions.classList.add('hidden');
+                
+                // 턴 넘김
+                nextTurn();
+            }, 2000);
+        }
+        
+        // 컴퓨터 답변 처리
+        function computerGuess() {
+            computerThinking.classList.add('hidden');
+            
+            // 90% 확률로 정답, 10% 확률로 오답
+            const isCorrect = Math.random() < 0.9;
+            let earnedPoints = 0;
+            const fractionStr = fractionResultDisplay.textContent.replace('분수: ', '');
+            
+            let guessedType = '';
+            
+            if (isCorrect) {
+                guessedType = correctAnswer;
+                earnedPoints = POINTS[guessedType];
+                scores.computer += earnedPoints;
+                
+                gameMessageDisplay.textContent = `컴퓨터가 정답(${guessedType})을 맞췄습니다! ${earnedPoints}점을 획득했습니다.`;
+            } else {
+                // 오답 - 틀린 답변 선택
+                const options = ['0또는1', '순환소수', '유한소수', '자연수', '분모0'].filter(type => type !== correctAnswer);
+                guessedType = options[Math.floor(Math.random() * options.length)];
+                
+                gameMessageDisplay.textContent = `컴퓨터가 틀렸습니다! 컴퓨터 답변: ${guessedType}, 정답은 ${correctAnswer}입니다.`;
+            }
+            
+            moveResultDisplay.textContent = `컴퓨터 답변: ${guessedType}`;
+            
+            // 기록 추가
+            addHistory('computer', fractionStr, guessedType, earnedPoints, isCorrect);
+            
+            // 점수 업데이트
+            updateScores();
+            
+            // 승자 확인
+            if (checkWinner()) {
+                isComputerThinking = false;
+                updateButtonState();
+                return;
+            }
+            
+            // 다음 턴 준비
+            setTimeout(() => {
+                isComputerThinking = false;
+                
+                // 결과 초기화
+                fractionResultDisplay.textContent = '';
+                factorizedFractionDisplay.textContent = '';
+                moveResultDisplay.textContent = '';
+                
+                // 턴 넘김
+                nextTurn();
+            }, 2000);
+        }
+        
+        // 다음 턴으로 이동
+        function nextTurn() {
+            // 컴퓨터 턴 타임아웃 있으면 취소
+            if (computerTurnTimeout) {
+                clearTimeout(computerTurnTimeout);
+                computerTurnTimeout = null;
+            }
+            
+            // 턴 변경
+            currentPlayer = currentPlayer === 'player' ? 'computer' : 'player';
+            
+            gameMessageDisplay.textContent = `${currentPlayer === 'player' ? '플레이어' : '컴퓨터'} 차례입니다. ${currentPlayer === 'player' ? '스톱워치 버튼을 눌러 시작하세요.' : ''}`;
+            
+            // 컴퓨터 턴이면 자동으로 시작
+            if (currentPlayer === 'computer' && !gameOver) {
+                startComputerTurn();
+            } else {
+                updateButtonState();
+            }
+        }
+        
+        // 컴퓨터 턴 시작
+        function startComputerTurn() {
+            isComputerThinking = true;
+            updateButtonState();
+            
+            // 좀 더 길게 딜레이를 주어 확실히 순서를 인식하게 함
+            computerTurnTimeout = setTimeout(() => {
+                startStopwatch(); // 스톱워치 시작
+                
+                // 랜덤 시간 후 정지 (더 긴 범위)
+                const randomDelay = 1000 + Math.random() * 2000;
+                computerTurnTimeout = setTimeout(() => {
+                    stopStopwatch(); // 스톱워치 정지
+                }, randomDelay);
+            }, 1500);
+        }
+        
+        // 이벤트 리스너 등록
+        startBtn.addEventListener('click', startStopwatch);
+        stopBtn.addEventListener('click', stopStopwatch);
+        resetBtn.addEventListener('click', resetGame);
+        
+        // 답변 버튼 이벤트 리스너
+        answerButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                handlePlayerAnswer(btn.dataset.type);
+            });
+        });
+        
+        // 초기화
+        updateScores();
+        updateButtonState();
+    </script>
+</body>
+</html>

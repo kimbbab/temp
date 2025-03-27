@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>🎲 주사위 블랙잭 - 풀버전</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      padding: 40px;
+      background: #f4f4f4;
+    }
+    .score-box {
+      margin: 20px auto;
+      padding: 20px;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      width: 300px;
+    }
+    button {
+      padding: 10px 20px;
+      margin: 10px 5px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    .result {
+      font-size: 20px;
+      margin-top: 20px;
+      color: #333;
+    }
+    .dice {
+      font-size: 48px;
+      animation: roll 0.6s ease;
+    }
+    @keyframes roll {
+      0% { transform: rotate(0deg); }
+      25% { transform: rotate(90deg); }
+      50% { transform: rotate(180deg); }
+      75% { transform: rotate(270deg); }
+      100% { transform: rotate(360deg); }
+    }
+    .last-roll {
+      font-size: 18px;
+      margin-top: 5px;
+      color: #666;
+    }
+    #summary, #record {
+      text-align: left;
+      margin: 30px auto;
+      padding: 20px;
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      width: 90%;
+      max-width: 600px;
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎲 주사위 블랙잭 - 풀버전</h1>
+
+  <div class="score-box">
+    <h2>플레이어</h2>
+    <div class="dice" id="player-dice">🎲</div>
+    <div class="last-roll">마지막 주사위: <span id="player-last-roll">-</span></div>
+    <button id="roll-btn" onclick="playerTurn()">주사위 굴리기 🎲</button>
+    <button onclick="endGameEarly()">그만하기 ✋</button>
+  </div>
+
+  <div class="score-box">
+    <h2>컴퓨터</h2>
+    <div class="dice" id="computer-dice">🎲</div>
+    <div class="last-roll">마지막 주사위: <span id="computer-last-roll">-</span></div>
+  </div>
+
+  <div class="result" id="result-text"></div>
+
+  <div id="summary"></div>
+
+  <div style="margin-top: 20px;">
+    <button onclick="newSet()">새 세트 ▶️</button>
+    <button onclick="resetGame()">전체 리셋 🔄</button>
+  </div>
+
+  <div id="record"></div>
+
+  <script>
+    let playerTotal = 0;
+    let computerTotal = 0;
+    let gameOver = false;
+    let computerStopped = false;
+    let playerRolls = [];
+    let computerRolls = [];
+
+    let stats = {
+      playerWins: 0,
+      computerWins: 0,
+      draws: 0,
+      sets: 0,
+    };
+
+    function playerTurn() {
+      if (gameOver || computerStopped) return;
+
+      const roll = Math.floor(Math.random() * 6) + 1;
+      animateDice("player-dice");
+      setTimeout(() => {
+        playerTotal += roll;
+        playerRolls.push(roll);
+        document.getElementById("player-last-roll").textContent = roll;
+        document.getElementById("player-dice").textContent = getDiceEmoji(roll);
+
+        if (playerTotal > 21) {
+          endGame("플레이어가 21을 초과했습니다. 패배!");
+          return;
+        }
+
+        setTimeout(computerTurn, 800);
+      }, 600);
+    }
+
+    function computerTurn() {
+      if (gameOver || computerStopped) return;
+
+      const shouldStop = decideComputerStop(computerTotal);
+      if (shouldStop) {
+        computerStopped = true;
+        return;
+      }
+
+      const roll = Math.floor(Math.random() * 6) + 1;
+      animateDice("computer-dice");
+      setTimeout(() => {
+        computerTotal += roll;
+        computerRolls.push(roll);
+        document.getElementById("computer-last-roll").textContent = roll;
+        document.getElementById("computer-dice").textContent = getDiceEmoji(roll);
+
+        if (computerTotal > 21) {
+          endGame("컴퓨터가 21을 초과했습니다. 플레이어 승리!");
+        }
+      }, 600);
+    }
+
+    function decideComputerStop(score) {
+      if (score >= 19) return true;
+      if (score >= 17) return Math.random() < 0.7;
+      return false;
+    }
+
+    function endGameEarly() {
+      if (gameOver) return;
+      computerStopped = true;
+
+      if (playerTotal > 21) {
+        endGame("플레이어가 21을 초과했습니다. 패배!");
+      } else if (computerTotal > 21) {
+        endGame("컴퓨터가 21을 초과했습니다. 플레이어 승리!");
+      } else if (playerTotal > computerTotal) {
+        endGame("플레이어 승리!");
+      } else if (computerTotal > playerTotal) {
+        endGame("컴퓨터 승리!");
+      } else {
+        endGame("무승부!");
+      }
+    }
+
+    function endGame(message) {
+      gameOver = true;
+      document.getElementById("result-text").textContent = message;
+      document.getElementById("roll-btn").disabled = true;
+
+      showSummary(message);
+      updateStats(message);
+    }
+
+    function showSummary(resultMessage) {
+      let summary = "📊 [게임 결과 요약]\n\n";
+
+      summary += "👤 플레이어:\n";
+      playerRolls.forEach((val, idx) => {
+        summary += `${idx + 1}회: ${getDiceEmoji(val)} (${val})\n`;
+      });
+      summary += `총합: ${playerTotal}\n\n`;
+
+      summary += "🤖 컴퓨터:\n";
+      computerRolls.forEach((val, idx) => {
+        summary += `${idx + 1}회: ${getDiceEmoji(val)} (${val})\n`;
+      });
+      summary += `총합: ${computerTotal}\n\n`;
+
+      summary += `🏁 결과: ${resultMessage}`;
+
+      document.getElementById("summary").textContent = summary;
+    }
+
+    function updateStats(message) {
+      stats.sets++;
+
+      if (message.includes("플레이어 승리")) {
+        stats.playerWins++;
+      } else if (message.includes("컴퓨터 승리")) {
+        stats.computerWins++;
+      } else {
+        stats.draws++;
+      }
+
+      showStats();
+    }
+
+    function showStats() {
+      document.getElementById("record").textContent =
+        `📈 누적 전적\n\n` +
+        `총 세트: ${stats.sets}\n` +
+        `플레이어 승: ${stats.playerWins}\n` +
+        `컴퓨터 승: ${stats.computerWins}\n` +
+        `무승부: ${stats.draws}`;
+    }
+
+    function newSet() {
+      playerTotal = 0;
+      computerTotal = 0;
+      playerRolls = [];
+      computerRolls = [];
+      gameOver = false;
+      computerStopped = false;
+
+      document.getElementById("player-dice").textContent = "🎲";
+      document.getElementById("computer-dice").textContent = "🎲";
+      document.getElementById("player-last-roll").textContent = "-";
+      document.getElementById("computer-last-roll").textContent = "-";
+      document.getElementById("result-text").textContent = "";
+      document.getElementById("summary").textContent = "";
+      document.getElementById("roll-btn").disabled = false;
+    }
+
+    function resetGame() {
+      stats = { playerWins: 0, computerWins: 0, draws: 0, sets: 0 };
+      showStats();
+      newSet();
+    }
+
+    function getDiceEmoji(number) {
+      const dice = ["", "⚀", "⚁", "⚂", "⚃", "⚄", "⚅"];
+      return dice[number];
+    }
+
+    function animateDice(id) {
+      const el = document.getElementById(id);
+      el.classList.remove("dice");
+      void el.offsetWidth;
+      el.classList.add("dice");
+    }
+  </script>
+</body>
+</html>

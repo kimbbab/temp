@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>숫자 카드 게임</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; padding: 0; }
+    .page { display: none; }
+    .active { display: block; }
+    button { margin: 5px; padding: 10px 20px; font-size: 16px; }
+    .card { display: inline-block; border: 1px solid #000; padding: 20px; margin: 5px; font-size: 40px; width: 70px; height: 100px; text-align: center; vertical-align: middle; }
+    .hidden { background: #ccc; color: #ccc; }
+    .row { margin: 5px 0; }
+    .game-area { display: flex; height: 80vh; position: relative; }
+    .player-side { display: flex; flex-direction: column; justify-content: center; align-items: center; width: 20%; }
+    .center-area { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+    .card-area { display: flex; justify-content: center; gap: 50px; margin: 20px 0; }
+    .selected { background-color: #d0eaff !important; }
+    #cardPile { position: absolute; bottom: 10px; right: 10px; display: flex; flex-wrap: wrap; gap: 5px; max-width: 200px; }
+    .pile-card { width: 30px; height: 40px; border: 1px solid #000; text-align: center; line-height: 40px; font-size: 16px; background: #eee; }
+    #cardPileLabel { position: absolute; bottom: 60px; right: 10px; font-size: 14px; font-weight: bold; }
+    .score-box { margin-top: 20px; font-weight: bold; }
+    #finalMessage { font-size: 20px; color: green; margin-top: 15px; white-space: pre-line; }
+  </style>
+</head>
+<body>
+  <div id="page1" class="page active">
+    <h1>숫자 카드 추측 게임</h1>
+    <p><strong>인원:</strong> 2명 (진행자는 컴퓨터)</p>
+    <p><strong>준비물:</strong> 숫자 1~10 카드 2세트 (총 20장)</p>
+    <h3>게임 방법:</h3>
+    <ol style="text-align:left; display:inline-block;">
+      <li>컴퓨터가 두 장의 카드를 무작위로 뽑아, 한 장은 보이게, 한 장은 가리게 놓습니다.</li>
+      <li>두 참가자는 가려진 카드가 보이는 카드보다 <strong>클지, 작다지, 같을지</strong> 추측합니다.</li>
+      <li>정답을 맞힌 참가자는 1점을 획득합니다.</li>
+      <li>남은 카드가 없을 때까지 반복하며, 점수가 높은 사람이 승리합니다.</li>
+    </ol>
+    <button onclick="startGame()">게임 시작</button>
+  </div>
+
+  <div id="page2" class="page">
+    <div class="game-area">
+      <div class="player-side">
+        <h3>플레이어 A</h3>
+        <button onclick="makeGuess('A', '크다', this)">크다</button>
+        <button onclick="makeGuess('A', '작다', this)">작다</button>
+        <button onclick="makeGuess('A', '같다', this)">같다</button>
+        <div id="scoreA" class="score-box"></div>
+      </div>
+      <div class="center-area">
+        <div class="card-area">
+          <div id="visibleCard" class="card"></div>
+          <div id="hiddenCard" class="card hidden">?</div>
+        </div>
+        <div id="result"></div>
+        <div id="finalMessage"></div>
+        <button id="checkButton" onclick="showAnswer()">확인하기</button>
+        <button onclick="nextRound()">다음 라운드</button>
+      </div>
+      <div class="player-side">
+        <h3>플레이어 B</h3>
+        <button onclick="makeGuess('B', '크다', this)">크다</button>
+        <button onclick="makeGuess('B', '작다', this)">작다</button>
+        <button onclick="makeGuess('B', '같다', this)">같다</button>
+        <div id="scoreB" class="score-box"></div>
+      </div>
+      <div id="cardPileLabel">사용한 카드</div>
+      <div id="cardPile"></div>
+    </div>
+  </div>
+
+  <script>
+    let cards = [],
+        visible = null,
+        hidden = null,
+        guesses = { A: null, B: null },
+        score = { A: 0, B: 0 },
+        currentButtons = { A: null, B: null },
+        roundHistory = [],
+        roundIndex = 0,
+        answerRevealed = false;
+
+    function startGame() {
+      document.getElementById('page1').classList.remove('active');
+      document.getElementById('page2').classList.add('active');
+      cards = [...Array(10).keys()].map(n => n + 1).concat([...Array(10).keys()].map(n => n + 1));
+      shuffle(cards);
+      roundHistory = [];
+      roundIndex = 0;
+      document.getElementById('cardPile').innerHTML = '';
+      document.getElementById('finalMessage').textContent = '';
+      answerRevealed = false;
+      nextRound();
+    }
+
+    function shuffle(arr) {
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+    }
+
+    function nextRound() {
+      if (!answerRevealed && roundIndex > 0) return alert("먼저 '확인하기'를 눌러주세요.");
+      document.getElementById('result').textContent = '';
+      guesses = { A: null, B: null };
+      ['A', 'B'].forEach(p => {
+        if (currentButtons[p]) currentButtons[p].classList.remove('selected');
+        currentButtons[p] = null;
+      });
+
+      if (cards.length < 2) {
+        endGame();
+        return;
+      }
+
+      visible = cards.pop();
+      hidden = cards.pop();
+
+      document.getElementById('visibleCard').textContent = visible;
+      document.getElementById('hiddenCard').textContent = '?';
+      document.getElementById('hiddenCard').classList.add('hidden');
+      answerRevealed = false;
+      document.getElementById('checkButton').disabled = false;
+      updateScore();
+    }
+
+    function makeGuess(player, guess, button) {
+      guesses[player] = guess;
+      if (currentButtons[player]) currentButtons[player].classList.remove('selected');
+      button.classList.add('selected');
+      currentButtons[player] = button;
+    }
+
+    function showAnswer() {
+      if (answerRevealed) return;
+      if (!guesses.A || !guesses.B) return alert("양 플레이어 모두 선택해야 합니다.");
+
+      document.getElementById('hiddenCard').classList.remove('hidden');
+      document.getElementById('hiddenCard').textContent = hidden;
+
+      let resultText = '';
+      const compare = hidden > visible ? '크다' : hidden < visible ? '작다' : '같다';
+
+      ['A', 'B'].forEach(p => {
+        if (guesses[p] === compare) {
+          score[p]++;
+          resultText += `플레이어 ${p} 정답! +1점\n`;
+        } else {
+          resultText += `플레이어 ${p} 오답\n`;
+        }
+      });
+
+      document.getElementById('result').textContent = resultText;
+      updateScore();
+      addToPile(visible);
+      addToPile(hidden);
+      roundHistory.push([visible, hidden]);
+      roundIndex++;
+      answerRevealed = true;
+      document.getElementById('checkButton').disabled = true;
+    }
+
+    function endGame() {
+      let message = `게임 종료!\n플레이어 A: ${score.A}점 | 플레이어 B: ${score.B}점\n`;
+      if (score.A > score.B) {
+        message += "🎉 플레이어 A 승리! 축하합니다!";
+      } else if (score.B > score.A) {
+        message += "🎉 플레이어 B 승리! 축하합니다!";
+      } else {
+        message += "무승부입니다! 잘하셨습니다!";
+      }
+      document.getElementById('finalMessage').textContent = message;
+    }
+
+    function addToPile(cardValue) {
+      const pile = document.getElementById('cardPile');
+      const div = document.createElement('div');
+      div.className = 'pile-card';
+      div.textContent = cardValue;
+      pile.appendChild(div);
+    }
+
+    function updateScore() {
+      document.getElementById('scoreA').textContent = `점수: ${score.A}`;
+      document.getElementById('scoreB').textContent = `점수: ${score.B}`;
+    }
+  </script>
+</body>
+</html>

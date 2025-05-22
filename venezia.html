@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>지수 법칙 블록 챌린지</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            touch-action: manipulation; /* Prevent double tap zoom on mobile */
+        }
+        .game-container {
+            width: 100%;
+            max-width: 500px;
+            height: 700px;
+            background-color: #1a202c; /* Dark background */
+            border-radius: 12px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+            overflow: hidden;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            margin: 20px auto;
+        }
+        .info-bar {
+            display: flex;
+            justify-content: space-around;
+            align-items: center; /* Align items vertically */
+            padding: 12px 16px; /* Adjusted padding */
+            background-color: #2d3748; /* Slightly lighter dark */
+            color: white;
+            border-bottom: 2px solid #4a5568;
+            min-height: 60px; /* Ensure enough height for multi-variable display */
+        }
+        .info-item {
+            text-align: center;
+            font-size: 1rem; /* Adjusted for potentially longer strings */
+        }
+        .info-item span {
+            font-weight: bold;
+            font-size: 1.1rem; /* Adjusted */
+            display: inline-block; /* Allow wrapping if needed */
+            word-break: keep-all;
+        }
+        .game-area {
+            flex-grow: 1;
+            position: relative;
+            background-image: linear-gradient(to bottom, #2c3e50, #34495e);
+            overflow: hidden; /* Crucial for containing blocks */
+        }
+        .block {
+            position: absolute;
+            padding: 10px 15px;
+            background-color: #3498db; /* Blue */
+            color: white;
+            border-radius: 8px;
+            font-size: 1rem; /* Adjusted */
+            font-weight: bold;
+            cursor: pointer;
+            user-select: none;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.1s ease-out, background-color 0.1s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 70px; /* Ensure some width for text */
+        }
+        .block:active {
+            transform: scale(0.95);
+            background-color: #2980b9;
+        }
+        .block.multiply {
+            background-color: #2ecc71; /* Green for multiply */
+        }
+        .block.multiply:active {
+            background-color: #27ae60;
+        }
+        .block.divide {
+            background-color: #e74c3c; /* Red for divide */
+        }
+        .block.divide:active {
+            background-color: #c0392b;
+        }
+        .controls {
+            padding: 16px;
+            background-color: #2d3748;
+            border-top: 2px solid #4a5568;
+            display: flex;
+            justify-content: center;
+        }
+        .control-button {
+            padding: 12px 24px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: white;
+            background-color: #8e44ad; /* Purple */
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+        .control-button:hover {
+            background-color: #732d91;
+        }
+        .message-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.7);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            z-index: 100;
+            text-align: center;
+            padding: 20px;
+            border-radius: 12px; /* Match container */
+        }
+        .message-overlay h2 {
+            font-size: 2.5rem;
+            margin-bottom: 16px;
+        }
+        .message-overlay p {
+            font-size: 1.1rem; /* Adjusted */
+            margin-bottom: 24px;
+            line-height: 1.5;
+        }
+        .message-button {
+            padding: 12px 24px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #1a202c;
+            background-color: #f1c40f; /* Yellow */
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+        .message-button:hover {
+            background-color: #d4ac0d;
+        }
+
+        #start-screen {
+            background-color: rgba(26, 32, 44, 0.95);
+        }
+        #start-screen h1 {
+            font-size: 2.8rem;
+            color: #f1c40f;
+            margin-bottom: 12px;
+        }
+        #start-screen p {
+            font-size: 1.1rem;
+            color: #cbd5e0;
+            max-width: 80%;
+            line-height: 1.6;
+            margin-bottom: 28px;
+        }
+        #start-button {
+            padding: 15px 35px;
+            font-size: 1.4rem;
+            background-color: #2ecc71;
+        }
+         #start-button:hover {
+            background-color: #27ae60;
+        }
+
+        @media (max-width: 480px) { /* Adjusted breakpoint */
+            .info-item { font-size: 0.8rem; }
+            .info-item span { font-size: 0.9rem; }
+            .block { font-size: 0.8rem; padding: 8px 10px; min-width: 60px;}
+            .control-button { font-size: 1rem; padding: 10px 20px;}
+            .message-overlay h2 { font-size: 2rem; }
+            .message-overlay p { font-size: 1rem; }
+            #start-screen h1 { font-size: 2.2rem; }
+            #start-screen p { font-size: 1rem; }
+            #start-button { font-size: 1.2rem; padding: 12px 30px;}
+        }
+         @media (max-width: 380px) {
+            .info-item { font-size: 0.7rem; }
+            .info-item span { font-size: 0.8rem; }
+         }
+
+    </style>
+</head>
+<body class="bg-gray-800 flex items-center justify-center min-h-screen">
+
+    <div class="game-container">
+        <div id="start-screen" class="message-overlay">
+            <h1>지수 법칙 블록 챌린지!</h1>
+            <p>하늘에서 떨어지는 지수 블록을 클릭하여 현재 값을 목표 값으로 만드세요. 준비되면 시작 버튼을 누르세요!</p>
+            <button id="start-button" class="message-button">게임 시작</button>
+        </div>
+
+        <div class="info-bar">
+            <div class="info-item">레벨: <span id="level">1</span></div>
+            <div class="info-item">현재 값: <span id="current-value">a<sup>0</sup></span></div>
+            <div class="info-item">목표 정답: <span id="target-value">a<sup>0</sup></span></div>
+            <div class="info-item">점수: <span id="score">0</span></div>
+        </div>
+
+        <div id="game-area" class="game-area">
+            </div>
+
+        <div class="controls">
+            <button id="done-button" class="control-button">완료</button>
+        </div>
+
+        <div id="message-overlay" class="message-overlay" style="display: none;">
+            <h2 id="message-title"></h2>
+            <p id="message-text"></p>
+            <button id="next-button" class="message-button">다음 문제</button>
+        </div>
+    </div>
+
+    <script>
+        const gameArea = document.getElementById('game-area');
+        const currentValueDisplay = document.getElementById('current-value');
+        const targetValueDisplay = document.getElementById('target-value');
+        const levelDisplay = document.getElementById('level');
+        const scoreDisplay = document.getElementById('score');
+        const doneButton = document.getElementById('done-button');
+        
+        const messageOverlay = document.getElementById('message-overlay');
+        const messageTitle = document.getElementById('message-title');
+        const messageText = document.getElementById('message-text');
+        const nextButton = document.getElementById('next-button');
+
+        const startScreen = document.getElementById('start-screen');
+        const startButton = document.getElementById('start-button');
+
+        const BASE_CHARS = ['a', 'b']; 
+        let currentExponent = { a: 0, b: 0 };
+        let targetExponent = { a: 0, b: 0 };
+        let level = 1;
+        let score = 0;
+        let blockInterval;
+        let gameSpeed = 2000; 
+        let fallSpeed = 3; // Initial fall speed slightly reduced
+
+        let activeBlocks = []; 
+
+        function formatExponentString(exponents) {
+            if (level <= 2) {
+                return `${BASE_CHARS[0]}<sup>${exponents.a}</sup>`;
+            } else {
+                // 레벨 3 이상에서는 a와 b를 함께 표시
+                return `${BASE_CHARS[0]}<sup>${exponents.a}</sup> ${BASE_CHARS[1]}<sup>${exponents.b}</sup>`;
+            }
+        }
+
+        function updateDisplay() {
+            currentValueDisplay.innerHTML = formatExponentString(currentExponent);
+            targetValueDisplay.innerHTML = formatExponentString(targetExponent);
+            levelDisplay.textContent = level;
+            scoreDisplay.textContent = score;
+        }
+
+        function generateProblem() {
+            const maxExponentStartBase = 5;
+            const maxTargetDiffBase = 5; 
+
+            if (level <= 2) { // 변수 1개 ('a')
+                currentExponent.a = Math.floor(Math.random() * (maxExponentStartBase + level * 2)) - Math.floor((maxExponentStartBase + level)/3);
+                currentExponent.b = 0; 
+
+                let diffA;
+                do {
+                    diffA = Math.floor(Math.random() * (maxTargetDiffBase + level * 2)) + 2 + level; // 최소 차이 증가
+                } while (diffA === 0);
+                targetExponent.a = currentExponent.a + (Math.random() < 0.5 ? diffA : -diffA);
+                if (targetExponent.a === currentExponent.a) targetExponent.a += (Math.random() < 0.5 ? 1 : -1);
+                targetExponent.b = 0;
+
+            } else { // 변수 2개 ('a', 'b') - 레벨 3부터
+                const adjustedMaxStart = maxExponentStartBase + Math.floor(level * 1.5); // 두 변수이므로 각 변수 범위 약간 조절
+                const adjustedMaxDiff = maxTargetDiffBase + Math.floor(level * 1.5);
+
+                currentExponent.a = Math.floor(Math.random() * adjustedMaxStart) - Math.floor(adjustedMaxStart / 3);
+                currentExponent.b = Math.floor(Math.random() * adjustedMaxStart) - Math.floor(adjustedMaxStart / 3);
+
+                let diffA, diffB;
+                // 목표값이 현재값과 완전히 동일하지 않도록 보장
+                do {
+                    diffA = Math.floor(Math.random() * adjustedMaxDiff) + 1 + Math.floor(level/2);
+                    diffB = Math.floor(Math.random() * adjustedMaxDiff) + 1 + Math.floor(level/2);
+                    
+                    targetExponent.a = currentExponent.a + (Math.random() < 0.5 ? diffA : -diffA);
+                    targetExponent.b = currentExponent.b + (Math.random() < 0.5 ? diffB : -diffB);
+
+                } while (targetExponent.a === currentExponent.a && targetExponent.b === currentExponent.b);
+            }
+            updateDisplay();
+        }
+
+        function createBlock() {
+            if (document.hidden) return; 
+
+            const block = document.createElement('div');
+            block.classList.add('block');
+
+            const operationType = Math.random() < 0.6 ? 'multiply' : 'divide';
+            let exponentChange = Math.floor(Math.random() * (2 + Math.floor(level/2))) + 1;
+            
+            if (Math.random() < 0.1) { // 가끔 큰 값
+                exponentChange = Math.floor(Math.random() * (4 + Math.floor(level/1.5))) + 2;
+            }
+
+            let variableChar;
+            if (level <= 2) {
+                variableChar = BASE_CHARS[0]; // 'a'
+            } else {
+                variableChar = Math.random() < 0.5 ? BASE_CHARS[0] : BASE_CHARS[1]; // 'a' 또는 'b'
+            }
+            block.dataset.variable = variableChar;
+            block.dataset.operation = operationType;
+            block.dataset.exponent = exponentChange;
+
+            if (operationType === 'multiply') {
+                block.innerHTML = `× ${variableChar}<sup>${exponentChange}</sup>`;
+                block.classList.add('multiply');
+            } else {
+                block.innerHTML = `÷ ${variableChar}<sup>${exponentChange}</sup>`;
+                block.classList.add('divide');
+            }
+
+            const gameAreaWidth = gameArea.offsetWidth;
+            const blockWidthEstimate = block.offsetWidth > 0 ? block.offsetWidth : 80; // 실제 너비 또는 추정치
+            block.style.left = Math.random() * (gameAreaWidth - blockWidthEstimate) + 'px';
+            block.style.top = '-60px'; // 화면 위에서 시작 (블록 높이 고려)
+
+            block.addEventListener('click', handleBlockClick);
+            block.addEventListener('touchstart', handleBlockClick, { passive: true }); 
+
+            gameArea.appendChild(block);
+            activeBlocks.push(block);
+        }
+        
+        function handleBlockClick(event) {
+            const block = event.currentTarget; 
+            if (!activeBlocks.includes(block)) return; 
+
+            const operation = block.dataset.operation;
+            const exponentChange = parseInt(block.dataset.exponent);
+            const variableToChange = block.dataset.variable;
+
+            if (operation === 'multiply') {
+                currentExponent[variableToChange] += exponentChange;
+            } else { 
+                currentExponent[variableToChange] -= exponentChange;
+            }
+
+            updateDisplay();
+            
+            block.remove();
+            activeBlocks = activeBlocks.filter(b => b !== block);
+
+            score += 5;
+            updateDisplay();
+        }
+
+        function moveBlocks() {
+            activeBlocks = activeBlocks.filter(block => {
+                let currentTop = parseInt(block.style.top || 0);
+                currentTop += fallSpeed;
+                block.style.top = currentTop + 'px';
+
+                if (currentTop > gameArea.offsetHeight) {
+                    block.remove();
+                    return false; // 배열에서 제거
+                }
+                return true; // 배열에 유지
+            });
+        }
+        
+        function gameLoop() {
+            moveBlocks();
+            requestAnimationFrame(gameLoop); 
+        }
+
+        function startGameFlow() {
+            startScreen.style.display = 'none';
+            messageOverlay.style.display = 'none';
+            doneButton.disabled = false;
+            
+            activeBlocks.forEach(block => block.remove()); 
+            activeBlocks = [];
+
+            generateProblem();
+            
+            gameSpeed = Math.max(400, 1800 - level * 80); // 블록 생성 간격 (더 빠르게)
+            fallSpeed = Math.min(8, 2.5 + Math.floor(level / 2.5)); // 낙하 속도 (더 빠르게)
+
+            if (blockInterval) clearInterval(blockInterval);
+            blockInterval = setInterval(createBlock, gameSpeed);
+        }
+
+        doneButton.addEventListener('click', () => {
+            if (blockInterval) clearInterval(blockInterval); 
+            doneButton.disabled = true;
+
+            let success = false;
+            if (level <= 2) {
+                success = (currentExponent.a === targetExponent.a);
+            } else { // 레벨 3 이상
+                success = (currentExponent.a === targetExponent.a && currentExponent.b === targetExponent.b);
+            }
+
+            if (success) {
+                messageTitle.textContent = '성공!';
+                messageText.innerHTML = `정답입니다! 현재 값: ${formatExponentString(currentExponent)}. 다음 레벨로 도전하세요.`; 
+                messageText.style.color = '#2ecc71'; 
+                score += 100 + level * 15; 
+                level++;
+                nextButton.textContent = '다음 문제';
+            } else {
+                messageTitle.textContent = '실패!';
+                messageText.innerHTML = `아쉽네요. 현재 값은 ${formatExponentString(currentExponent)} 입니다. 목표는 ${formatExponentString(targetExponent)} 였어요.`;
+                messageText.style.color = '#e74c3c'; 
+                score = Math.max(0, score - 25); 
+                nextButton.textContent = '다시 시도';
+            }
+            updateDisplay(); 
+            messageOverlay.style.display = 'flex';
+        });
+
+        nextButton.addEventListener('click', () => {
+            startGameFlow();
+        });
+        
+        startButton.addEventListener('click', () => {
+            // HTML의 초기값을 레벨 1에 맞게 설정 (a^0)
+            currentValueDisplay.innerHTML = `a<sup>0</sup>`;
+            targetValueDisplay.innerHTML = `a<sup>0</sup>`;
+            startGameFlow();
+            requestAnimationFrame(gameLoop); 
+        });
+        
+        // 초기 HTML 값 설정 (CSS 로딩 후 정확한 값은 JS에서 설정됨)
+        currentValueDisplay.innerHTML = `a<sup>0</sup>`;
+        targetValueDisplay.innerHTML = `a<sup>0</sup>`;
+
+    </script>
+</body>
+</html>

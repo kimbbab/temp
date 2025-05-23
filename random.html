@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>운명 개척자: 시험의 날</title>
+    <title>운명 개척자: 일상 속 확률 게임</title>
     <style>
         body {
             font-family: 'Malgun Gothic', sans-serif;
             line-height: 1.6;
             margin: 0;
             padding: 20px;
-            background-color: #f4f4f4;
+            background-color: #f0f2f5;
             color: #333;
             display: flex;
             flex-direction: column;
@@ -18,387 +18,495 @@
         }
         .container {
             background-color: #fff;
-            padding: 25px;
-            border-radius: 8px;
-            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+            padding: 20px 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
             width: 100%;
-            max-width: 700px;
+            max-width: 750px;
         }
         .stage {
-            display: none; /* 기본적으로 모든 스테이지 숨김 */
+            display: none;
             padding: 20px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            margin-bottom: 20px;
-            background-color: #fff;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            background-color: #ffffff;
         }
         .stage h2 {
-            color: #007bff;
+            color: #1877f2; 
             margin-top: 0;
+            border-bottom: 2px solid #1877f2;
+            padding-bottom: 10px;
         }
-        .stage p {
-            margin-bottom: 15px;
+        .stage .situation p, .stage .dilemma p {
+            margin-bottom: 10px;
+            color: #4b4f56;
         }
         .choices button {
             display: block;
             width: 100%;
-            padding: 12px;
-            margin: 8px 0;
-            background-color: #007bff;
+            padding: 12px 15px;
+            margin: 10px 0;
+            background-color: #1877f2;
             color: white;
             border: none;
-            border-radius: 5px;
+            border-radius: 6px;
             cursor: pointer;
             font-size: 16px;
-            transition: background-color 0.3s ease;
+            font-weight: bold;
+            transition: background-color 0.2s ease;
         }
         .choices button:hover {
-            background-color: #0056b3;
+            background-color: #166fe5;
         }
-        #summary {
-            white-space: pre-line; /* 줄바꿈 유지 */
-            background-color: #e9ecef;
+        .outcome-area {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f0f2f5;
+            border-left: 4px solid #1877f2;
+            border-radius: 0 6px 6px 0;
+            display: none; 
+        }
+        .outcome-area .probabilities, .outcome-area .actual-result {
+            margin-bottom: 8px;
+            color: #4b4f56;
+        }
+        .outcome-area .probabilities strong, .outcome-area .actual-result strong {
+            color: #1c1e21;
+        }
+        .next-button {
+            display: none; 
+            width: 100%;
+            padding: 12px 15px;
+            margin-top: 20px;
+            background-color: #42b72a; 
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        .next-button:hover {
+            background-color: #36a420;
+        }
+        #summaryContainer {
+            background-color: #f0f2f5;
             padding: 20px;
-            border-radius: 5px;
+            border-radius: 8px;
+        }
+        #recapList li {
+            background-color: #fff;
+            margin-bottom: 12px;
+            padding: 15px;
+            border-radius: 6px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            list-style-type: none;
+        }
+        #recapList li strong {
+            color: #1877f2; display: block; margin-bottom: 5px;
         }
         h1 {
-            color: #333;
+            color: #1c1e21;
             text-align: center;
+            margin-bottom: 25px;
         }
-        .probability-display {
-            font-style: italic;
-            color: #555;
-            margin-bottom: 10px;
+        .highlight-prob { 
+            color: #e74c3c;
+            font-weight: bold;
         }
-         /* 모바일 반응형 */
         @media (max-width: 600px) {
-            .container {
-                padding: 15px;
-            }
-            .stage {
-                padding: 15px;
-            }
-            .choices button {
-                font-size: 15px;
-                padding: 10px;
-            }
+            .container { padding: 15px; }
+            .stage { padding: 15px; }
+            .choices button, .next-button { font-size: 15px; padding: 10px; }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>✨ 운명 개척자: 시험의 날 🎲</h1>
+        <h1>🎲 운명 개척자: 일상 속 확률 게임 🕹️</h1>
 
         <div id="stage0" class="stage">
             <h2>게임 시작!</h2>
-            <p>"오늘은 결전의 날, 바로 시험 날이다! 아침부터 작은 선택들이 모여 오늘의 결과를 만들겠지. 매 순간 현명한 (또는 운 좋은!) 판단으로 최고의 시험날을 만들어보자!"</p>
+            <p>"평범해 보이는 오늘 하루, 크고 작은 선택들이 당신을 기다리고 있다. 당신의 결정과 약간의 확률이 만들어낼 하루는 어떤 모습일까? 지금 바로 선택을 시작해보자!"</p>
             <div class="choices">
-                <button onclick="startGame()">시험의 날 시작하기</button>
+                <button onclick="startGame()">나의 하루 시작하기</button>
             </div>
         </div>
 
         <div id="stage1" class="stage">
-            <h2>1️⃣ 단계: 아침 식탁 위의 미신 🥣</h2>
-            <p>"든든하게 아침을 먹고 가야지!" 식탁에는 두 가지 선택지가 놓여 있다. 엄마는 "시험 잘 보라"며 미역국을 끓여 놓으셨지만, 어쩐지 "시험 날 미역국을 먹으면 미끄러진다"는 미신이 마음에 걸린다.</p>
-            <p class="probability-display">이 선택은 시험 결과에 직접적인 영향을 주진 않지만, 하루의 시작 기분을 결정합니다.</p>
+            <h2>1️⃣ 단계: 정수기의 도전 💧</h2>
+            <div class="situation"><p>목이 말라 정수기로 향했지만, 이런! 물통이 텅 비어있다. 동료/친구들은 모두 바빠 보이고, 지금 당장 물을 마시려면 내가 직접 물통을 교체해야 할 것 같다.</p></div>
+            <div class="dilemma"><p>"이 무거운 물통, 내가 과연 사고 없이 잘 갈 수 있을까? <span class='highlight-prob'>(도전 시 성공 확률: 약 66.7%)</span> 괜히 힘만 쓰고 망신당하는 거 아니야?"</p></div>
             <div class="choices">
-                <button onclick="handleChoice(1, 'A', '에이, 미신은 미신일 뿐! 엄마표 미역국으로 힘내자! (미역국 선택)')">A. 엄마표 미역국으로 힘내자!</button>
-                <button onclick="handleChoice(1, 'B', '그래도 혹시 모르니... 오늘은 된장국으로 주세요! (된장국 선택)')">B. 오늘은 된장국으로 주세요!</button>
+                <button onclick="handleChoice(1, 'A', '물통 교체에 도전한다.')">A. 좋아, 한번 해보자! 내가 해결한다!</button>
+                <button onclick="handleChoice(1, 'B', '물통 교체를 포기한다.')">B. 아니야, 너무 무거워 보여. 다른 사람을 기다리자.</button>
             </div>
+            <div class="outcome-area" id="outcomeArea1">
+                <p class="probabilities"><strong>확률 정보:</strong> <span id="probs1"></span></p>
+                <p class="actual-result"><strong>실제 결과:</strong> <span id="result1"></span></p>
+            </div>
+            <button class="next-button" id="nextButton1" onclick="proceedToNextStage(2)">다음으로</button>
         </div>
 
         <div id="stage2" class="stage">
-            <h2>2️⃣ 단계: 등굣길, 시간과의 싸움 🚌 vs 🚇</h2>
-            <p>"앗, 조금 늦잠을 잤나?" 시계를 보니 평소보다 10분 정도 늦었다. 버스 정류장까지는 5분 거리, 지하철역까지는 10분 거리지만 지하철이 더 빠르다.</p>
-            <p class="probability-display">버스 선택 시 바로 올 확률: 60% / 지하철 선택 시 정시 도착 확률: 80%</p>
+            <h2>2️⃣ 단계: 동전의 양면, 내기의 유혹 💰</h2>
+            <div class="situation"><p>점심시간, 친구가 100원을 걸고 재미있는 내기를 제안한다. "동전 2개를 동시에 던질 거야. 결과를 정확히 맞히면 내가 200원 줄게! 어때, 해볼래?" (참가비 100원)</p></div>
+            <div class="dilemma"><p>"흠, 100원으로 200원을 딸 기회인가, 아니면 100원을 날릴 함정인가... 어떤 경우가 가장 확률이 높을까?"</p></div>
             <div class="choices">
-                <button onclick="handleChoice(2, 'A', '버스를 타자! 정류장이 더 가깝고, 버스가 바로 올 확률이 60%는 될 거야.')">A. 버스를 타자!</button>
-                <button onclick="handleChoice(2, 'B', '지하철을 타자! 좀 더 걸어야 하지만, 지하철은 거의 정시에 오니까 늦을 확률이 20% 정도로 낮아.')">B. 지하철을 타자!</button>
+                <button onclick="handleChoice(2, 'A', '앞면 2개에 건다.')">A. 좋아! 난 앞면 2개에 건다!</button>
+                <button onclick="handleChoice(2, 'B', '앞면 1개, 뒷면 1개에 건다.')">B. 내 분석으로는 앞면 1개, 뒷면 1개가 가장 유력해!</button>
+                <button onclick="handleChoice(2, 'C', '뒷면 2개에 건다.')">C. 왠지 느낌이 안 좋은데... 둘 다 뒷면이 나올 것 같아!</button>
+                <button onclick="handleChoice(2, 'D', '내기를 하지 않는다.')">D. 안 할래. 내 소중한 100원은 지켜야지.</button>
             </div>
+            <div class="outcome-area" id="outcomeArea2">
+                 <p class="probabilities"><strong>확률 정보:</strong> <span id="probs2"></span></p>
+                 <p class="actual-result"><strong>실제 결과:</strong> <span id="result2"></span></p>
+            </div>
+            <button class="next-button" id="nextButton2" onclick="proceedToNextStage(3)">다음으로</button>
         </div>
 
         <div id="stage3" class="stage">
-            <h2>3️⃣ 단계: 우산, 너란 존재의 무게 ☔</h2>
-            <p>집을 나서려는데 창밖이 조금 흐리다. 일기예보를 확인하니, 오늘 오후에 비가 올 확률은 <strong id="rainChanceDisplay">XX%</strong>라고 한다.</p>
+            <h2>3️⃣ 단계: 도서관에서의 기대감 📚</h2>
+            <div class="situation"><p>주말 오후, 도서관에 가서 책을 읽을까 고민 중이다. 얼마 전 친구 수미와 지은이도 오늘 도서관에 갈 수도 있다고 했던 기억이 난다. 둘 다 만나면 정말 좋을 텐데!</p></div>
+            <div class="dilemma"><p>"<span class='highlight-prob'>수미가 도서관에 올 확률은 1/3 (약 33.3%)</span>, <span class='highlight-prob'>지은이가 올 확률은 2/3 (약 66.7%)</span>라고 한다. 둘 다 만날 확률은 얼마나 될까? 아니면 그냥 집에서 편하게 쉴까?"</p></div>
             <div class="choices">
-                <button onclick="handleChoice(3, 'A', '혹시 모르니 챙겨가자. 비 맞는 것보단 낫지. (우산 챙기기)')">A. 우산을 챙겨가자.</button>
-                <button onclick="handleChoice(3, 'B', '에이, 맑을 확률도 있는데? 그냥 가볍게 갈래! (우산 안 챙기기)')">B. 우산을 안 챙길래.</button>
+                <button onclick="handleChoice(3, 'A', '도서관에 간다.')">A. 좋아, 도서관으로 출발!</button>
+                <button onclick="handleChoice(3, 'B', '도서관에 가지 않고 집에서 쉰다.')">B. 오늘은 그냥 집에서 쉴래.</button>
             </div>
+            <div class="outcome-area" id="outcomeArea3">
+                 <p class="probabilities"><strong>확률 정보:</strong> <span id="probs3"></span></p>
+                 <p class="actual-result"><strong>실제 결과:</strong> <span id="result3"></span></p>
+            </div>
+            <button class="next-button" id="nextButton3" onclick="proceedToNextStage(4)">다음으로</button>
         </div>
 
         <div id="stage4" class="stage">
-            <h2>4️⃣ 단계: 시험 직전, 마지막 벼락치기! ⚡</h2>
-            <p>드디어 시험 시작 10분 전! 마지막으로 무엇을 봐야 할까? 짧은 시간이지만, 이 순간의 선택이 한두 문제를 더 맞히게 할 수도 있다.</p>
-            <p class="probability-display">전체 노트: 사소한 것 발견 확률 70% / 킬러 문제: 적중 확률 30%</p>
+            <h2>4️⃣ 단계: 변덕쟁이 날씨와 우산 ☔</h2>
+            <div class="situation"><p>외출 준비를 거의 마쳤는데, 창밖 하늘이 심상치 않다. 일기예보를 확인하니 오늘 비가 올 확률은 <strong id="rainChanceDisplay" class="highlight-prob">XX%</strong>라고 한다.</p></div>
+            <div class="dilemma"><p>"비 올 확률이 <span id="rainChanceDilemma" class="highlight-prob">XX</span>%라니... 정말 애매한걸. 우산을 챙겨야 하나, 말아야 하나?"</p></div>
             <div class="choices">
-                <button onclick="handleChoice(4, 'A', '전체 핵심 노트 빠르게 훑어보기!')">A. 전체 핵심 노트 빠르게 훑어보기!</button>
-                <button onclick="handleChoice(4, 'B', '어젯밤 찜해둔 \'이것만은 꼭 나온다\' 싶은 킬러 문제 집중 공략!')">B. 킬러 문제 집중 공략!</button>
+                <button onclick="handleChoice(4, 'A', '우산을 가져간다.')">A. 가져간다.</button>
+                <button onclick="handleChoice(4, 'B', '우산을 안 가져간다.')">B. 안 가져간다.</button>
             </div>
+            <div class="outcome-area" id="outcomeArea4">
+                 <p class="probabilities"><strong>확률 정보:</strong> <span id="probs4"></span></p>
+                 <p class="actual-result"><strong>실제 결과:</strong> <span id="result4"></span></p>
+            </div>
+            <button class="next-button" id="nextButton4" onclick="proceedToNextStage(5)">다음으로</button>
         </div>
 
         <div id="stage5" class="stage">
-            <h2>5️⃣ 단계: OX 퀴즈, 운명의 갈림길 🤔</h2>
-            <p>시험지를 넘기던 중, 전혀 감이 오지 않는 OX 문제가 등장했다! 찍어야 한다면 O일까, X일까? 그야말로 50대 50의 확률이다.</p>
+            <h2>5️⃣ 단계: 수상한 자판기의 유혹 ✨</h2>
+            <div class="situation"><p>처음 보는 동네를 걷다가 독특한 디자인의 자판기를 발견했다. '수수께끼의 맛!' 버튼이 있고, 가격은 500원. 자판기에는 "초특급 레어템 음료 확률 1/10! 고급 음료 확률 3/10! 일반 음료 확률 6/10!" 이라고 반짝이며 적혀있다.</p></div>
+            <div class="dilemma"><p>"초특급 레어템이라니, 궁금한데? 500원으로 인생 음료를 만날 수도 있잖아! 하지만 대부분 일반 음료가 나오겠지?"</p></div>
             <div class="choices">
-                <button onclick="handleChoice(5, 'A', '왠지 느낌이 좋아! O에 한 표! (O 선택)')">A. O에 한 표!</button>
-                <button onclick="handleChoice(5, 'B', '아니야, 이건 X의 함정일 거야! X로 간다! (X 선택)')">B. X로 간다!</button>
+                <button onclick="handleChoice(5, 'A', '수수께끼 음료에 도전한다.')">A. 인생은 한 방! 수수께끼의 맛에 도전한다!</button>
+                <button onclick="handleChoice(5, 'B', '안전하게 다른 음료를 선택하거나 안 마신다.')">B. 아니야, 500원이면 확실한 행복을 살 수 있지. 옆에 있는 익숙한 주스나 마시자.</button>
             </div>
+            <div class="outcome-area" id="outcomeArea5">
+                 <p class="probabilities"><strong>확률 정보:</strong> <span id="probs5"></span></p>
+                 <p class="actual-result"><strong>실제 결과:</strong> <span id="result5"></span></p>
+            </div>
+            <button class="next-button" id="nextButton5" onclick="proceedToNextStage(6)">다음으로</button>
         </div>
-
+        
         <div id="stage6" class="stage">
-            <h2>6️⃣ 단계: 난감한 객관식, 최후의 2지선다 🤯</h2>
-            <p>정말 어려운 객관식 문제다. 보기 4개 중 2개까지는 확실히 아닌 것 같은데, 남은 두 개 중에서는 도저히 정답을 모르겠다. (남은 두 개 중 하나가 답일 확률 50%)</p>
+            <h2>6️⃣ 단계: 빵집의 유혹 🥐🍞</h2>
+            <div class="situation"><p>퇴근/하교길, 동네 빵집에 들를까 한다. 인기 많은 초코빵과 소금빵이 아직 남아있을까? 하나라도 남아있으면 사서 가고 싶은데...</p></div>
+            <div class="dilemma"><p>"<span class='highlight-prob'>초코빵이 이미 다 팔렸을 확률은 1/4 (25%)</span>, <span class='highlight-prob'>소금빵이 이미 다 팔렸을 확률은 2/3 (약 66.7%)</span>라고 한다. 둘 다 이미 팔렸으면 어떡하지? 하나라도 남아있으면 좋겠는데..."</p></div>
             <div class="choices">
-                <button onclick="handleChoice(6, 'A', '더 고민해봤자 시간만 간다. 처음 끌렸던 보기로 가자!')">A. 처음 끌렸던 보기로 가자!</button>
-                <button onclick="handleChoice(6, 'B', '아니야, 함정일 수도 있어. 다시 한번 신중하게 분석해서 다른 보기로 결정!')">B. 다시 한번 신중하게 분석해서 다른 보기로 결정!</button>
+                <button onclick="handleChoice(6, 'A', '빵집에 가본다.')">A. 그래도 가보자! 빵이 남아있을지도 몰라.</button>
+                <button onclick="handleChoice(6, 'B', '빵집에 가지 않는다.')">B. 이미 다 팔렸을 것 같아. 그냥 집에 가자.</button>
             </div>
-        </div>
-
-        <div id="stage7" class="stage">
-            <h2>7️⃣ 단계: 시험 후, 친구들과의 수다 🗣️</h2>
-            <p>"휴우, 시험 끝!" 교문을 나서니 친구들이 삼삼오오 모여 답을 맞춰보고 있다. 같이 맞춰볼까, 아니면 그냥 모른 척 지나갈까?</p>
-            <p class="probability-display">답 맞춰보기: 친구들과 답 다를 확률 60%</p>
-            <div class="choices">
-                <button onclick="handleChoice(7, 'A', '같이 맞춰보자! 궁금해서 못 참겠어.')">A. 같이 맞춰보자!</button>
-                <button onclick="handleChoice(7, 'B', '아니, 난 그냥 조용히 결과를 기다릴래.')">B. 그냥 조용히 결과를 기다릴래.</button>
+            <div class="outcome-area" id="outcomeArea6">
+                 <p class="probabilities"><strong>확률 정보:</strong> <span id="probs6"></span></p>
+                 <p class="actual-result"><strong>실제 결과:</strong> <span id="result6"></span></p>
             </div>
-        </div>
-
-        <div id="stage8" class="stage">
-            <h2>8️⃣ 단계: 고생한 나를 위한 저녁 만찬 🍗 vs 🍚</h2>
-            <p>집에 돌아오니 엄마가 "시험 보느라 고생 많았다"며 저녁으로 뭘 먹고 싶은지 물어보신다. 오늘 하루, 정말 수고한 나에게 어떤 저녁을 선물할까?</p>
-            <p class="probability-display">치킨 만족 확률: 90% / 집밥 만족 확률: 95% (단, 특별한 게 먹고 싶었을 수도)</p>
-            <div class="choices">
-                <button onclick="handleChoice(8, 'A', '오늘 고생했으니까, 내가 제일 좋아하는 치킨!')">A. 내가 제일 좋아하는 치킨!</button>
-                <button onclick="handleChoice(8, 'B', '속 편하게 집밥 먹을래요. 엄마가 해주신 김치찌개가 최고예요.')">B. 엄마표 김치찌개!</button>
-            </div>
+            <button class="next-button" id="nextButton6" onclick="proceedToNextStage(7)">다음으로 (결과 보기)</button>
         </div>
 
         <div id="summaryStage" class="stage">
-            <h2>📜 나의 시험날 이야기 📜</h2>
-            <div id="summary"></div>
-            <h3 id="finalVerdict"></h3>
+            <h2>📜 나의 하루 이야기 📜</h2>
+            <div id="summaryContainer">
+                <h3>✨ 내가 경험한 하루의 순간들 ✨</h3>
+                <ul id="recapList"></ul>
+                <hr>
+                <h3 id="finalVerdict"></h3>
+            </div>
             <div class="choices">
-                <button onclick="restartGame()">다시 플레이하기</button>
+                <button onclick="restartGame()">다시 하루를 시작하기</button>
             </div>
         </div>
     </div>
 
     <script>
-        let currentStage = 0;
+        let currentStageNumInternal = 0;
         const storyLog = [];
-        let rainProbability = 0;
-        let gotWet = false; // 비를 맞았는지 여부
-        let lostUmbrella = false; // 우산을 잃어버렸는지 여부
-        let examPerformanceBoost = 0; // 시험 관련 긍정적 이벤트 카운트
+        let rainPercentage = 0; 
 
-        function showStage(stageId) {
+        // P(초코빵 팔림) = 1/4, P(소금빵 팔림) = 2/3
+        const probChocoSoldOut = 1/4;
+        const probSaltSoldOut = 2/3;
+
+        function showStage(stageIdToShow) {
             document.querySelectorAll('.stage').forEach(stage => {
                 stage.style.display = 'none';
             });
-            document.getElementById(stageId).style.display = 'block';
+            const stageElement = document.getElementById(stageIdToShow);
+            if (stageElement) {
+                stageElement.style.display = 'block';
+            }
+
+            const stageNum = parseInt(stageIdToShow.replace('stage', ''));
+            // 총 스테이지 개수 (1~6)
+            if (stageNum >=1 && stageNum <=6) { 
+                const outcomeArea = document.getElementById('outcomeArea' + stageNum);
+                if (outcomeArea) outcomeArea.style.display = 'none';
+
+                const nextButton = document.getElementById('nextButton' + stageNum);
+                if (nextButton) nextButton.style.display = 'none'; 
+
+                const choiceDiv = stageElement.querySelector('.choices');
+                if (choiceDiv) {
+                    choiceDiv.querySelectorAll('button').forEach(button => {
+                         button.style.display = 'block'; 
+                         button.disabled = false;
+                    });
+                }
+            }
         }
 
         function startGame() {
-            currentStage = 1;
-            storyLog.length = 0; // 로그 초기화
-            gotWet = false;
-            lostUmbrella = false;
-            examPerformanceBoost = 0;
-            // 비 올 확률 랜덤 설정 (30% ~ 70%)
-            rainProbability = Math.floor(Math.random() * 41) + 30; 
-            document.getElementById('rainChanceDisplay').textContent = rainProbability + "%";
-            showStage('stage' + currentStage);
+            currentStageNumInternal = 1;
+            storyLog.length = 0; 
+            rainPercentage = Math.floor(Math.random() * 61) + 20; 
+            document.getElementById('rainChanceDisplay').textContent = rainPercentage + "%";
+            document.getElementById('rainChanceDilemma').textContent = rainPercentage; 
+            showStage('stage' + currentStageNumInternal);
         }
         
         function restartGame() {
             showStage('stage0');
         }
 
-        function addLog(stageTitle, situation, choiceText, outcomeText) {
-            storyLog.push({ stage: stageTitle, situation: situation, choice: choiceText, result: outcomeText });
-            // 콘솔에도 로그 출력 (디버깅용)
-            // console.log(`상황: ${situation}\n선택: ${choiceText}\n결과: ${outcomeText}`);
+        function addLog(stageTitle, choiceMade, probabilitiesShown, actualOutcome) {
+            storyLog.push({ 
+                stage: stageTitle, 
+                choice: choiceMade, 
+                probabilities: probabilitiesShown,
+                outcome: actualOutcome 
+            });
         }
 
-        function handleChoice(stageNum, choice, choiceText) {
-            let outcomeText = "";
-            let situationText = ""; // 각 스테이지의 기본 상황 설명을 저장할 변수
+        function handleChoice(stageNum, choiceKey, choiceText) {
+            currentStageNumInternal = stageNum;
+            let probabilitiesText = ""; 
+            let outcomeText = ""; 
             const stageTitle = document.getElementById('stage' + stageNum).querySelector('h2').textContent;
 
             switch (stageNum) {
-                case 1: // 아침 메뉴
-                    situationText = "시험 날 아침, 미역국과 된장국 사이에서 고민했다.";
-                    if (choice === 'A') { // 미역국
-                        outcomeText = "엄마표 미역국을 든든하게 먹었다. 미신은 미신일 뿐, 속은 편안했다!";
-                    } else { // 된장국
-                        outcomeText = "된장국을 선택했다. 속 편하게 아침을 시작했다.";
-                    }
-                    break;
-                case 2: // 등굣길
-                    situationText = "평소보다 10분 늦게 일어나 등굣길 교통수단을 선택해야 했다.";
-                    if (choice === 'A') { // 버스
-                        if (Math.random() < 0.60) { // 버스 바로 옴 (60%)
-                            outcomeText = "다행히 버스가 금방 도착해서 여유롭게 학교에 도착했다!";
+                case 1: // 정수기
+                    if (choiceKey === 'B') { // 도전하지 않는다
+                        probabilitiesText = "도전하지 않기로 선택함. (만약 도전했다면 성공 확률 약 66.7%)";
+                        outcomeText = "물통 교체를 포기했다. 결국 다른 사람이 교체해주거나, 목마름을 참아야 했다.";
+                    } else { // A (도전한다)
+                        probabilitiesText = "도전 시 성공 확률: 2/3 (약 66.7%), 실패 확률: 1/3 (약 33.3%)";
+                        if (Math.random() < (2/3)) { 
+                            outcomeText = "완벽해! 물통을 능숙하게 교체했다. 동료/친구들의 감탄과 선망의 시선을 한 몸에 받았다. 역시 난 못하는 게 없지!";
                         } else {
-                            outcomeText = "이런, 버스가 생각보다 늦게 와서 아슬아슬하게 교실에 들어갔다. 심장이 철렁했네.";
-                        }
-                    } else { // 지하철
-                        if (Math.random() < 0.80) { // 지하철 정시 도착 (80%)
-                            outcomeText = "역시 지하철! 정확하게 도착해서 차분하게 시험 준비를 할 수 있었다.";
-                        } else {
-                            outcomeText = "웬일로 지하철이 연착되다니! 뛰어서 겨우 지각은 면했지만 아침부터 진이 빠진다.";
+                            outcomeText = "이런! 물통을 들다가 그만 손이 미끄러져 물을 쏟고 말았다. 옷도 젖고 바닥도 물바다가 되어 당황스럽다. 괜히 나섰나...";
                         }
                     }
                     break;
-                case 3: // 우산
-                    const rainHappens = Math.random() < (rainProbability / 100);
-                    situationText = `오후 비 올 확률 ${rainProbability}%인 상황에서 우산 휴대 여부를 결정했다.`;
-                    if (choice === 'A') { // 우산 챙김
-                        if (rainHappens) {
-                            outcomeText = "역시! 오후에 비가 왔지만, 우산 덕분에 비를 맞지 않았다. 뽀송하게 시험에 집중할 수 있었다.";
-                            examPerformanceBoost++;
-                        } else {
-                            if (Math.random() < 0.20) { // 우산 잃어버릴 확률 20% (비 안 올때)
-                                outcomeText = "비는 오지 않았고, 설상가상으로 우산을 교실에 깜빡 두고 와서 잃어버렸다. 아이고 내 우산...";
-                                lostUmbrella = true;
-                            } else {
-                                outcomeText = "비는 오지 않았지만, 혹시 모르니 잘 챙겼다고 생각했다. 다행히 잃어버리진 않았다.";
-                            }
-                        }
-                    } else { // 우산 안 챙김
-                        if (rainHappens) {
-                            outcomeText = "이럴 수가! 갑자기 쏟아지는 비에 쫄딱 젖었다. 찝찝한 기분으로 시험을 봐야 했다.";
-                            gotWet = true;
-                        } else {
-                            outcomeText = "역시 난 맑음 요정! 비도 안 오고 가볍게 다녀서 좋았다.";
-                        }
-                    }
-                    break;
-                case 4: // 시험 직전 벼락치기
-                    situationText = "시험 시작 10분 전, 마지막으로 볼 내용을 선택했다.";
-                    if (choice === 'A') { // 전체 노트
-                        if (Math.random() < 0.70) {
-                            outcomeText = "오! 방금 훑어본 내용 중에 헷갈렸던 부분이 시험에 나왔다! 덕분에 한 문제 맞혔다.";
-                            examPerformanceBoost++;
-                        } else {
-                            outcomeText = "특별히 기억에 남는 건 없었지만, 마음은 좀 더 편안해진 것 같다.";
-                        }
-                    } else { // 킬러 문제
-                        if (Math.random() < 0.30) {
-                            outcomeText = "대박! 어젯밤에 봤던 그 킬러 문제가 똑같이 나왔다! 이건 무조건 정답!";
-                            examPerformanceBoost += 2; // 킬러 문제 적중은 더 큰 영향
-                        } else {
-                            outcomeText = "아쉽게도 그 문제는 나오지 않았다. 다른 걸 볼 걸 그랬나...";
-                        }
-                    }
-                    break;
-                case 5: // OX 퀴즈
-                    situationText = "전혀 감이 오지 않는 OX 문제 앞에서 찍어야 했다.";
-                    if (Math.random() < 0.50) {
-                        outcomeText = `찍었는데 맞았다! 역시 나의 감은 살아있어! (선택: ${choice})`;
-                        examPerformanceBoost++;
+                case 2: // 동전 던지기
+                    let coin1 = Math.random() < 0.5 ? '앞' : '뒤';
+                    let coin2 = Math.random() < 0.5 ? '앞' : '뒤';
+                    let actualCoinResult = "";
+                    if (coin1 === '앞' && coin2 === '앞') actualCoinResult = 'AA';
+                    else if (coin1 === '뒤' && coin2 === '뒤') actualCoinResult = 'TT';
+                    else actualCoinResult = 'AT'; 
+
+                    if (choiceKey === 'D') {
+                        probabilitiesText = "내기를 하지 않아 돈의 변화는 없음.";
+                        const actualResultText = (actualCoinResult === 'AA' ? '앞면 2개' : (actualCoinResult === 'TT' ? '뒷면 2개' : '앞면 1개, 뒷면 1개'));
+                        outcomeText = `내기를 하지 않기로 했다. 100원을 아꼈으니 손해는 아니지만, 결과는 궁금하네! (실제 동전 결과: ${actualResultText})`;
                     } else {
-                        outcomeText = `아쉽다, 정답은 반대였네. (선택: ${choice})`;
-                    }
-                    break;
-                case 6: // 객관식 2지선다
-                    situationText = "어려운 객관식 문제, 남은 두 보기 중 하나를 골라야 했다.";
-                     if (Math.random() < 0.50) {
-                        outcomeText = "휴, 다행이다! 고민 끝에 고른 답이 정답이었다!";
-                        examPerformanceBoost++;
-                    } else {
-                        outcomeText = "결국 틀렸네. 역시 어려운 문제는 어려워.";
-                    }
-                    break;
-                case 7: // 시험 후 친구들과 수다
-                    situationText = "시험이 끝나고 친구들이 답을 맞춰보는 상황에 놓였다.";
-                    if (choice === 'A') { // 답 맞춰봄
-                        if (Math.random() < 0.40) { // 친구들과 답 거의 일치 (40%)
-                            outcomeText = "친구들과 답이 거의 일치한다! 오예, 느낌이 좋은데?";
-                        } else { // 답 많이 다름 (60%)
-                            outcomeText = "생각보다 친구들과 답이 다른 게 많네... 갑자기 불안해진다.";
+                        let predictedResultKey = "";
+                        if (choiceKey === 'A') {
+                            probabilitiesText = "나의 선택: 앞면 2개. (이 결과가 나올 확률: 1/4 = 25%)";
+                            predictedResultKey = 'AA';
+                        } else if (choiceKey === 'B') {
+                            probabilitiesText = "나의 선택: 앞면 1개, 뒷면 1개. (이 결과가 나올 확률: 2/4 = 50%)";
+                            predictedResultKey = 'AT';
+                        } else { // C
+                            probabilitiesText = "나의 선택: 뒷면 2개. (이 결과가 나올 확률: 1/4 = 25%)";
+                            predictedResultKey = 'TT';
                         }
-                    } else { // 안 맞춰봄
-                        outcomeText = "결과는 하늘에 맡기고, 일단 시험이 끝났다는 사실을 즐기기로 했다.";
+
+                        if (actualCoinResult === predictedResultKey) {
+                            outcomeText = "대박! 정확히 맞혔다! 친구에게 200원을 받아 100원 이득을 봤다. 역시 난 예측의 신이야!";
+                        } else {
+                            const actualResultText = (actualCoinResult === 'AA' ? '앞면 2개' : (actualCoinResult === 'TT' ? '뒷면 2개' : '앞면 1개, 뒷면 1개'));
+                            outcomeText = `아쉽네, 예측 실패! 참가비 100원만 날렸다. (실제 동전 결과: ${actualResultText})`;
+                        }
                     }
                     break;
-                case 8: // 저녁 만찬
-                    situationText = "시험을 마친 후 엄마가 저녁 메뉴를 물어보셨다.";
-                    if (choice === 'A') { // 치킨
-                        if (Math.random() < 0.90) {
-                             outcomeText = "역시 치킨은 진리! 시험 스트레스가 확 날아가는 기분이다.";
+                case 3: // 도서관
+                    // P(S=Y)=1/3, P(S=N)=2/3
+                    // P(J=Y)=2/3, P(J=N)=1/3
+                    const probSumiYes = 1/3; const probSumiNo = 2/3;
+                    const probJieunYes = 2/3; const probJieunNo = 1/3;
+
+                    const probBoth = (probSumiYes * probJieunYes).toFixed(3); // 약 0.222
+                    const probSumiOnly = (probSumiYes * probJieunNo).toFixed(3); // 약 0.111
+                    const probJieunOnly = (probSumiNo * probJieunYes).toFixed(3); // 약 0.444
+                    const probNeither = (probSumiNo * probJieunNo).toFixed(3); // 약 0.222
+                    
+                    if (choiceKey === 'B') { // 안 간다
+                        probabilitiesText = `도서관에 가지 않기로 선택함. (참고: 수미만 올 확률 약 ${Math.round(probSumiOnly*100)}%, 지은이만 올 확률 약 ${Math.round(probJieunOnly*100)}%, 둘 다 올 확률 약 ${Math.round(probBoth*100)}%)`;
+                        outcomeText = "집에서 편안하게 휴식을 취했다. 도서관에 갔으면 누구를 만났을지는 미스터리로 남았다. 가끔은 이런 여유도 좋지!";
+                    } else { // A (간다)
+                        let sumiComes = Math.random() < probSumiYes;
+                        let jieunComes = Math.random() < probJieunYes;
+                        probabilitiesText = `선택: 도서관에 간다. (수미 올 확률: 1/3, 지은이 올 확률: 2/3). 상세 결과 확률: 둘 다 만남(${Math.round(probBoth*100)}%), 수미만(${Math.round(probSumiOnly*100)}%), 지은이만(${Math.round(probJieunOnly*100)}%), 아무도 못 만남(${Math.round(probNeither*100)}%)`;
+                        
+                        if (sumiComes && jieunComes) {
+                            outcomeText = "대성공! 도서관에 갔더니 수미와 지은이 둘 다 와 있었다! 함께 공부하고 이야기도 나누며 즐거운 시간을 보냈다.";
+                        } else if (sumiComes && !jieunComes) {
+                            outcomeText = "도서관에서 수미를 만났다! 지은이는 안 왔지만, 수미와 오랜만에 이런저런 이야기를 나눴다.";
+                        } else if (!sumiComes && jieunComes) {
+                            outcomeText = "도서관에 갔더니 지은이가 와 있었다! 수미는 못 봤지만, 지은이와 함께 집중해서 공부했다.";
                         } else {
-                            outcomeText = "오늘은 치킨 맛이 그저 그렇네... 그래도 시험 끝난 건 좋다!";
+                            outcomeText = "아무도 없네... 결국 도서관에서 혼자 공부하다 왔다. 그래도 조용해서 집중은 잘 된 것 같다.";
                         }
-                    } else { // 집밥
-                         if (Math.random() < 0.95) {
-                            outcomeText = "따뜻한 집밥을 먹으니 마음까지 든든해지는 것 같다. 편안한 저녁이다.";
+                    }
+                    break;
+                case 4: // 우산
+                    let itRains = Math.random() < (rainPercentage / 100);
+                    probabilitiesText = `오늘 비 올 실제 확률: ${rainPercentage}%.`;
+                    if (choiceKey === 'A') { // 가져간다
+                        if (itRains) {
+                            outcomeText = "역시 내 판단이 옳았어! 우산을 챙겨서 비를 피할 수 있었다. 준비된 자의 여유!";
                         } else {
-                            outcomeText = "집밥도 맛있지만... 오늘은 왠지 치킨이 더 끌렸던 것 같다.";
+                            outcomeText = "결국 비는 오지 않았다. 그런데 이런, 우산을 어디다 두고 온 거지? 깜빡하고 식당/카페에 놓고 와서 잃어버렸다. 괜히 들고 나왔나...";
+                        }
+                    } else { // 안 가져간다
+                        if (itRains) {
+                            outcomeText = "이럴 수가! 갑자기 쏟아지는 비에 쫄딱 맞았다. 중요한 약속인데 스타일 다 구겼네. 감기 걸릴 것 같아.";
+                        } else {
+                            outcomeText = "역시 나의 선택! 비도 안 오고 가볍게 외출해서 정말 편했다. 운이 좋았어!";
+                        }
+                    }
+                    break;
+                case 5: // 자판기
+                     if (choiceKey === 'B') {
+                        probabilitiesText = "안전한 선택을 함. (수수께끼 음료는 레어템 10%, 고급 30%, 일반 60% 확률)";
+                        outcomeText = "수수께끼 자판기는 그냥 지나쳤다. 어떤 음료가 나왔을지는 모르겠지만, 내 돈 500원은 안전하게 지켰다. / 옆에 있는 콜라를 마셨다. 익숙한 맛이 역시 최고다!";
+                    } else { // A (도전)
+                        probabilitiesText = "선택: 수수께끼 음료! (초특급 레어템 확률: 10%, 고급 음료 확률: 30%, 일반 음료 확률: 60%)";
+                        let rand = Math.random();
+                        if (rand < 0.1) { 
+                            outcomeText = "대박! 자판기에서 정말 희귀하고 맛있는 '초특급 레어템 음료'가 나왔다! 오늘 뭔가 좋은 일이 생길 것 같은 예감이 든다. 500원의 행복이 이런 건가!";
+                        } else if (rand < 0.1 + 0.3) { 
+                            outcomeText = "오! '고급 과일 스무디'가 나왔다! 생각보다 훨씬 괜찮은데? 500원이 아깝지 않아!";
+                        } else { 
+                            outcomeText = "음... 그냥 평범한 오렌지 주스가 나왔네. 맛은 있지만, '수수께끼'는 아니었다. 500원이 조금 아깝기도 하고.";
+                        }
+                    }
+                    break;
+                case 6: // 빵집
+                    // P(초코빵 안팔림) = 1 - 1/4 = 3/4
+                    // P(소금빵 안팔림) = 1 - 2/3 = 1/3
+                    const probChocoNotSold = 1 - probChocoSoldOut; // 3/4
+                    const probSaltNotSold = 1 - probSaltSoldOut;   // 1/3
+
+                    const probBothAvailable = (probChocoNotSold * probSaltNotSold); // 둘 다 남아있을 확률 (3/4 * 1/3 = 1/4)
+                    const probChocoOnly = (probChocoNotSold * probSaltSoldOut);     // 초코만 (3/4 * 2/3 = 1/2)
+                    const probSaltOnly = (probChocoSoldOut * probSaltNotSold);       // 소금만 (1/4 * 1/3 = 1/12)
+                    const probNeitherAvailable = (probChocoSoldOut * probSaltSoldOut); // 둘 다 없음 (1/4 * 2/3 = 1/6)
+                                    // 합계: 3/12 + 6/12 + 1/12 + 2/12 = 12/12 = 1
+
+                    if (choiceKey === 'B') { // 가지 않는다
+                        probabilitiesText = `빵집에 가지 않기로 결정. (참고: 둘 다 남아있을 확률 약 ${Math.round(probBothAvailable*100)}%, 하나라도 남아있을 확률 약 ${Math.round((1-probNeitherAvailable)*100)}%)`;
+                        outcomeText = "빵집에 가지 않았으니 빵을 살 기회는 없었다. 집에 와서 다른 간식을 찾아봐야겠다. (빵집에 갔다면 어떤 결과였을까?)";
+                    } else { // A (간다)
+                        let chocobreadAvailable = Math.random() < probChocoNotSold;
+                        let saltbreadAvailable = Math.random() < probSaltNotSold;
+                        
+                        probabilitiesText = `선택: 빵집에 간다. (초코빵 남아있을 확률: ${Math.round(probChocoNotSold*100)}%, 소금빵 남아있을 확률: ${Math.round(probSaltNotSold*100)}%).<br> 상세: 둘다O(${Math.round(probBothAvailable*100)}%), 초코만O(${Math.round(probChocoOnly*100)}%), 소금만O(${Math.round(probSaltOnly*100)}%), 둘다X(${Math.round(probNeitherAvailable*100)}%)`;
+
+                        if (chocobreadAvailable && saltbreadAvailable) {
+                            outcomeText = "대성공! 초코빵과 소금빵 둘 다 남아있었다! 행복한 고민 끝에 둘 다 사버렸다.";
+                        } else if (chocobreadAvailable && !saltbreadAvailable) {
+                            outcomeText = "다행이다! 초코빵은 남아있었다. 소금빵은 이미 다 팔렸지만, 초코빵이라도 살 수 있어서 기쁘다.";
+                        } else if (!chocobreadAvailable && saltbreadAvailable) {
+                            outcomeText = "오! 소금빵이 기적적으로 남아있었다! 초코빵은 없었지만, 이것만으로도 만족스럽다.";
+                        } else { // 둘 다 없음
+                            outcomeText = "이런... 역시 늦었나 보다. 초코빵도 소금빵도 모두 다 팔리고 없었다. 빈손으로 돌아가야 하다니...";
                         }
                     }
                     break;
             }
             
-            addLog(stageTitle, situationText, choiceText, outcomeText);
+            addLog(stageTitle, choiceText, probabilitiesText, outcomeText);
 
-            currentStage++;
-            if (currentStage <= 8) {
-                showStage('stage' + currentStage);
+            document.getElementById('probs' + stageNum).innerHTML = probabilitiesText;
+            document.getElementById('result' + stageNum).innerHTML = outcomeText;
+            document.getElementById('outcomeArea' + stageNum).style.display = 'block';
+
+            const choiceButtonsContainer = document.querySelector(`#stage${stageNum} .choices`);
+            choiceButtonsContainer.querySelectorAll('button').forEach(button => {
+                button.style.display = 'none';
+            });
+            
+            document.getElementById('nextButton' + stageNum).style.display = 'block';
+        }
+
+        function proceedToNextStage(nextStageNum) {
+            // 총 스테이지 개수 + 1 (요약 화면으로 가기 위해)
+            if (nextStageNum <= 6) { 
+                currentStageNumInternal = nextStageNum; 
+                showStage('stage' + nextStageNum);
             } else {
                 showSummary();
             }
         }
 
         function showSummary() {
-            let summaryHTML = "<h3>📝 나의 선택과 결과들:</h3><ul>";
-            let narrativeSummary = "오늘은 긴장되는 시험날이었다.\n";
+            const recapListEl = document.getElementById('recapList');
+            recapListEl.innerHTML = ""; 
+
+            let overallFeeling = "오늘은 정말 다이나믹한 하루였다!"; 
 
             storyLog.forEach(log => {
-                summaryHTML += `<li><strong>${log.stage}</strong><br>
-                                  상황: ${log.situation}<br>
-                                  나의 선택: ${log.choice}<br>
-                                  결과: ${log.result}</li><br>`;
-                
-                // 서술형 요약에 자연스럽게 추가 (간단한 버전)
-                if(log.stage.includes("아침 식탁")){
-                    narrativeSummary += `아침에는 ${log.choice.includes("미역국") ? "엄마가 끓여주신 미역국을" : "된장국을"} 먹었다. ${log.result}\n`;
-                } else if (log.stage.includes("등굣길")) {
-                    narrativeSummary += `등굣길에는 ${log.choice.includes("버스") ? "버스를" : "지하철을"} 선택했고, ${log.result}\n`;
-                } else if (log.stage.includes("우산")) {
-                    narrativeSummary += `비 올 확률 ${rainProbability}%에 ${log.choice.includes("챙겨가자") ? "우산을 챙겼는데" : "우산을 안 챙겼는데"}, ${log.result}\n`;
-                } else if (log.stage.includes("벼락치기")) {
-                    narrativeSummary += `시험 직전에는 ${log.choice.includes("전체 핵심 노트") ? "전체 노트를 훑어보는" : "킬러 문제를 공략하는"} 전략을 택했고, ${log.result}\n`;
-                } else if (log.stage.includes("OX 퀴즈")) {
-                    narrativeSummary += `OX 문제는 ${log.choice.includes("O에 한 표") ? "O를 선택했는데" : "X를 선택했는데"}, ${log.result}\n`;
-                } else if (log.stage.includes("객관식")) {
-                    narrativeSummary += `어려운 객관식 문제에서는 ${log.result}\n`;
-                } else if (log.stage.includes("친구들과의 수다")) {
-                    narrativeSummary += `시험 후 친구들과 ${log.choice.includes("같이 맞춰보자") ? "답을 맞춰보았고" : "답을 맞춰보지 않았고"}, ${log.result}\n`;
-                } else if (log.stage.includes("저녁 만찬")) {
-                    narrativeSummary += `저녁으로는 ${log.choice.includes("치킨") ? "치킨을 먹으며" : "집밥을 먹으며"} 하루를 마무리했다. ${log.result}\n`;
+                const listItem = document.createElement('li');
+                listItem.innerHTML = `<strong>${log.stage}</strong><br>
+                                      나의 선택: ${log.choice}<br>
+                                      <em>(당시 제시된 확률 정보: ${log.probabilities})</em><br>
+                                      실제 결과: ${log.outcome}`;
+                recapListEl.appendChild(listItem);
+            });
+            
+            let goodOutcomes = 0;
+            storyLog.forEach(log => {
+                if (log.outcome.includes("성공") || log.outcome.includes("이득") || log.outcome.includes("만났다") || log.outcome.includes("피할 수 있었다") || log.outcome.includes("편했다") || log.outcome.includes("레어템") || log.outcome.includes("고급") || log.outcome.includes("남아있었다") || log.outcome.includes("건졌네")) {
+                    goodOutcomes++;
                 }
             });
-            summaryHTML += "</ul><hr>";
-            summaryHTML += `<h3>📖 서술형 이야기 요약:</h3><p>${narrativeSummary}</p>`;
 
-            document.getElementById('summary').innerHTML = summaryHTML;
-            
-            let verdictText = "";
-            if (gotWet) {
-                verdictText = "비를 쫄딱 맞아 시험에 집중하기 어려웠던 하루였다. 다음엔 꼭 우산을 챙기자!";
-            } else if (lostUmbrella) {
-                verdictText = "비를 맞진 않았지만 소중한 우산을 잃어버렸다. 물건 간수도 신경 써야겠다.";
-            } else if (examPerformanceBoost >= 3) {
-                verdictText = "여러 현명한(또는 운 좋은) 선택 덕분에 시험을 아주 잘 본 것 같다! 기분 좋은 하루!";
-            } else if (examPerformanceBoost >= 1) {
-                verdictText = "몇몇 선택이 시험에 긍정적인 영향을 주었다. 나쁘지 않은 시험날이었다!";
-            } else {
-                verdictText = "오늘은 운이 조금 따라주지 않은 것 같지만, 최선을 다한 하루였다. 결과에 너무 실망하지 말자!";
+            if (storyLog.length > 0) { // 로그가 있을 경우에만 총평 계산
+                if (goodOutcomes >= storyLog.length * 0.6) { 
+                    overallFeeling = "오늘은 운이 꽤 따랐던 멋진 하루였다! 나의 선택들이 대부분 좋은 결과로 이어졌네!";
+                } else if (goodOutcomes <= storyLog.length * 0.3) { 
+                    overallFeeling = "오늘은 조금 아쉬운 선택이 많았던 것 같다. 하지만 모든 경험에서 배우는 거니까! 다음엔 더 좋은 결과가 있기를!";
+                } else {
+                    overallFeeling = "오늘은 기분 좋은 일도, 아쉬운 일도 있었던 평범하지만 특별한 하루였다. 내일은 또 어떤 일들이 펼쳐질까?";
+                }
             }
-            document.getElementById('finalVerdict').textContent = "총평: " + verdictText;
 
+
+            document.getElementById('finalVerdict').textContent = "총평: " + overallFeeling;
             showStage('summaryStage');
         }
 

@@ -15,6 +15,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+            overflow-x: hidden; /* 화면 흔들림 시 가로 스크롤 방지 */
         }
         .container {
             background-color: #fff;
@@ -23,6 +24,7 @@
             box-shadow: 0 4px 12px rgba(0,0,0,0.1);
             width: 100%;
             max-width: 750px;
+            transition: transform 0.1s ease-out; /* 흔들림 부드럽게 */
         }
         .stage {
             display: none;
@@ -54,10 +56,15 @@
             cursor: pointer;
             font-size: 16px;
             font-weight: bold;
-            transition: background-color 0.2s ease;
+            transition: background-color 0.2s ease, opacity 0.3s ease;
         }
         .choices button:hover {
             background-color: #166fe5;
+        }
+        .choices button:disabled { /* 선택 후 버튼 비활성화 스타일 */
+            background-color: #a0c3ff;
+            cursor: not-allowed;
+            opacity: 0.7;
         }
         .outcome-area {
             margin-top: 20px;
@@ -70,10 +77,25 @@
         .outcome-area .probabilities, .outcome-area .actual-result {
             margin-bottom: 8px;
             color: #4b4f56;
+            min-height: 20px; /* 타이핑 효과를 위한 최소 높이 */
         }
         .outcome-area .probabilities strong, .outcome-area .actual-result strong {
             color: #1c1e21;
         }
+        .outcome-text-good {
+            color: #28a745 !important; /* 초록색, !important로 우선순위 */
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+        .outcome-text-bad {
+            color: #dc3545 !important; /* 빨간색 */
+            font-weight: bold;
+            font-size: 1.2em; /* 더 크게 */
+        }
+        .outcome-text-neutral {
+            color: #4b4f56 !important; /* 기본 텍스트 색상 */
+        }
+
         .next-button {
             display: none; 
             width: 100%;
@@ -115,33 +137,16 @@
             color: #e74c3c;
             font-weight: bold;
         }
-        #nameInputArea {
-            margin: 20px 0;
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
+
+        /* 화면 흔들림 애니메이션 */
+        .screen-shake {
+            animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
         }
-        #nameInputArea label {
-            margin-bottom: 8px;
-            font-weight: bold;
-            color: #4b4f56;
-        }
-        #playerNameInput {
-            padding: 10px;
-            border: 1px solid #dddfe2;
-            border-radius: 6px;
-            font-size: 16px;
-            width: calc(100% - 22px); /* padding 고려 */
-        }
-        #welcomeMessage {
-            margin: 15px 0;
-            padding: 10px;
-            background-color: #e7f3ff;
-            border-left: 4px solid #1877f2;
-            color: #0e56a3;
-            font-weight: bold;
-            border-radius: 0 6px 6px 0;
-            text-align: center;
+        @keyframes shake {
+            10%, 90% { transform: translateX(-2px); }
+            20%, 80% { transform: translateX(3px); }
+            30%, 50%, 70% { transform: translateX(-5px); }
+            40%, 60% { transform: translateX(5px); }
         }
 
         @media (max-width: 600px) {
@@ -276,13 +281,44 @@
     </div>
 
     <script>
-        let playerName = "모험가"; // 기본 플레이어 이름
+        let playerName = "모험가"; 
         let currentStageNumInternal = 0;
         const storyLog = [];
         let rainPercentage = 0; 
 
         const probChocoSoldOut = 1/4;
         const probSaltSoldOut = 2/3;
+
+        const typingSpeed = 30; // 글자 타이핑 속도 (ms)
+
+        function typewriter(elementId, text, callback) {
+            const element = document.getElementById(elementId);
+            if (!element) {
+                if (callback) callback();
+                return;
+            }
+            element.innerHTML = ""; // 기존 텍스트 클리어
+            let i = 0;
+            function type() {
+                if (i < text.length) {
+                    element.innerHTML += text.charAt(i);
+                    i++;
+                    setTimeout(type, typingSpeed);
+                } else {
+                    if (callback) callback();
+                }
+            }
+            type();
+        }
+
+        function triggerScreenShake() {
+            const container = document.querySelector('.container');
+            container.classList.add('screen-shake');
+            setTimeout(() => {
+                container.classList.remove('screen-shake');
+            }, 400); // 애니메이션 시간과 일치
+        }
+
 
         function showStage(stageIdToShow) {
             document.querySelectorAll('.stage').forEach(stage => {
@@ -297,6 +333,13 @@
             if (stageNum >=1 && stageNum <=6) { 
                 const outcomeArea = document.getElementById('outcomeArea' + stageNum);
                 if (outcomeArea) outcomeArea.style.display = 'none';
+                
+                const resultSpan = document.getElementById('result' + stageNum);
+                if(resultSpan) {
+                    resultSpan.innerHTML = ''; // 이전 결과 텍스트 클리어
+                    resultSpan.className = ''; // 이전 스타일 클래스 클리어
+                }
+
 
                 const nextButton = document.getElementById('nextButton' + stageNum);
                 if (nextButton) nextButton.style.display = 'none'; 
@@ -326,12 +369,12 @@
             if (nameInputAreaDiv) nameInputAreaDiv.style.display = 'none'; 
             if (submitBtn) submitBtn.style.display = 'none'; 
 
-            welcomeDiv.textContent = `${playerName}님, 좋은 이름이군요! 당신의 선택으로 멋진 하루를 만들어 보세요!`;
             welcomeDiv.style.display = 'block';
-
-            setTimeout(() => {
-                startGameLogic(); 
-            }, 2500); 
+            typewriter('welcomeMessage', `${playerName}님, 좋은 이름이군요! 당신의 선택으로 멋진 하루를 만들어 보세요!`, () => {
+                setTimeout(() => {
+                    startGameLogic(); 
+                }, 1000); // 환영 메시지 표시 후 1초 뒤 게임 시작
+            });
         }
 
 
@@ -339,7 +382,6 @@
             currentStageNumInternal = 1;
             storyLog.length = 0; 
             
-            // 시작 화면의 환영 메시지 숨기기 및 입력 필드/버튼 복구 (재시작 대비)
             const welcomeDiv = document.getElementById('welcomeMessage');
             const nameInputAreaDiv = document.getElementById('nameInputArea');
             const nameInput = document.getElementById('playerNameInput');
@@ -350,26 +392,23 @@
             if (nameInput) nameInput.value = '';
             if (submitBtn) submitBtn.style.display = 'block';
 
-
             rainPercentage = Math.floor(Math.random() * 61) + 20; 
             document.getElementById('rainChanceDisplay').textContent = rainPercentage + "%";
             document.getElementById('rainChanceDilemma').textContent = rainPercentage; 
             
-            // 요약 화면 제목에 플레이어 이름 반영
             document.getElementById('summaryTitle').textContent = `📜 ${playerName}님의 하루 이야기 📜`;
             
             showStage('stage' + currentStageNumInternal);
         }
         
         function restartGame() {
-            // 이름 입력 관련 요소들 다시 보이게
             const nameInputAreaDiv = document.getElementById('nameInputArea');
             const nameInput = document.getElementById('playerNameInput');
             const welcomeDiv = document.getElementById('welcomeMessage');
             const submitBtn = document.getElementById('submitNameButton');
 
             if (nameInputAreaDiv) nameInputAreaDiv.style.display = 'block';
-            if (nameInput) nameInput.value = ''; // 입력 필드 초기화
+            if (nameInput) nameInput.value = ''; 
             if (welcomeDiv) welcomeDiv.style.display = 'none';
             if (submitBtn) submitBtn.style.display = 'block';
 
@@ -389,6 +428,7 @@
             currentStageNumInternal = stageNum;
             let probabilitiesText = ""; 
             let outcomeText = ""; 
+            let outcomeSentiment = 'neutral'; // 'good', 'bad', 'neutral'
             const stageTitle = document.getElementById('stage' + stageNum).querySelector('h2').textContent;
 
             switch (stageNum) {
@@ -396,12 +436,15 @@
                     if (choiceKey === 'B') { 
                         probabilitiesText = "도전하지 않기로 선택함. (만약 도전했다면 성공 확률 약 66.7%)";
                         outcomeText = "물통 교체를 포기했다. 결국 다른 사람이 교체해주거나, 목마름을 참아야 했다.";
+                        outcomeSentiment = 'neutral';
                     } else { 
                         probabilitiesText = "도전 시 성공 확률: 2/3 (약 66.7%), 실패 확률: 1/3 (약 33.3%)";
                         if (Math.random() < (2/3)) { 
                             outcomeText = "완벽해! 물통을 능숙하게 교체했다. 동료/친구들의 감탄과 선망의 시선을 한 몸에 받았다. 역시 난 못하는 게 없지!";
+                            outcomeSentiment = 'good';
                         } else {
                             outcomeText = "이런! 물통을 들다가 그만 손이 미끄러져 물을 쏟고 말았다. 옷도 젖고 바닥도 물바다가 되어 당황스럽다. 괜히 나섰나...";
+                            outcomeSentiment = 'bad';
                         }
                     }
                     break;
@@ -417,6 +460,7 @@
                         probabilitiesText = "내기를 하지 않아 돈의 변화는 없음.";
                         const actualResultText = (actualCoinResult === 'AA' ? '앞면 2개' : (actualCoinResult === 'TT' ? '뒷면 2개' : '앞면 1개, 뒷면 1개'));
                         outcomeText = `내기를 하지 않기로 했다. 100원을 아꼈으니 손해는 아니지만, 결과는 궁금하네! (실제 동전 결과: ${actualResultText})`;
+                        outcomeSentiment = 'neutral';
                     } else {
                         let predictedResultKey = "";
                         if (choiceKey === 'A') {
@@ -432,16 +476,17 @@
 
                         if (actualCoinResult === predictedResultKey) {
                             outcomeText = "대박! 정확히 맞혔다! 친구에게 200원을 받아 100원 이득을 봤다. 역시 난 예측의 신이야!";
+                            outcomeSentiment = 'good';
                         } else {
                             const actualResultText = (actualCoinResult === 'AA' ? '앞면 2개' : (actualCoinResult === 'TT' ? '뒷면 2개' : '앞면 1개, 뒷면 1개'));
                             outcomeText = `아쉽네, 예측 실패! 참가비 100원만 날렸다. (실제 동전 결과: ${actualResultText})`;
+                            outcomeSentiment = 'bad';
                         }
                     }
                     break;
                 case 3: 
                     const probSumiYes = 1/3; const probSumiNo = 2/3;
                     const probJieunYes = 2/3; const probJieunNo = 1/3;
-
                     const probBoth = (probSumiYes * probJieunYes); 
                     const probSumiOnly = (probSumiYes * probJieunNo);
                     const probJieunOnly = (probSumiNo * probJieunYes); 
@@ -450,6 +495,7 @@
                     if (choiceKey === 'B') { 
                         probabilitiesText = `도서관에 가지 않기로 선택함. (참고: 수미만 올 확률 약 ${Math.round(probSumiOnly*100)}%, 지은이만 올 확률 약 ${Math.round(probJieunOnly*100)}%, 둘 다 올 확률 약 ${Math.round(probBoth*100)}%)`;
                         outcomeText = "집에서 편안하게 휴식을 취했다. 도서관에 갔으면 누구를 만났을지는 미스터리로 남았다. 가끔은 이런 여유도 좋지!";
+                        outcomeSentiment = 'neutral';
                     } else { 
                         let sumiComes = Math.random() < probSumiYes;
                         let jieunComes = Math.random() < probJieunYes;
@@ -457,12 +503,16 @@
                         
                         if (sumiComes && jieunComes) {
                             outcomeText = "대성공! 도서관에 갔더니 수미와 지은이 둘 다 와 있었다! 함께 공부하고 이야기도 나누며 즐거운 시간을 보냈다.";
+                            outcomeSentiment = 'good';
                         } else if (sumiComes && !jieunComes) {
                             outcomeText = "도서관에서 수미를 만났다! 지은이는 안 왔지만, 수미와 오랜만에 이런저런 이야기를 나눴다.";
+                            outcomeSentiment = 'good';
                         } else if (!sumiComes && jieunComes) {
                             outcomeText = "도서관에 갔더니 지은이가 와 있었다! 수미는 못 봤지만, 지은이와 함께 집중해서 공부했다.";
+                            outcomeSentiment = 'good';
                         } else {
                             outcomeText = "아무도 없네... 결국 도서관에서 혼자 공부하다 왔다. 그래도 조용해서 집중은 잘 된 것 같다.";
+                            outcomeSentiment = 'neutral';
                         }
                     }
                     break;
@@ -472,14 +522,18 @@
                     if (choiceKey === 'A') { 
                         if (itRains) {
                             outcomeText = "역시 내 판단이 옳았어! 우산을 챙겨서 비를 피할 수 있었다. 준비된 자의 여유!";
+                            outcomeSentiment = 'good';
                         } else {
                             outcomeText = "결국 비는 오지 않았다. 그런데 이런, 우산을 어디다 두고 온 거지? 깜빡하고 식당/카페에 놓고 와서 잃어버렸다. 괜히 들고 나왔나...";
+                            outcomeSentiment = 'bad';
                         }
                     } else { 
                         if (itRains) {
                             outcomeText = "이럴 수가! 갑자기 쏟아지는 비에 쫄딱 맞았다. 중요한 약속인데 스타일 다 구겼네. 감기 걸릴 것 같아.";
+                            outcomeSentiment = 'bad';
                         } else {
                             outcomeText = "역시 나의 선택! 비도 안 오고 가볍게 외출해서 정말 편했다. 운이 좋았어!";
+                            outcomeSentiment = 'good';
                         }
                     }
                     break;
@@ -487,31 +541,35 @@
                      if (choiceKey === 'B') {
                         probabilitiesText = "안전한 선택을 함. (수수께끼 음료는 레어템 10%, 고급 30%, 일반 60% 확률)";
                         outcomeText = "수수께끼 자판기는 그냥 지나쳤다. 어떤 음료가 나왔을지는 모르겠지만, 내 돈 500원은 안전하게 지켰다. / 옆에 있는 콜라를 마셨다. 익숙한 맛이 역시 최고다!";
+                        outcomeSentiment = 'neutral';
                     } else { 
                         probabilitiesText = "선택: 수수께끼 음료! (초특급 레어템 확률: 10%, 고급 음료 확률: 30%, 일반 음료 확률: 60%)";
                         let rand = Math.random();
                         if (rand < 0.1) { 
                             outcomeText = "대박! 자판기에서 정말 희귀하고 맛있는 '초특급 레어템 음료'가 나왔다! 오늘 뭔가 좋은 일이 생길 것 같은 예감이 든다. 500원의 행복이 이런 건가!";
+                            outcomeSentiment = 'good';
                         } else if (rand < 0.1 + 0.3) { 
                             outcomeText = "오! '고급 과일 스무디'가 나왔다! 생각보다 훨씬 괜찮은데? 500원이 아깝지 않아!";
+                            outcomeSentiment = 'good';
                         } else { 
                             outcomeText = "음... 그냥 평범한 오렌지 주스가 나왔네. 맛은 있지만, '수수께끼'는 아니었다. 500원이 조금 아깝기도 하고.";
+                            outcomeSentiment = 'neutral';
                         }
                     }
                     break;
-                case 6: // 빵집
+                case 6: 
                     const probChocoNotSold = 1 - probChocoSoldOut; 
                     const probSaltNotSold = 1 - probSaltSoldOut;   
-
                     const probBothAvailable = (probChocoNotSold * probSaltNotSold); 
                     const probChocoOnlyAvailable = (probChocoNotSold * probSaltSoldOut);     
                     const probSaltOnlyAvailable = (probChocoSoldOut * probSaltNotSold);       
                     const probNeitherAvailable = (probChocoSoldOut * probSaltSoldOut); 
                                     
-                    if (choiceKey === 'B') { // 가지 않는다
+                    if (choiceKey === 'B') { 
                         probabilitiesText = `빵집에 가지 않기로 결정. (참고: 둘 다 남아있을 확률 약 ${Math.round(probBothAvailable*100)}%, 하나라도 남아있을 확률 약 ${Math.round((1-probNeitherAvailable)*100)}%)`;
                         outcomeText = "빵집에 가지 않았으니 빵을 살 기회는 없었다. 집에 와서 다른 간식을 찾아봐야겠다. (빵집에 갔다면 어떤 결과였을까?)";
-                    } else { // A (간다)
+                        outcomeSentiment = 'neutral';
+                    } else { 
                         let chocobreadAvailable = Math.random() < probChocoNotSold;
                         let saltbreadAvailable = Math.random() < probSaltNotSold;
                         
@@ -519,12 +577,16 @@
 
                         if (chocobreadAvailable && saltbreadAvailable) {
                             outcomeText = "대성공! 초코빵과 소금빵 둘 다 남아있었다! 행복한 고민 끝에 둘 다 사버렸다.";
+                            outcomeSentiment = 'good';
                         } else if (chocobreadAvailable && !saltbreadAvailable) {
                             outcomeText = "다행이다! 초코빵은 남아있었다. 소금빵은 이미 다 팔렸지만, 초코빵이라도 살 수 있어서 기쁘다.";
+                            outcomeSentiment = 'good';
                         } else if (!chocobreadAvailable && saltbreadAvailable) {
                             outcomeText = "오! 소금빵이 기적적으로 남아있었다! 초코빵은 없었지만, 이것만으로도 만족스럽다.";
+                            outcomeSentiment = 'good';
                         } else { 
                             outcomeText = "이런... 역시 늦었나 보다. 초코빵도 소금빵도 모두 다 팔리고 없었다. 빈손으로 돌아가야 하다니...";
+                            outcomeSentiment = 'bad';
                         }
                     }
                     break;
@@ -532,16 +594,29 @@
             
             addLog(stageTitle, choiceText, probabilitiesText, outcomeText);
 
-            document.getElementById('probs' + stageNum).innerHTML = probabilitiesText;
-            document.getElementById('result' + stageNum).innerHTML = outcomeText;
-            document.getElementById('outcomeArea' + stageNum).style.display = 'block';
-
+            // 선택 버튼 비활성화/숨기기
             const choiceButtonsContainer = document.querySelector(`#stage${stageNum} .choices`);
             choiceButtonsContainer.querySelectorAll('button').forEach(button => {
-                button.style.display = 'none';
+                button.disabled = true; // 비활성화
+                button.style.opacity = "0.5"; // 비활성화된 것처럼 보이게
+                // button.style.display = 'none'; // 아예 숨기려면
             });
             
-            document.getElementById('nextButton' + stageNum).style.display = 'block';
+            // 확률 정보 즉시 표시
+            document.getElementById('probs' + stageNum).innerHTML = probabilitiesText;
+            const resultSpan = document.getElementById('result' + stageNum);
+            resultSpan.className = ''; // 기존 스타일 초기화
+            resultSpan.classList.add('outcome-text-' + outcomeSentiment);
+
+
+            // 결과 텍스트 타이핑 효과 및 다음 버튼 표시
+            document.getElementById('outcomeArea' + stageNum).style.display = 'block';
+            typewriter('result' + stageNum, outcomeText, () => {
+                 document.getElementById('nextButton' + stageNum).style.display = 'block';
+                 if (outcomeSentiment === 'bad') {
+                    triggerScreenShake();
+                }
+            });
         }
 
         function proceedToNextStage(nextStageNum) {
@@ -564,24 +639,24 @@
                 listItem.innerHTML = `<strong>${log.stage}</strong><br>
                                       <span style="color:#555;">나의 선택: ${log.choice}</span><br>
                                       <em>(당시 제시된 확률 정보: ${log.probabilities})</em><br>
-                                      <span style="color:green;">실제 결과: ${log.outcome}</span>`;
+                                      <span style="color: #1c1e21;">실제 결과: ${log.outcome}</span>`; // 결과 색상 기본으로
                 recapListEl.appendChild(listItem);
             });
             
             let goodOutcomes = 0;
             storyLog.forEach(log => {
-                if (log.outcome.includes("성공") || log.outcome.includes("이득") || log.outcome.includes("만났다") || log.outcome.includes("피할 수 있었다") || log.outcome.includes("편했다") || log.outcome.includes("레어템") || log.outcome.includes("고급") || log.outcome.includes("남아있었다") || log.outcome.includes("건졌네") || log.outcome.includes("정확히 맞혔다")) {
+                if (log.outcome.includes("성공") || log.outcome.includes("이득") || log.outcome.includes("만났다") || log.outcome.includes("피할 수 있었다") || log.outcome.includes("편했다") || log.outcome.includes("레어템") || log.outcome.includes("고급") || log.outcome.includes("남아있었다") || log.outcome.includes("건졌네") || log.outcome.includes("정확히 맞혔다") || log.outcome.includes("선망의 시선") || log.outcome.includes("기분 좋은")) {
                     goodOutcomes++;
                 }
             });
 
             if (storyLog.length > 0) { 
                 if (goodOutcomes >= storyLog.length * 0.6) { 
-                    overallFeeling = `오늘은 ${playerName}에게 운이 꽤 따랐던 멋진 하루였다! 선택들이 대부분 좋은 결과로 이어졌네!`;
+                    overallFeeling = `오늘은 ${playerName}님에게 운이 꽤 따랐던 멋진 하루였다! 선택들이 대부분 좋은 결과로 이어졌네!`;
                 } else if (goodOutcomes <= storyLog.length * 0.3) { 
-                    overallFeeling = `오늘은 ${playerName}에게 조금 아쉬운 선택이 많았던 것 같다. 하지만 모든 경험에서 배우는 거니까! 다음엔 더 좋은 결과가 있기를!`;
+                    overallFeeling = `오늘은 ${playerName}님에게 조금 아쉬운 선택이 많았던 것 같다. 하지만 모든 경험에서 배우는 거니까! 다음엔 더 좋은 결과가 있기를!`;
                 } else {
-                    overallFeeling = `오늘은 ${playerName}에게 기분 좋은 일도, 아쉬운 일도 있었던 평범하지만 특별한 하루였다. 내일은 또 어떤 일들이 펼쳐질까?`;
+                    overallFeeling = `오늘은 ${playerName}님에게 기분 좋은 일도, 아쉬운 일도 있었던 평범하지만 특별한 하루였다. 내일은 또 어떤 일들이 펼쳐질까?`;
                 }
             }
 

@@ -115,10 +115,40 @@
             color: #e74c3c;
             font-weight: bold;
         }
+        #nameInputArea {
+            margin: 20px 0;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        #nameInputArea label {
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #4b4f56;
+        }
+        #playerNameInput {
+            padding: 10px;
+            border: 1px solid #dddfe2;
+            border-radius: 6px;
+            font-size: 16px;
+            width: calc(100% - 22px); /* padding 고려 */
+        }
+        #welcomeMessage {
+            margin: 15px 0;
+            padding: 10px;
+            background-color: #e7f3ff;
+            border-left: 4px solid #1877f2;
+            color: #0e56a3;
+            font-weight: bold;
+            border-radius: 0 6px 6px 0;
+            text-align: center;
+        }
+
         @media (max-width: 600px) {
             .container { padding: 15px; }
             .stage { padding: 15px; }
             .choices button, .next-button { font-size: 15px; padding: 10px; }
+            #playerNameInput { width: calc(100% - 22px); }
         }
     </style>
 </head>
@@ -128,9 +158,14 @@
 
         <div id="stage0" class="stage">
             <h2>게임 시작!</h2>
-            <p>"평범해 보이는 오늘 하루, 크고 작은 선택들이 당신을 기다리고 있다. 당신의 결정과 약간의 확률이 만들어낼 하루는 어떤 모습일까? 지금 바로 선택을 시작해보자!"</p>
+            <p>"평범해 보이는 오늘 하루, 크고 작은 선택들이 당신을 기다리고 있다. 당신의 결정과 약간의 확률이 만들어낼 하루는 어떤 모습일까?"</p>
+            <div id="nameInputArea">
+                <label for="playerNameInput">당신의 이름은 무엇입니까?</label>
+                <input type="text" id="playerNameInput" placeholder="여기에 이름을 입력하세요">
+            </div>
+            <div id="welcomeMessage" style="display:none;"></div>
             <div class="choices">
-                <button onclick="startGame()">나의 하루 시작하기</button>
+                <button id="submitNameButton" onclick="submitNameAndStart()">이름 입력하고 하루 시작하기</button>
             </div>
         </div>
 
@@ -227,7 +262,7 @@
         </div>
 
         <div id="summaryStage" class="stage">
-            <h2>📜 나의 하루 이야기 📜</h2>
+            <h2 id="summaryTitle">📜 나의 하루 이야기 📜</h2>
             <div id="summaryContainer">
                 <h3>✨ 내가 경험한 하루의 순간들 ✨</h3>
                 <ul id="recapList"></ul>
@@ -241,11 +276,11 @@
     </div>
 
     <script>
+        let playerName = "모험가"; // 기본 플레이어 이름
         let currentStageNumInternal = 0;
         const storyLog = [];
         let rainPercentage = 0; 
 
-        // P(초코빵 팔림) = 1/4, P(소금빵 팔림) = 2/3
         const probChocoSoldOut = 1/4;
         const probSaltSoldOut = 2/3;
 
@@ -259,7 +294,6 @@
             }
 
             const stageNum = parseInt(stageIdToShow.replace('stage', ''));
-            // 총 스테이지 개수 (1~6)
             if (stageNum >=1 && stageNum <=6) { 
                 const outcomeArea = document.getElementById('outcomeArea' + stageNum);
                 if (outcomeArea) outcomeArea.style.display = 'none';
@@ -276,17 +310,69 @@
                 }
             }
         }
+        
+        function submitNameAndStart() {
+            const nameInput = document.getElementById('playerNameInput');
+            const welcomeDiv = document.getElementById('welcomeMessage');
+            const nameInputAreaDiv = document.getElementById('nameInputArea');
+            const submitBtn = document.getElementById('submitNameButton');
+            
+            if (nameInput.value.trim() !== "") {
+                playerName = nameInput.value.trim();
+            } else {
+                playerName = "모험가"; 
+            }
 
-        function startGame() {
+            if (nameInputAreaDiv) nameInputAreaDiv.style.display = 'none'; 
+            if (submitBtn) submitBtn.style.display = 'none'; 
+
+            welcomeDiv.textContent = `${playerName}님, 좋은 이름이군요! 당신의 선택으로 멋진 하루를 만들어 보세요!`;
+            welcomeDiv.style.display = 'block';
+
+            setTimeout(() => {
+                startGameLogic(); 
+            }, 2500); 
+        }
+
+
+        function startGameLogic() { 
             currentStageNumInternal = 1;
             storyLog.length = 0; 
+            
+            // 시작 화면의 환영 메시지 숨기기 및 입력 필드/버튼 복구 (재시작 대비)
+            const welcomeDiv = document.getElementById('welcomeMessage');
+            const nameInputAreaDiv = document.getElementById('nameInputArea');
+            const nameInput = document.getElementById('playerNameInput');
+            const submitBtn = document.getElementById('submitNameButton');
+
+            if (welcomeDiv) welcomeDiv.style.display = 'none';
+            if (nameInputAreaDiv) nameInputAreaDiv.style.display = 'block';
+            if (nameInput) nameInput.value = '';
+            if (submitBtn) submitBtn.style.display = 'block';
+
+
             rainPercentage = Math.floor(Math.random() * 61) + 20; 
             document.getElementById('rainChanceDisplay').textContent = rainPercentage + "%";
             document.getElementById('rainChanceDilemma').textContent = rainPercentage; 
+            
+            // 요약 화면 제목에 플레이어 이름 반영
+            document.getElementById('summaryTitle').textContent = `📜 ${playerName}님의 하루 이야기 📜`;
+            
             showStage('stage' + currentStageNumInternal);
         }
         
         function restartGame() {
+            // 이름 입력 관련 요소들 다시 보이게
+            const nameInputAreaDiv = document.getElementById('nameInputArea');
+            const nameInput = document.getElementById('playerNameInput');
+            const welcomeDiv = document.getElementById('welcomeMessage');
+            const submitBtn = document.getElementById('submitNameButton');
+
+            if (nameInputAreaDiv) nameInputAreaDiv.style.display = 'block';
+            if (nameInput) nameInput.value = ''; // 입력 필드 초기화
+            if (welcomeDiv) welcomeDiv.style.display = 'none';
+            if (submitBtn) submitBtn.style.display = 'block';
+
             showStage('stage0');
         }
 
@@ -306,11 +392,11 @@
             const stageTitle = document.getElementById('stage' + stageNum).querySelector('h2').textContent;
 
             switch (stageNum) {
-                case 1: // 정수기
-                    if (choiceKey === 'B') { // 도전하지 않는다
+                case 1: 
+                    if (choiceKey === 'B') { 
                         probabilitiesText = "도전하지 않기로 선택함. (만약 도전했다면 성공 확률 약 66.7%)";
                         outcomeText = "물통 교체를 포기했다. 결국 다른 사람이 교체해주거나, 목마름을 참아야 했다.";
-                    } else { // A (도전한다)
+                    } else { 
                         probabilitiesText = "도전 시 성공 확률: 2/3 (약 66.7%), 실패 확률: 1/3 (약 33.3%)";
                         if (Math.random() < (2/3)) { 
                             outcomeText = "완벽해! 물통을 능숙하게 교체했다. 동료/친구들의 감탄과 선망의 시선을 한 몸에 받았다. 역시 난 못하는 게 없지!";
@@ -319,7 +405,7 @@
                         }
                     }
                     break;
-                case 2: // 동전 던지기
+                case 2: 
                     let coin1 = Math.random() < 0.5 ? '앞' : '뒤';
                     let coin2 = Math.random() < 0.5 ? '앞' : '뒤';
                     let actualCoinResult = "";
@@ -339,7 +425,7 @@
                         } else if (choiceKey === 'B') {
                             probabilitiesText = "나의 선택: 앞면 1개, 뒷면 1개. (이 결과가 나올 확률: 2/4 = 50%)";
                             predictedResultKey = 'AT';
-                        } else { // C
+                        } else { 
                             probabilitiesText = "나의 선택: 뒷면 2개. (이 결과가 나올 확률: 1/4 = 25%)";
                             predictedResultKey = 'TT';
                         }
@@ -352,24 +438,22 @@
                         }
                     }
                     break;
-                case 3: // 도서관
-                    // P(S=Y)=1/3, P(S=N)=2/3
-                    // P(J=Y)=2/3, P(J=N)=1/3
+                case 3: 
                     const probSumiYes = 1/3; const probSumiNo = 2/3;
                     const probJieunYes = 2/3; const probJieunNo = 1/3;
 
-                    const probBoth = (probSumiYes * probJieunYes).toFixed(3); // 약 0.222
-                    const probSumiOnly = (probSumiYes * probJieunNo).toFixed(3); // 약 0.111
-                    const probJieunOnly = (probSumiNo * probJieunYes).toFixed(3); // 약 0.444
-                    const probNeither = (probSumiNo * probJieunNo).toFixed(3); // 약 0.222
+                    const probBoth = (probSumiYes * probJieunYes); 
+                    const probSumiOnly = (probSumiYes * probJieunNo);
+                    const probJieunOnly = (probSumiNo * probJieunYes); 
+                    const probNeither = (probSumiNo * probJieunNo); 
                     
-                    if (choiceKey === 'B') { // 안 간다
+                    if (choiceKey === 'B') { 
                         probabilitiesText = `도서관에 가지 않기로 선택함. (참고: 수미만 올 확률 약 ${Math.round(probSumiOnly*100)}%, 지은이만 올 확률 약 ${Math.round(probJieunOnly*100)}%, 둘 다 올 확률 약 ${Math.round(probBoth*100)}%)`;
                         outcomeText = "집에서 편안하게 휴식을 취했다. 도서관에 갔으면 누구를 만났을지는 미스터리로 남았다. 가끔은 이런 여유도 좋지!";
-                    } else { // A (간다)
+                    } else { 
                         let sumiComes = Math.random() < probSumiYes;
                         let jieunComes = Math.random() < probJieunYes;
-                        probabilitiesText = `선택: 도서관에 간다. (수미 올 확률: 1/3, 지은이 올 확률: 2/3). 상세 결과 확률: 둘 다 만남(${Math.round(probBoth*100)}%), 수미만(${Math.round(probSumiOnly*100)}%), 지은이만(${Math.round(probJieunOnly*100)}%), 아무도 못 만남(${Math.round(probNeither*100)}%)`;
+                        probabilitiesText = `선택: 도서관에 간다. (수미 올 확률: 1/3, 지은이 올 확률: 2/3). <br>상세 결과 확률: 둘 다 만남(${Math.round(probBoth*100)}%), 수미만(${Math.round(probSumiOnly*100)}%), 지은이만(${Math.round(probJieunOnly*100)}%), 아무도 못 만남(${Math.round(probNeither*100)}%)`;
                         
                         if (sumiComes && jieunComes) {
                             outcomeText = "대성공! 도서관에 갔더니 수미와 지은이 둘 다 와 있었다! 함께 공부하고 이야기도 나누며 즐거운 시간을 보냈다.";
@@ -382,16 +466,16 @@
                         }
                     }
                     break;
-                case 4: // 우산
+                case 4: 
                     let itRains = Math.random() < (rainPercentage / 100);
                     probabilitiesText = `오늘 비 올 실제 확률: ${rainPercentage}%.`;
-                    if (choiceKey === 'A') { // 가져간다
+                    if (choiceKey === 'A') { 
                         if (itRains) {
                             outcomeText = "역시 내 판단이 옳았어! 우산을 챙겨서 비를 피할 수 있었다. 준비된 자의 여유!";
                         } else {
                             outcomeText = "결국 비는 오지 않았다. 그런데 이런, 우산을 어디다 두고 온 거지? 깜빡하고 식당/카페에 놓고 와서 잃어버렸다. 괜히 들고 나왔나...";
                         }
-                    } else { // 안 가져간다
+                    } else { 
                         if (itRains) {
                             outcomeText = "이럴 수가! 갑자기 쏟아지는 비에 쫄딱 맞았다. 중요한 약속인데 스타일 다 구겼네. 감기 걸릴 것 같아.";
                         } else {
@@ -399,11 +483,11 @@
                         }
                     }
                     break;
-                case 5: // 자판기
+                case 5: 
                      if (choiceKey === 'B') {
                         probabilitiesText = "안전한 선택을 함. (수수께끼 음료는 레어템 10%, 고급 30%, 일반 60% 확률)";
                         outcomeText = "수수께끼 자판기는 그냥 지나쳤다. 어떤 음료가 나왔을지는 모르겠지만, 내 돈 500원은 안전하게 지켰다. / 옆에 있는 콜라를 마셨다. 익숙한 맛이 역시 최고다!";
-                    } else { // A (도전)
+                    } else { 
                         probabilitiesText = "선택: 수수께끼 음료! (초특급 레어템 확률: 10%, 고급 음료 확률: 30%, 일반 음료 확률: 60%)";
                         let rand = Math.random();
                         if (rand < 0.1) { 
@@ -416,17 +500,14 @@
                     }
                     break;
                 case 6: // 빵집
-                    // P(초코빵 안팔림) = 1 - 1/4 = 3/4
-                    // P(소금빵 안팔림) = 1 - 2/3 = 1/3
-                    const probChocoNotSold = 1 - probChocoSoldOut; // 3/4
-                    const probSaltNotSold = 1 - probSaltSoldOut;   // 1/3
+                    const probChocoNotSold = 1 - probChocoSoldOut; 
+                    const probSaltNotSold = 1 - probSaltSoldOut;   
 
-                    const probBothAvailable = (probChocoNotSold * probSaltNotSold); // 둘 다 남아있을 확률 (3/4 * 1/3 = 1/4)
-                    const probChocoOnly = (probChocoNotSold * probSaltSoldOut);     // 초코만 (3/4 * 2/3 = 1/2)
-                    const probSaltOnly = (probChocoSoldOut * probSaltNotSold);       // 소금만 (1/4 * 1/3 = 1/12)
-                    const probNeitherAvailable = (probChocoSoldOut * probSaltSoldOut); // 둘 다 없음 (1/4 * 2/3 = 1/6)
-                                    // 합계: 3/12 + 6/12 + 1/12 + 2/12 = 12/12 = 1
-
+                    const probBothAvailable = (probChocoNotSold * probSaltNotSold); 
+                    const probChocoOnlyAvailable = (probChocoNotSold * probSaltSoldOut);     
+                    const probSaltOnlyAvailable = (probChocoSoldOut * probSaltNotSold);       
+                    const probNeitherAvailable = (probChocoSoldOut * probSaltSoldOut); 
+                                    
                     if (choiceKey === 'B') { // 가지 않는다
                         probabilitiesText = `빵집에 가지 않기로 결정. (참고: 둘 다 남아있을 확률 약 ${Math.round(probBothAvailable*100)}%, 하나라도 남아있을 확률 약 ${Math.round((1-probNeitherAvailable)*100)}%)`;
                         outcomeText = "빵집에 가지 않았으니 빵을 살 기회는 없었다. 집에 와서 다른 간식을 찾아봐야겠다. (빵집에 갔다면 어떤 결과였을까?)";
@@ -434,7 +515,7 @@
                         let chocobreadAvailable = Math.random() < probChocoNotSold;
                         let saltbreadAvailable = Math.random() < probSaltNotSold;
                         
-                        probabilitiesText = `선택: 빵집에 간다. (초코빵 남아있을 확률: ${Math.round(probChocoNotSold*100)}%, 소금빵 남아있을 확률: ${Math.round(probSaltNotSold*100)}%).<br> 상세: 둘다O(${Math.round(probBothAvailable*100)}%), 초코만O(${Math.round(probChocoOnly*100)}%), 소금만O(${Math.round(probSaltOnly*100)}%), 둘다X(${Math.round(probNeitherAvailable*100)}%)`;
+                        probabilitiesText = `선택: 빵집에 간다. (초코빵 남아있을 확률: ${Math.round(probChocoNotSold*100)}%, 소금빵 남아있을 확률: ${Math.round(probSaltNotSold*100)}%).<br> 상세: 둘다O(${Math.round(probBothAvailable*100)}%), 초코만O(${Math.round(probChocoOnlyAvailable*100)}%), 소금만O(${Math.round(probSaltOnlyAvailable*100)}%), 둘다X(${Math.round(probNeitherAvailable*100)}%)`;
 
                         if (chocobreadAvailable && saltbreadAvailable) {
                             outcomeText = "대성공! 초코빵과 소금빵 둘 다 남아있었다! 행복한 고민 끝에 둘 다 사버렸다.";
@@ -442,7 +523,7 @@
                             outcomeText = "다행이다! 초코빵은 남아있었다. 소금빵은 이미 다 팔렸지만, 초코빵이라도 살 수 있어서 기쁘다.";
                         } else if (!chocobreadAvailable && saltbreadAvailable) {
                             outcomeText = "오! 소금빵이 기적적으로 남아있었다! 초코빵은 없었지만, 이것만으로도 만족스럽다.";
-                        } else { // 둘 다 없음
+                        } else { 
                             outcomeText = "이런... 역시 늦었나 보다. 초코빵도 소금빵도 모두 다 팔리고 없었다. 빈손으로 돌아가야 하다니...";
                         }
                     }
@@ -464,7 +545,6 @@
         }
 
         function proceedToNextStage(nextStageNum) {
-            // 총 스테이지 개수 + 1 (요약 화면으로 가기 위해)
             if (nextStageNum <= 6) { 
                 currentStageNumInternal = nextStageNum; 
                 showStage('stage' + nextStageNum);
@@ -482,29 +562,28 @@
             storyLog.forEach(log => {
                 const listItem = document.createElement('li');
                 listItem.innerHTML = `<strong>${log.stage}</strong><br>
-                                      나의 선택: ${log.choice}<br>
+                                      <span style="color:#555;">나의 선택: ${log.choice}</span><br>
                                       <em>(당시 제시된 확률 정보: ${log.probabilities})</em><br>
-                                      실제 결과: ${log.outcome}`;
+                                      <span style="color:green;">실제 결과: ${log.outcome}</span>`;
                 recapListEl.appendChild(listItem);
             });
             
             let goodOutcomes = 0;
             storyLog.forEach(log => {
-                if (log.outcome.includes("성공") || log.outcome.includes("이득") || log.outcome.includes("만났다") || log.outcome.includes("피할 수 있었다") || log.outcome.includes("편했다") || log.outcome.includes("레어템") || log.outcome.includes("고급") || log.outcome.includes("남아있었다") || log.outcome.includes("건졌네")) {
+                if (log.outcome.includes("성공") || log.outcome.includes("이득") || log.outcome.includes("만났다") || log.outcome.includes("피할 수 있었다") || log.outcome.includes("편했다") || log.outcome.includes("레어템") || log.outcome.includes("고급") || log.outcome.includes("남아있었다") || log.outcome.includes("건졌네") || log.outcome.includes("정확히 맞혔다")) {
                     goodOutcomes++;
                 }
             });
 
-            if (storyLog.length > 0) { // 로그가 있을 경우에만 총평 계산
+            if (storyLog.length > 0) { 
                 if (goodOutcomes >= storyLog.length * 0.6) { 
-                    overallFeeling = "오늘은 운이 꽤 따랐던 멋진 하루였다! 나의 선택들이 대부분 좋은 결과로 이어졌네!";
+                    overallFeeling = `오늘은 ${playerName}에게 운이 꽤 따랐던 멋진 하루였다! 선택들이 대부분 좋은 결과로 이어졌네!`;
                 } else if (goodOutcomes <= storyLog.length * 0.3) { 
-                    overallFeeling = "오늘은 조금 아쉬운 선택이 많았던 것 같다. 하지만 모든 경험에서 배우는 거니까! 다음엔 더 좋은 결과가 있기를!";
+                    overallFeeling = `오늘은 ${playerName}에게 조금 아쉬운 선택이 많았던 것 같다. 하지만 모든 경험에서 배우는 거니까! 다음엔 더 좋은 결과가 있기를!`;
                 } else {
-                    overallFeeling = "오늘은 기분 좋은 일도, 아쉬운 일도 있었던 평범하지만 특별한 하루였다. 내일은 또 어떤 일들이 펼쳐질까?";
+                    overallFeeling = `오늘은 ${playerName}에게 기분 좋은 일도, 아쉬운 일도 있었던 평범하지만 특별한 하루였다. 내일은 또 어떤 일들이 펼쳐질까?`;
                 }
             }
-
 
             document.getElementById('finalVerdict').textContent = "총평: " + overallFeeling;
             showStage('summaryStage');

@@ -29,6 +29,9 @@
         .game-screen.active {
             display: block;
         }
+        .screen-title, .location, .situation, .dilemma, .player-thought {
+            min-height: 1em; /* 타이핑 중 높이 유지 */
+        }
         .screen-title {
             font-size: 1.5em;
             color: #007bff;
@@ -42,6 +45,9 @@
         .situation, .dilemma {
             margin-bottom: 15px;
             line-height: 1.6;
+        }
+        .choices {
+            visibility: hidden; /* 초기 숨김, 타이핑 후 표시 */
         }
         .choices button, .feedback-actions button {
             display: inline-block; 
@@ -81,6 +87,12 @@
             border: 1px solid #eee;
             border-left: 3px solid #007bff;
             border-radius: 3px;
+            min-height: 3em; /* 타이핑 중 높이 유지 */
+        }
+        .immediate-feedback.empty { /* 내용 없을 때도 최소 높이 유지 */
+             min-height: 0;
+             padding: 0;
+             border: none;
         }
         .immediate-feedback h4 {
             margin-top: 0;
@@ -135,109 +147,83 @@
     <h1>나의 선택은?</h1>
 
     <div id="screen1" class="game-screen active">
-        <h2 class="screen-title">선택 1: 아침, 우산과의 눈치 싸움</h2>
-        <p class="location">📍 장소: 아침, 현관 앞</p>
-        <p class="situation">
-            TV에서 아나운서의 목소리가 흘러나온다.<br>
-            "오늘 전국적으로 비 소식이 있습니다. 현재 예상 강수 확률은 <span id="rainChance" class="highlight">[xx]</span>%입니다."<br>
-            창밖을 보니 하늘은 아직 흐리기만 하다.
-        </p>
-        <p class="dilemma">🤔 당신의 고민: 우산을 가져갈까, 말까?</p>
+        <h2 class="screen-title"></h2>
+        <p class="location"></p>
+        <p class="situation"></p>
+        <p class="dilemma"></p>
         <div class="choices">
             <button class="full-width" id="s1c1" onclick="handleChoice('screen1', 'A')">A) 혹시 모르니, 챙겨 나간다.</button>
             <button class="full-width" id="s1c2" onclick="handleChoice('screen1', 'B')">B) 이 정도 확률이면 괜찮아, 그냥 나간다.</button>
         </div>
-        <div class="immediate-feedback" id="feedback1"></div>
+        <div class="immediate-feedback empty" id="feedback1"></div>
         <button class="next-button" id="nextBtn1" onclick="proceedToNext(1)">다음으로</button>
     </div>
 
     <div id="screen2" class="game-screen">
-        <h2 class="screen-title">선택 2: 길가의 유혹, 10%의 도전</h2>
-        <p class="location">📍 장소: 등굣길, 문구점 앞</p>
-        <p class="situation">
-            등굣길, 문구점 앞에 놓인 상품 뽑기 기계가 시선을 사로잡는다.<br>
-            "✨인기 캐릭터 한정판 인형 획득 찬스!✨ 단돈 100원! 성공 확률 <span class="highlight">10%</span>!"<br>
-            (현재 내 지갑에는 <span id="currentMoneyLottery" class="highlight">[현재 소지금]</span>원이 있다.)
-        </p>
-        <p class="dilemma">🤔 당신의 고민: 10%의 확률... 한번 도전해 볼까?</p>
-        <div class="player-thought">"10%면... 열 번 중 한 번은 되지 않을까?" (내적 고민)</div>
+        <h2 class="screen-title"></h2>
+        <p class="location"></p>
+        <p class="situation"></p>
+        <p class="dilemma"></p>
+        <div class="player-thought"></div>
         <div class="choices" id="choices2_initial">
             <button class="full-width" id="s2c1_initial" onclick="handleLotteryChoice('initial_try')">A) 좋아, 10%의 행운에 도전한다! (100원 차감)</button>
             <button class="full-width" id="s2c2_initial" onclick="handleLotteryChoice('initial_pass')">B) 으음... 그래도 실패할 것 같아. 그냥 지나가자.</button>
         </div>
-        <div class="immediate-feedback" id="feedback2">
-        </div>
+        <div class="immediate-feedback empty" id="feedback2"></div>
         <button class="next-button" id="nextBtn2" onclick="proceedToNext(2)" style="display:none;">다음 화면으로</button>
     </div>
 
     <div id="screen3" class="game-screen">
-        <h2 class="screen-title">선택 3: 지각 위기! 정문 vs 후문</h2>
-        <p class="location">📍 장소: 아슬아슬 등굣길, 학교 앞</p>
-        <p class="situation">
-            이런, 아침부터 문구점 앞 뽑기 기계에 한눈을 팔다가 그만 등교 시간에 늦어버렸다!<br> 
-            허겁지겁 학교 앞에 도착하니 이미 수업 시작 종이 울린 것 같다.<br>
-            정문으로 당당히 들어갈까, 아니면 후문으로 몰래 들어갈까?<br>
-            오늘은 유난히 선생님들이 지각생을 잡을 것 같은 불길한 예감이 스친다.<br>
-            (교장 선생님의 특별 지시로, 오늘 정문과 후문 중 <span class="highlight">한 곳에서만</span> 선생님이 지각 단속을 하신다!)
-        </p>
-        <p class="dilemma">🤔 당신의 고민: 어느 문으로 들어가야 무사할까? 나의 선택은?</p>
+        <h2 class="screen-title"></h2>
+        <p class="location"></p>
+        <p class="situation"></p>
+        <p class="dilemma"></p>
         <div class="choices">
             <button class="full-width" id="s3c1" onclick="handleChoice('screen3', 'A')">A) 정면 돌파! 정문으로 가자!</button>
             <button class="full-width" id="s3c2" onclick="handleChoice('screen3', 'B')">B) 은밀하게... 후문으로 가자.</button>
         </div>
-        <div class="immediate-feedback" id="feedback3"></div>
+        <div class="immediate-feedback empty" id="feedback3"></div>
         <button class="next-button" id="nextBtn3" onclick="proceedToNext(3)">다음으로</button>
     </div>
 
     <div id="screen4" class="game-screen">
-        <h2 class="screen-title">선택 4: 시험 시간, 마지막 한 문제</h2>
-        <p class="location">📍 장소: 시험 시간 - 교실</p>
-        <p class="situation">
-            시험 종료 5분 전. 마지막 문제를 붙잡고 있지만... 아, 도저히 모르겠다!<br>
-            하지만 포기할 순 없지. 답은 4개의 선택지 중 하나!
-        </p>
-        <p class="dilemma">🤔 당신의 고민: 어떤 번호로 찍어야 할까? 나의 직감을 믿어보자!</p>
+        <h2 class="screen-title"></h2>
+        <p class="location"></p>
+        <p class="situation"></p>
+        <p class="dilemma"></p>
         <div class="choices">
             <button class="full-width" id="s4c1" onclick="handleChoice('screen4', 'A')">A) 왠지 느낌이 오는 1번!</button>
             <button class="full-width" id="s4c2" onclick="handleChoice('screen4', 'B')">B) 가장 안 나올 것 같은 2번!</button>
             <button class="full-width" id="s4c3" onclick="handleChoice('screen4', 'C')">C) 나의 행운의 숫자 3번!</button>
             <button class="full-width" id="s4c4" onclick="handleChoice('screen4', 'D')">D) 모르겠을 땐 마지막 번호 4번!</button>
         </div>
-        <div class="immediate-feedback" id="feedback4"></div>
+        <div class="immediate-feedback empty" id="feedback4"></div>
         <button class="next-button" id="nextBtn4" onclick="proceedToNext(4)">다음으로</button>
     </div>
 
     <div id="screen5" class="game-screen">
-        <h2 class="screen-title">선택 5: 빵집의 운명, 마지막 초코 크림빵</h2>
-        <p class="location">📍 장소: 하굣길, 동네 빵집</p> 
-        <p class="situation">
-            하굣길, 내가 제일 좋아하는 초코 크림빵을 사러 빵집에 왔다.<br> 
-            그런데... 내 앞에 이미 두 명이 줄을 서 있고, 진열대에는 초코 크림빵이 <span class="highlight">딱 한 개</span> 남아있다!<br>
-            앞 사람들은 빵을 하나씩만 살 예정이고, 각자 이 초코 크림빵을 고를 확률은 <span class="highlight">50%</span>라고 한다.
-        </p>
-        <p class="dilemma">🤔 당신의 고민: 이 줄, 계속 서야 할까? 아니면 그냥 집에 갈까?</p>
+        <h2 class="screen-title"></h2>
+        <p class="location"></p>
+        <p class="situation"></p>
+        <p class="dilemma"></p>
         <div class="choices">
             <button class="full-width" id="s5c1" onclick="handleChoice('screen5', 'A')">A) 마지막 희망을 걸고 기다려본다!</button>
             <button class="full-width" id="s5c2" onclick="handleChoice('screen5', 'B')">B) 초코 크림빵 안 사고 그냥 집에 간다.</button> 
         </div>
-        <div class="immediate-feedback" id="feedback5"></div>
+        <div class="immediate-feedback empty" id="feedback5"></div>
         <button class="next-button" id="nextBtn5" onclick="proceedToNext(5)">다음으로</button>
     </div>
 
     <div id="screen6" class="game-screen">
-        <h2 class="screen-title">선택 6: 도서관 잠입 작전</h2>
-        <p class="location">📍 장소: 하굣길</p> 
-        <p class="situation">
-            하굣길, 조용히 책을 읽고 싶은데 혹시 도서관에서 친구들을 마주칠까 걱정이다.<br> 
-            수미가 오늘 도서관에 올 확률은 <span class="highlight">50%</span>, 지은이가 올 확률은 약 <span class="highlight">33%</span>(1/3)이라고 한다.<br>
-            둘 다 마주치지 않고 몰래 도서관을 이용하고 싶다!
-        </p>
-        <p class="dilemma">🤔 당신의 고민: 도서관에 몰래 가 볼까?</p>
+        <h2 class="screen-title"></h2>
+        <p class="location"></p>
+        <p class="situation"></p>
+        <p class="dilemma"></p>
         <div class="choices">
             <button class="full-width" id="s6c1" onclick="handleChoice('screen6', 'A')">A) 그래, 조용히 도서관에 가보자!</button>
             <button class="full-width" id="s6c2" onclick="handleChoice('screen6', 'B')">B) 아니야, 그냥 안전하게 집으로 가자.</button>
         </div>
-        <div class="immediate-feedback" id="feedback6"></div>
+        <div class="immediate-feedback empty" id="feedback6"></div>
         <button class="next-button" id="nextBtn6" onclick="proceedToNext(6)">다음으로</button>
     </div>
 
@@ -270,6 +256,86 @@
     };
 
     const gameContainerElement = document.querySelector('.game-container');
+    const typingSpeed = 100; // 0.1초
+
+    // 화면별 텍스트 원본 저장 (HTML 포함)
+    const screenTexts = {
+        screen1: {
+            title: "선택 1: 아침, 우산과의 눈치 싸움",
+            location: "📍 장소: 아침, 현관 앞",
+            situation: `TV에서 아나운서의 목소리가 흘러나온다.<br>"오늘 전국적으로 비 소식이 있습니다. 현재 예상 강수 확률은 <span id="rainChance" class="highlight">${rainChancePercentage}</span>%입니다."<br>창밖을 보니 하늘은 아직 흐리기만 하다.`,
+            dilemma: "🤔 당신의 고민: 우산을 가져갈까, 말까?",
+        },
+        screen2: {
+            title: "선택 2: 길가의 유혹, 10%의 도전",
+            location: "📍 장소: 등굣길, 문구점 앞",
+            situation: `등굣길, 문구점 앞에 놓인 상품 뽑기 기계가 시선을 사로잡는다.<br>"✨인기 캐릭터 한정판 인형 획득 찬스!✨ 단돈 100원! 성공 확률 <span class="highlight">10%</span>!"<br>(현재 내 지갑에는 <span id="currentMoneyLottery" class="highlight">${money}</span>원이 있다.)`,
+            dilemma: "🤔 당신의 고민: 10%의 확률... 한번 도전해 볼까?",
+            thought: `"10%면... 열 번 중 한 번은 되지 않을까?" (내적 고민)`
+        },
+        screen3: {
+            title: "선택 3: 지각 위기! 정문 vs 후문",
+            location: "📍 장소: 아슬아슬 등굣길, 학교 앞",
+            situation: `이런, 아침부터 문구점 앞 뽑기 기계에 한눈을 팔다가 그만 등교 시간에 늦어버렸다!<br>허겁지겁 학교 앞에 도착하니 이미 수업 시작 종이 울린 것 같다.<br>정문으로 당당히 들어갈까, 아니면 후문으로 몰래 들어갈까?<br>오늘은 유난히 선생님들이 지각생을 잡을 것 같은 불길한 예감이 스친다.<br>(교장 선생님의 특별 지시로, 오늘 정문과 후문 중 <span class="highlight">한 곳에서만</span> 선생님이 지각 단속을 하신다!)`,
+            dilemma: "🤔 당신의 고민: 어느 문으로 들어가야 무사할까? 나의 선택은?"
+        },
+        screen4: {
+            title: "선택 4: 시험 시간, 마지막 한 문제",
+            location: "📍 장소: 시험 시간 - 교실",
+            situation: `시험 종료 5분 전. 마지막 문제를 붙잡고 있지만... 아, 도저히 모르겠다!<br>하지만 포기할 순 없지. 답은 4개의 선택지 중 하나!`,
+            dilemma: "🤔 당신의 고민: 어떤 번호로 찍어야 할까? 나의 직감을 믿어보자!"
+        },
+        screen5: {
+            title: "선택 5: 빵집의 운명, 마지막 초코 크림빵",
+            location: "📍 장소: 하굣길, 동네 빵집",
+            situation: `하굣길, 내가 제일 좋아하는 초코 크림빵을 사러 빵집에 왔다.<br>그런데... 내 앞에 이미 두 명이 줄을 서 있고, 진열대에는 초코 크림빵이 <span class="highlight">딱 한 개</span> 남아있다!<br>앞 사람들은 빵을 하나씩만 살 예정이고, 각자 이 초코 크림빵을 고를 확률은 <span class="highlight">50%</span>라고 한다.`,
+            dilemma: "🤔 당신의 고민: 이 줄, 계속 서야 할까? 아니면 그냥 집에 갈까?"
+        },
+        screen6: {
+            title: "선택 6: 도서관 잠입 작전",
+            location: "📍 장소: 하굣길",
+            situation: `하굣길, 조용히 책을 읽고 싶은데 혹시 도서관에서 친구들을 마주칠까 걱정이다.<br>수미가 오늘 도서관에 올 확률은 <span class="highlight">50%</span>, 지은이가 올 확률은 약 <span class="highlight">33%</span>(1/3)이라고 한다.<br>둘 다 마주치지 않고 몰래 도서관을 이용하고 싶다!`,
+            dilemma: "🤔 당신의 고민: 도서관에 몰래 가 볼까?"
+        }
+    };
+
+
+    function typewriterEffect(element, htmlString, speed, callback) {
+        if (!element) {
+            if (callback) callback();
+            return;
+        }
+        element.innerHTML = ""; 
+        let i = 0;
+        let currentContent = "";
+
+        function type() {
+            if (i < htmlString.length) {
+                if (htmlString[i] === '<') {
+                    let tagEndIndex = htmlString.indexOf('>', i);
+                    if (tagEndIndex === -1) { // '>' 못 찾으면 나머지 다 붙이고 종료 (오류 방지)
+                        currentContent += htmlString.substring(i);
+                        i = htmlString.length;
+                    } else {
+                        currentContent += htmlString.substring(i, tagEndIndex + 1);
+                        i = tagEndIndex + 1;
+                    }
+                    element.innerHTML = currentContent;
+                    type(); // 태그는 즉시 다음 처리
+                } else {
+                    currentContent += htmlString[i];
+                    element.innerHTML = currentContent;
+                    i++;
+                    setTimeout(type, speed);
+                }
+            } else {
+                element.innerHTML = htmlString; // 최종적으로 완전한 HTML 보장
+                if (callback) callback();
+            }
+        }
+        type();
+    }
+
 
     function triggerEffect(type) {
         const activeScreen = document.getElementById('screen' + currentScreenNum); 
@@ -283,6 +349,7 @@
                 gameContainerElement.classList.remove('shake-effect');
             }, 500); 
         } else if (type === 'good' && feedbackDiv) {
+            feedbackDiv.classList.remove('empty'); // 내용 채워지므로 empty 클래스 제거
             feedbackDiv.classList.add('good-outcome-flash');
             setTimeout(() => {
                 feedbackDiv.classList.remove('good-outcome-flash');
@@ -293,17 +360,32 @@
 
     function initializeGame() {
         rainChancePercentage = Math.floor(Math.random() * 81) + 10;
-        document.getElementById('rainChance').textContent = rainChancePercentage;
-        updateMoneyDisplay();
+        // screenTexts 업데이트 (동적 값 반영)
+        screenTexts.screen1.situation = `TV에서 아나운서의 목소리가 흘러나온다.<br>"오늘 전국적으로 비 소식이 있습니다. 현재 예상 강수 확률은 <span id="rainChance" class="highlight">${rainChancePercentage}</span>%입니다."<br>창밖을 보니 하늘은 아직 흐리기만 하다.`;
+        // money는 showScreen에서 직접 업데이트 되도록 currentMoneyLottery ID 사용 유지
+
+        updateMoneyDisplay(); // 초기 소지금 표시
+
         for (let i = 1; i <= 6; i++) {
-            disableChoiceButtons('screen' + i, false); 
+            const screenId = 'screen' + i;
+            disableChoiceButtons(screenId, false); 
             const feedbackDiv = document.getElementById('feedback' + i);
             const nextButton = document.getElementById('nextBtn' + i);
-            if(feedbackDiv) feedbackDiv.innerHTML = "";
+            const choicesDiv = document.getElementById(screenId)?.querySelector('.choices');
+
+            if(feedbackDiv) {
+                feedbackDiv.innerHTML = "";
+                feedbackDiv.classList.add('empty');
+            }
             if(nextButton) nextButton.style.display = 'none';
+            if(choicesDiv) choicesDiv.style.visibility = 'hidden'; // 선택지 초기 숨김
         }
         const choices2Initial = document.getElementById('choices2_initial');
-        if(choices2Initial) choices2Initial.style.display = 'block';
+        if(choices2Initial) {
+            choices2Initial.style.display = 'block'; // 화면 2 초기 버튼은 보이게
+            choices2Initial.style.visibility = 'hidden'; // 타이핑 후 보이도록
+        }
+        currentScreenNum = 1; // currentScreenNum 초기화 위치 변경
         showScreen(currentScreenNum);
     }
 
@@ -311,15 +393,69 @@
         document.querySelectorAll('.game-screen').forEach(screen => {
             screen.classList.remove('active');
         });
-        const targetScreen = document.getElementById(screenNumber === 'Ending' ? 'endingScreen' : 'screen' + screenNumber);
+        const screenId = screenNumber === 'Ending' ? 'endingScreen' : 'screen' + screenNumber;
+        const targetScreen = document.getElementById(screenId);
+        
         if(targetScreen) {
             targetScreen.classList.add('active');
+
+            if (screenNumber === 'Ending') {
+                displayEndingContent();
+                return;
+            }
+            
+            // 화면 2의 돈 업데이트는 situation 텍스트 내에 포함되어 있으므로, 여기서 업데이트
+            if (screenNumber === 2) {
+                 screenTexts.screen2.situation = `등굣길, 문구점 앞에 놓인 상품 뽑기 기계가 시선을 사로잡는다.<br>"✨인기 캐릭터 한정판 인형 획득 찬스!✨ 단돈 100원! 성공 확률 <span class="highlight">10%</span>!"<br>(현재 내 지갑에는 <span id="currentMoneyLottery" class="highlight">${money}</span>원이 있다.)`;
+            }
+
+
+            const texts = screenTexts['screen' + screenNumber];
+            const titleEl = targetScreen.querySelector('.screen-title');
+            const locationEl = targetScreen.querySelector('.location');
+            const situationEl = targetScreen.querySelector('.situation');
+            const dilemmaEl = targetScreen.querySelector('.dilemma');
+            const thoughtEl = targetScreen.querySelector('.player-thought');
+            const choicesEl = targetScreen.querySelector('.choices'); // 화면 2는 choices2_initial
+
+            // Clear previous content for typing
+            if (titleEl) titleEl.innerHTML = "";
+            if (locationEl) locationEl.innerHTML = "";
+            if (situationEl) situationEl.innerHTML = "";
+            if (dilemmaEl) dilemmaEl.innerHTML = "";
+            if (thoughtEl) thoughtEl.innerHTML = "";
+
+            const currentChoicesEl = screenNumber === 2 ? document.getElementById('choices2_initial') : choicesEl;
+            if (currentChoicesEl) currentChoicesEl.style.visibility = 'hidden';
+
+
+            typewriterEffect(titleEl, texts.title || "", typingSpeed, () => {
+                typewriterEffect(locationEl, texts.location || "", typingSpeed, () => {
+                    typewriterEffect(situationEl, texts.situation || "", typingSpeed, () => {
+                        typewriterEffect(dilemmaEl, texts.dilemma || "", typingSpeed, () => {
+                            if (thoughtEl && texts.thought) {
+                                typewriterEffect(thoughtEl, texts.thought, typingSpeed, () => {
+                                    if (currentChoicesEl) currentChoicesEl.style.visibility = 'visible';
+                                });
+                            } else {
+                                if (currentChoicesEl) currentChoicesEl.style.visibility = 'visible';
+                            }
+                        });
+                    });
+                });
+            });
         }
     }
 
+
     function updateMoneyDisplay() {
         const moneyDisplayLottery = document.getElementById('currentMoneyLottery');
-        if (moneyDisplayLottery) moneyDisplayLottery.textContent = money;
+        // screenTexts.screen2.situation 내의 money 값도 업데이트 필요 시 고려 (showScreen에서 처리)
+        if (moneyDisplayLottery) { // 해당 span이 실제로 존재할 때만 업데이트
+             // 이 부분은 screenTexts.screen2.situation이 업데이트 될 때 함께 변경되므로,
+             // showScreen(2)가 호출될 때 정확한 금액이 반영됩니다.
+             // 만약 실시간 업데이트가 필요하다면, 해당 span의 내용을 직접 바꿔야 합니다.
+        }
     }
 
     function disableChoiceButtons(screenIdOrNum, disable = true) {
@@ -339,6 +475,7 @@
                         button.disabled = disable;
                     });
                 }
+                 // 피드백 내 동적 버튼도 고려해야 하지만, 해당 버튼들은 생성 시점에 onclick이 연결됨
             }
         }
     }
@@ -350,47 +487,54 @@
          }
     }
 
-    function displayImmediateFeedback(screenNum, feedbackHtml, showMainNextBtn = false) {
+    function displayImmediateFeedback(screenNum, feedbackHtmlString, showMainNextBtn = false) {
         const feedbackDiv = document.getElementById('feedback' + screenNum);
-        if(feedbackDiv){
-            feedbackDiv.innerHTML = feedbackHtml;
-        }
-        if (screenNum !== 2) { 
-            disableChoiceButtons(screenNum, true);
-        }
-        if(showMainNextBtn) {
-             showNextButton(screenNum, true);
-        }
+        if (!feedbackDiv) return;
+
+        feedbackDiv.classList.remove('empty');
+        feedbackDiv.innerHTML = ""; // 타이핑 전 내용 비우기
+        
+        typewriterEffect(feedbackDiv, feedbackHtmlString, typingSpeed, () => {
+            // 화면 2의 경우, 버튼 비활성화는 handleLotteryChoice에서 관리
+            if (screenNum !== 2) {
+                disableChoiceButtons(screenNum, true);
+            }
+            // 화면 2의 재도전/그만두기 버튼은 feedbackHtmlString에 포함되어 생성됨
+            // 메인 "다음으로" 버튼 표시 로직
+            if(showMainNextBtn || (screenNum === 2 && !feedbackDiv.querySelector('.feedback-actions button'))) {
+                showNextButton(screenNum, true);
+            }
+        });
     }
+
 
     function handleLotteryChoice(action) {
         const feedbackDiv = document.getElementById('feedback2');
         const initialChoicesDiv = document.getElementById('choices2_initial');
-        const mainNextButton = document.getElementById('nextBtn2');
+        // const mainNextButton = document.getElementById('nextBtn2'); // 이 버튼은 quitLotteryAndProceed나 성공 시에만 사용
         let feedbackHtml = "";
+        let showProceedBtn = false; // 뽑기 관련 최종 진행 버튼 표시 여부
 
-        if(initialChoicesDiv) initialChoicesDiv.style.display = 'none';
-        mainNextButton.style.display = 'none';
+        if(initialChoicesDiv) initialChoicesDiv.style.display = 'none'; // 초기 선택지 숨김
+        // mainNextButton.style.display = 'none'; // 메인 다음 버튼은 필요시 명시적으로 표시
 
         if (action === 'initial_pass') {
             feedbackHtml = "<h4>결과: 도전 포기</h4><p>성공 확률 10%는 여전히 낮다고 판단하여, 신중하게 돈을 아끼기로 결정했습니다.</p>";
             endingTexts.push("[10%의 뽑기 확률 앞에서 도전을 포기하고 돈을 아꼈다.]");
-            feedbackDiv.innerHTML = feedbackHtml;
-            showNextButton(2, true); 
+            showProceedBtn = true;
         } else if (action === 'initial_try' || action === 'retry') {
             if (money >= 100) {
                 money -= 100;
                 playerStats.lotteryAttempts++;
                 playerStats.lotterySpent += 100;
-                updateMoneyDisplay();
+                updateMoneyDisplay(); // 돈 변동 즉시 반영 (화면 2 상황 텍스트는 showScreen에서 업데이트)
                 let success = Math.random() < 0.10; 
 
                 if (success) {
                     playerStats.lotteryPrize = true;
                     feedbackHtml = `<h4>결과: 🎉 대성공! (${playerStats.lotteryAttempts}번째 시도) 🎉</h4><p>상품 뽑기 성공 확률 <span class="highlight">10%</span>에 도전하여, 드디어 상품을 뽑았습니다! 총 ${playerStats.lotterySpent}원을 사용했습니다.</p>`;
                     triggerEffect('good');
-                    feedbackDiv.innerHTML = feedbackHtml;
-                    showNextButton(2, true); 
+                    showProceedBtn = true;
                 } else {
                     feedbackHtml = `<h4>결과: 꽝! (시도 횟수: ${playerStats.lotteryAttempts}, 남은 돈: ${money}원)</h4><p>상품 뽑기 성공 확률 <span class="highlight">10%</span>에 도전했지만, 아쉽게도 90%의 실패 확률이 더 높았네요. 100원을 잃었습니다.</p>`;
                     triggerEffect('bad');
@@ -400,35 +544,37 @@
                         feedbackHtml += "<p>돈이 부족하여 더 이상 도전할 수 없습니다.</p>";
                         feedbackHtml += `<div class="feedback-actions"><button onclick="quitLotteryAndProceed()">다음으로 넘어간다.</button></div>`;
                     }
-                    feedbackDiv.innerHTML = feedbackHtml;
                 }
             } else {
                 feedbackHtml = "<h4>결과: 시도 실패!</h4><p>뽑기에 도전하고 싶었지만, 아쉽게도 돈이 부족해서 시도조차 못했습니다.</p>";
                 triggerEffect('bad');
-                feedbackDiv.innerHTML = feedbackHtml;
-                showNextButton(2, true); 
+                showProceedBtn = true;
             }
         }
+        // displayImmediateFeedback(2, feedbackHtml, showProceedBtn); // 화면 2의 피드백은 여기서 직접 처리
+        feedbackDiv.classList.remove('empty');
+        feedbackDiv.innerHTML = ""; // 타이핑 전 내용 비우기
+        typewriterEffect(feedbackDiv, feedbackHtml, typingSpeed, () => {
+            if(showProceedBtn) { // "다음으로" 버튼을 표시해야 하는 경우 (성공, 포기, 돈없음)
+                showNextButton(2, true);
+            }
+             // 재도전/그만두기 버튼은 feedbackHtml에 포함되어 있으므로 별도 표시 로직 불필요
+        });
     }
 
     function quitLotteryAndProceed() {
-        proceedToNext(2);
+        // 피드백 영역을 정리하고 메인 다음 버튼을 통해 다음 화면으로 진행하도록 유도
+        const feedbackDiv = document.getElementById('feedback2');
+        if(feedbackDiv) {
+            feedbackDiv.innerHTML = "<p>뽑기를 멈추고 다음으로 진행합니다.</p>"; // 간단한 메시지
+        }
+        showNextButton(2, true); // 메인 "다음 화면으로" 버튼 표시
     }
 
     function handleChoice(screenId, choice) {
         const screenNum = parseInt(screenId.replace('screen', ''));
-        // 화면 2는 handleLotteryChoice에서 직접 처리하므로, 여기서는 일반 버튼 클릭 시에는 아무것도 하지 않도록 수정.
-        // (초기 버튼에서 handleLotteryChoice를 직접 호출하도록 변경했기 때문)
-        if (screenNum === 2 && (document.getElementById('s2c1_initial') && document.getElementById('s2c2_initial'))) {
-             // 이 조건은 초기 버튼들이 handleLotteryChoice를 직접 호출하므로,
-             // 일반 handleChoice가 중복 실행되지 않도록 방지하는 목적.
-             // 하지만, 더 명확하게는 screen2의 초기 버튼은 onclick="handleLotteryChoice(...)"를 사용하고
-             // handleChoice에서는 screenNum === 2 케이스를 완전히 제외하거나,
-             // 재도전 등의 버튼이 handleChoice를 호출하지 않도록 구분해야 합니다.
-             // 현재 구조상 handleLotteryChoice가 초기 버튼에서 호출되므로, 이 함수에서 screenNum === 2를 스킵해도 무방.
-            return; 
-        }
-
+        // 화면 2는 handleLotteryChoice가 초기 버튼에서 직접 호출됨
+        if (screenNum === 2) return;
 
         let feedbackHtml = "";
         let endingText = "";
@@ -642,19 +788,22 @@
 
         if (endingText) endingTexts.push(endingText);
         
-        if (effectType) { 
-            triggerEffect(effectType);
-        }
-
-        if (screenNum !== 2) { 
+        // 화면 2가 아닌 일반 화면에서만 displayImmediateFeedback 호출 및 효과 적용
+        if (screenNum !== 2) {
             displayImmediateFeedback(screenNum, feedbackHtml, showMainNextBtn);
+            if (effectType) { 
+                triggerEffect(effectType);
+            }
         }
     }
 
     function proceedToNext(prevScreenNum) {
         const feedbackDiv = document.getElementById('feedback' + prevScreenNum);
         const nextButton = document.getElementById('nextBtn' + prevScreenNum);
-        if(feedbackDiv) feedbackDiv.innerHTML = "";
+        if(feedbackDiv) {
+            feedbackDiv.innerHTML = "";
+            feedbackDiv.classList.add('empty');
+        }
         if(nextButton) nextButton.style.display = 'none';
         
         if (prevScreenNum === 2) {
@@ -664,28 +813,26 @@
                 initialChoices2.querySelectorAll('button').forEach(button => {
                     button.disabled = false; 
                 });
+                 initialChoices2.style.visibility = 'hidden'; // 다음 화면 로드 시 타이핑 후 보이도록
             }
         } else {
-            disableChoiceButtons('screen' + prevScreenNum, false);
+            disableChoiceButtons('screen' + prevScreenNum, false); // 버튼 재활성화
+            const choicesDiv = document.getElementById('screen' + prevScreenNum)?.querySelector('.choices');
+            if(choicesDiv) choicesDiv.style.visibility = 'hidden'; // 다음 화면 로드 시 타이핑 후 보이도록
         }
+
 
         currentScreenNum++;
         if (currentScreenNum > 6) {
             displayEnding();
         } else {
-            showScreen(currentScreenNum);
-            updateMoneyDisplay();
-            disableChoiceButtons(currentScreenNum, false);
-            if (currentScreenNum === 2) {
-                 const initialChoices2 = document.getElementById('choices2_initial');
-                 if (initialChoices2) initialChoices2.style.display = 'block';
-                 disableChoiceButtons('screen2', false);
-            }
+            showScreen(currentScreenNum); // 여기서 다음 화면 텍스트 타이핑 시작
+            updateMoneyDisplay(); // 소지금 관련 텍스트 업데이트
+            // 다음 화면의 선택 버튼은 showScreen 내부의 타이핑 콜백에서 활성화/표시됨
         }
     }
 
-    function displayEnding() {
-        showScreen('Ending');
+    function displayEndingContent() { // 엔딩 화면 내용 표시 (타이핑 없음)
         const endingOutput = document.getElementById('endingTextOutput');
         let fullEndingText = "<p><strong>나의 선택들이 모여 이런 하루가 되었어요...</strong></p>";
         endingTexts.forEach(text => {
@@ -712,19 +859,29 @@
         if(playerStats.latePenalty) fullEndingText += "<p>- 지각으로 선생님께 꾸중을 들었다.</p>";
         
         const screen4Element = document.getElementById('screen4');
-        if (screen4Element && !screen4Element.classList.contains('active') && currentScreenNum > 4) { 
-            if(playerStats.quizCorrect) fullEndingText += "<p>- 시험에서 찍은 문제가 정답이었다!</p>";
+        // 화면 4를 지났는지 여부로 시험 결과 표시 결정
+        let screen4Passed = false;
+        for(let i=1; i < currentScreenNum; i++){ // currentScreenNum은 1부터 시작, 엔딩은 7이 됨
+            if(i === 4) screen4Passed = true;
+        }
+        if(screen4Passed || (screen4Element && !screen4Element.classList.contains('active') && currentScreenNum > 4) ){
+             if(playerStats.quizCorrect) fullEndingText += "<p>- 시험에서 찍은 문제가 정답이었다!</p>";
             else fullEndingText += "<p>- 시험에서 찍은 문제는 틀렸다.</p>";
         }
+
+
         if (playerStats.librarySecretSuccess === true) {
             fullEndingText += "<p>- 도서관 잠입에 성공하여 조용히 시간을 보냈다.</p>";
         } else if (playerStats.librarySecretSuccess === false) {
             fullEndingText += "<p>- 도서관 잠입에 실패하여 친구(들)와 마주쳤다.</p>";
         }
-
-
         endingOutput.innerHTML = fullEndingText;
     }
+    
+    function displayEnding() { // 엔딩 화면 표시 트리거
+        showScreen('Ending'); 
+    }
+
 
     function restartGame() {
         currentScreenNum = 1;
@@ -743,7 +900,6 @@
         initializeGame(); 
     }
 
-    // Ensure this is called after the DOM is loaded or place the script at the end of the body
     window.onload = initializeGame; 
 </script>
 

@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>High Low Double 게임</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="game-container">
+        <h1>High / Low / Double</h1>
+
+        <div id="info-area">
+            <p>남은 카드: <span id="remaining-cards">60</span>장</p>
+            <p>라운드: <span id="round-number">0</span></p>
+        </div>
+
+        <div id="game-board">
+            <div id="player-area" class="player-zone">
+                <h2>Player</h2>
+                <div class="card-display">
+                    <p>내 카드 (숨김):</p>
+                    <div class="card" id="player-hidden-card">?</div>
+                </div>
+                <div class="card-display">
+                    <p>CPU의 카드 (보임):</p>
+                    <div class="card" id="cpu-visible-card">?</div>
+                </div>
+                <p class="score">점수: <span id="player-score">0</span></p>
+                <div id="player-guess-buttons">
+                    <button class="guess-btn" data-guess="high">High</button>
+                    <button class="guess-btn" data-guess="low">Low</button>
+                    <button class="guess-btn" data-guess="double">Double</button>
+                </div>
+            </div>
+
+            <div id="cpu-area" class="player-zone">
+                <h2>CPU</h2>
+                <div class="card-display">
+                    <p>CPU 카드 (숨김):</p>
+                    <div class="card" id="cpu-hidden-card">?</div>
+                </div>
+                <div class="card-display">
+                    <p>Player의 카드 (CPU에게 보임):</p>
+                    <div class="card" id="player-visible-card-for-cpu">?</div>
+                </div>
+                <p class="score">점수: <span id="cpu-score">0</span></p>
+                <p id="cpu-choice-display">CPU 선택: -</p>
+            </div>
+        </div>
+
+        <div id="message-area">
+            <p id="round-result-message"></p>
+            <p id="game-over-message"></p>
+        </div>
+
+        <button id="start-next-button">게임 시작</button>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

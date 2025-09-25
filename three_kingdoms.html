@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>삼각지: 운명의 주사위</title>
+    <style>
+        /* --- 게임 전체 스타일 --- */
+        body {
+            font-family: 'Malgun Gothic', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            background-color: #f0f2f5;
+            color: #333;
+        }
+        #game-container {
+            text-align: center;
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+        }
+
+        /* --- 5x5 게임 보드 스타일 --- */
+        #game-board {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 5px;
+            margin: 20px 0;
+            border: 2px solid #34495e;
+        }
+        .cell {
+            width: 90px;
+            height: 90px;
+            background-color: #ecf0f1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            border: 1px solid #bdc3c7;
+        }
+        .cell:not(.claimed):hover {
+            background-color: #d5dbdb;
+        }
+        
+        /* --- 팀별 점령지 스타일 --- */
+        .cell.sin { background-color: #3498db; color: white; }
+        .cell.cos { background-color: #2ecc71; color: white; }
+        .cell.tan { background-color: #e67e22; color: white; }
+        .cell.claimed { cursor: not-allowed; }
+
+
+        /* --- 게임 정보 및 컨트롤 패널 스타일 --- */
+        #info-panel {
+            font-size: 1.2em;
+            margin-bottom: 15px;
+        }
+        .team-sin { color: #3498db; }
+        .team-cos { color: #2ecc71; }
+        .team-tan { color: #e67e22; }
+        
+        #controls button {
+            padding: 10px 20px;
+            font-size: 1em;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: #34495e;
+            color: white;
+        }
+        #controls button:disabled {
+            background-color: #95a5a6;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="game-container">
+        <h1>🎲 삼각지: 운명의 주사위</h1>
+        <div id="info-panel">
+            <p id="turn-info">게임을 시작하려면 팀을 선택하세요.</p>
+            <p id="score-info"></p>
+        </div>
+        <div id="game-board"></div>
+        <div id="controls">
+             <p><strong>[게임 방법]</strong> ① 점령할 땅 선택 → ② 주사위 굴리기 → ③ 계산식 만들기 (제한 시간 2분)</p>
+             <button id="roll-dice-btn" disabled>주사위 굴리기</button>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. 게임 설정 ---
+        const boardElement = document.getElementById('game-board');
+        const turnInfoElement = document.getElementById('turn-info');
+        const scoreInfoElement = document.getElementById('score-info');
+        const rollDiceBtn = document.getElementById('roll-dice-btn');
+
+        const boardValues = [
+            ["√2", "(√3-1)/2", "√3/2", "(√6-√2)/4", "2"],
+            ["3/2", "√3", "1/2", "-1/2", "√6/2"],
+            ["√3/3", "(√3+1)/2", "1", "√2/2", "-1"],
+            ["1/4", "0", "-√3/2", "2√3", "(2-√3)/2"],
+            ["√3-1", "(√6+√2)/4", "3", "2√3/3", "4"]
+        ];
+
+        const players = {
+            sin: { name: "sin 왕국", mark: "S", score: 0, colorClass: "team-sin" },
+            cos: { name: "cos 왕국", mark: "C", score: 0, colorClass: "team-cos" },
+            tan: { name: "tan 왕국", mark: "T", score: 0, colorClass: "team-tan" }
+        };
+        const turnOrder = ["sin", "cos", "tan"];
+        let currentPlayerIndex = 0;
+        let selectedCell = null;
+        let remainingTerritories = 25;
+
+        // --- 2. 게임 로직 ---
+
+        function initializeBoard() {
+            boardValues.forEach((row, r) => {
+                row.forEach((value, c) => {
+                    const cell = document.createElement('div');
+                    cell.classList.add('cell');
+                    cell.dataset.row = r;
+                    cell.dataset.col = c;
+                    cell.textContent = value;
+                    cell.addEventListener('click', () => handleCellClick(cell));
+                    boardElement.appendChild(cell);
+                });
+            });
+            updateDisplay();
+        }
+        
+        function updateDisplay() {
+            const currentPlayerKey = turnOrder[currentPlayerIndex];
+            const currentPlayer = players[currentPlayerKey];
+            turnInfoElement.innerHTML = `👑 <strong class="${currentPlayer.colorClass}">${currentPlayer.name}</strong>의 차례입니다.`;
+            
+            let scores = "<strong>[영토 현황]</strong> ";
+            scores += `<span class="team-sin">sin: ${players.sin.score}</span> | `;
+            scores += `<span class="team-cos">cos: ${players.cos.score}</span> | `;
+            scores += `<span class="team-tan">tan: ${players.tan.score}</span>`;
+            scoreInfoElement.innerHTML = scores;
+        }
+
+        function handleCellClick(cell) {
+            if (cell.classList.contains('claimed')) {
+                alert("이미 점령된 땅입니다.");
+                return;
+            }
+            // 이전에 선택된 셀의 강조 효과를 제거
+            if (selectedCell) {
+                selectedCell.style.border = '1px solid #bdc3c7';
+            }
+            
+            selectedCell = cell;
+            selectedCell.style.border = '3px solid #f1c40f';
+            rollDiceBtn.disabled = false;
+            turnInfoElement.innerHTML = `<strong>${cell.textContent}</strong> 땅을 선택했습니다. 주사위를 굴려주세요.`;
+        }
+        
+        rollDiceBtn.addEventListener('click', () => {
+            if (!selectedCell) {
+                alert("먼저 공격할 땅을 선택해주세요!");
+                return;
+            }
+            
+            const diceRoll = Math.floor(Math.random() * 6) + 1;
+            const targetValue = selectedCell.textContent;
+            
+            alert(`🎲 주사위 결과: ${diceRoll}\n\n이제 ${diceRoll}개의 삼각비 항을 사용하여 '${targetValue}'을 만드는 계산식을 찾아주세요. (제한 시간 2분)`);
+            
+            const equation = prompt(`'${targetValue}'을 만드는 계산식을 입력하세요:`);
+
+            if (equation) {
+                // 중요: 정답 확인은 플레이어들이 직접 합니다.
+                const isCorrect = confirm(`입력한 계산식:\n${equation}\n\n이 계산식이 맞습니까? (다른 팀원들이 확인해주세요)`);
+                
+                if (isCorrect) {
+                    claimTerritory(selectedCell);
+                    // 연속 공격 확인
+                    const isSpecialAttack = confirm("자신 왕국의 삼각비만 사용했습니까?");
+                    if (isSpecialAttack) {
+                        alert("⭐ 특별 규칙 발동! 한 번 더 공격할 수 있습니다!");
+                        resetTurn();
+                    } else {
+                        nextTurn();
+                    }
+                } else {
+                    alert("💥 공격 실패! 계산식이 틀렸습니다.");
+                    nextTurn();
+                }
+            } else {
+                alert("💥 공격 실패! 계산식을 입력하지 않았습니다.");
+                nextTurn();
+            }
+        });
+        
+        function claimTerritory(cell) {
+            const currentPlayerKey = turnOrder[currentPlayerIndex];
+            cell.classList.add('claimed', currentPlayerKey);
+            cell.textContent = players[currentPlayerKey].mark;
+            players[currentPlayerKey].score++;
+            remainingTerritories--;
+        }
+
+        function resetTurn() {
+            selectedCell.style.border = '1px solid #bdc3c7';
+            selectedCell = null;
+            rollDiceBtn.disabled = true;
+            updateDisplay();
+            
+            if (remainingTerritories === 0) {
+                endGame();
+            }
+        }
+
+        function nextTurn() {
+            currentPlayerIndex = (currentPlayerIndex + 1) % 3;
+            resetTurn();
+        }
+        
+        function endGame() {
+            let winner = null;
+            let maxScore = -1;
+            
+            for (const key in players) {
+                if (players[key].score > maxScore) {
+                    maxScore = players[key].score;
+                    winner = players[key];
+                }
+            }
+            
+            // 동점자 확인
+            const winners = Object.values(players).filter(p => p.score === maxScore);
+
+            let message = "--- 게임 종료! ---\n\n";
+            if (winners.length > 1) {
+                message += "무승부입니다! " + winners.map(w => w.name).join(', ') + "이(가) 공동으로 승리했습니다!";
+            } else {
+                message += `👑 천하를 통일한 최종 승리자는 ${winner.name}입니다! 축하합니다!`;
+            }
+
+            turnInfoElement.textContent = "게임 종료!";
+            alert(message);
+            rollDiceBtn.disabled = true;
+        }
+
+        // --- 3. 게임 시작 ---
+        initializeBoard();
+
+    </script>
+</body>
+</html>

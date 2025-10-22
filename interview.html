@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>면접 연습 시뮬레이터</title>
+    <title>후원계좌 카뱅 3333014523407</title>
     <style>
         /* 기본 스타일 */
         body {
@@ -34,9 +34,14 @@
         h1 {
             font-size: 1.6em;
             color: #005a9c;
-            margin-bottom: 30px;
+            margin-bottom: 20px; /* 여백 조정 */
             border-bottom: 2px solid #e0e0e0;
             padding-bottom: 15px;
+        }
+        
+        /* --- (수정) 다음 질문 버튼 컨테이너 --- */
+        #next-question-container {
+            margin-bottom: 25px;
         }
 
         /* 질문 상자 */
@@ -80,8 +85,8 @@
             display: none;
         }
 
-        /* 버튼 컨트롤 */
-        #button-controls {
+        /* --- (수정) '모범 답안' 버튼 컨트롤 --- */
+        #answer-button-controls {
             display: flex;
             justify-content: center;
             gap: 15px;
@@ -110,6 +115,8 @@
         #next-question-btn {
             background-color: #28a745;
             color: white;
+            width: 80%; /* 버튼 크기 키움 */
+            max-width: 400px; /* 최대 너비 제한 */
         }
 
         #next-question-btn:hover {
@@ -124,7 +131,11 @@
 <body>
 
     <div id="practice-container">
-        <h1>연습 (수학)</h1>
+        <h1>이직대비 면접 연습</h1>
+        
+        <div id="next-question-container">
+            <button id="next-question-btn">다음 질문</button>
+        </div>
         
         <div id="question-box">
             <p id="question-text">질문을 불러오는 중...</p>
@@ -134,18 +145,17 @@
             <p id="answer-text"></p>
         </div>
         
-        <div id="button-controls">
+        <div id="answer-button-controls">
             <button id="show-answer-btn">모범 답안 보기</button>
-            <button id="next-question-btn">다음 질문</button>
         </div>
     </div>
 
     <script>
-        // 1. 질문 및 모범 답안 데이터 (수학, 교과서 유경험자 맞춤)
+        // 1. 질문 및 모범 답안 데이터 (변경 없음)
         const qaData = [
             {
                 question: "본인의 경력 사항에 대해 간단하게 이야기해 보세요.",
-                answer: "대학에서 <strong>수학(교육)</strong>을 전공하였고, 교과서 및 참고서 개발 경력은 총 00년입니다. 00년 동안 <strong>수학</strong> 교과서와 백점 00과 같은 참고서 등을 개발하였습니다."
+                answer: "대학에서 <strong>수학교육</strong>을 전공하였고, 교과서 및 참고서 개발 경력은 총 13.5년입니다. 동아출판에서는 10년  <strong>초, 중, 고 검정 수학</strong> 교과서와 고등 참고서를 개발하였습니다."
             },
             {
                 question: "교과서 개발 프로세스에 대해 아는 대로 설명해 보세요.",
@@ -229,7 +239,7 @@
             },
             {
                 question: "동아출판은 저작권을 어떻게 관리하고 있는지 설명해 보세요.",
-                answer: "<strong>- 주체:</strong> '교과서기획국'에서 전담 관리 (Q24 참고)<br><strong>- 지급:</strong> 규정에 따라 '한국문학예술저작권협회'를 통해 보상금 지급<br><strong>- 이미지 확보:</strong> 1) 내부 DB, 2) 외부 DB(유료), 3) 외부 전문가 촬영 (자사 제작물로 이슈 없음)"
+                answer: "<strong>- 주체:</strong> '교과서기획국'에서 전담 관리 (Q24 참고)<br><strong>- 지급:</strong> 규정에 따라 '한국문학예S술저작권협회'를 통해 보상금 지급<br><strong>- 이미지 확보:</strong> 1) 내부 DB, 2) 외부 DB(유료), 3) 외부 전문가 촬영 (자사 제작물로 이슈 없음)"
             },
             {
                 question: "교과서기획국에서 하는 업무에 대해 설명해 보세요.",
@@ -245,7 +255,7 @@
             }
         ];
 
-        // 2. HTML 요소(Element) 가져오기
+        // 2. HTML 요소(Element) 가져오기 (변경 없음)
         const questionTextElem = document.getElementById('question-text');
         const answerBoxElem = document.getElementById('answer-box');
         const answerTextElem = document.getElementById('answer-text');

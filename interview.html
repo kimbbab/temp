@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>후원계좌 카뱅 3333014523407</title>
+    <title>후원계좌 카뱅 3333 01 4523407</title>
     <style>
         /* 기본 스타일 */
         body {
@@ -39,7 +39,7 @@
             padding-bottom: 15px;
         }
         
-        /* --- (수정) 다음 질문 버튼 컨테이너 --- */
+        /* 다음 질문 버튼 컨테이너 */
         #next-question-container {
             margin-bottom: 25px;
         }
@@ -85,7 +85,7 @@
             display: none;
         }
 
-        /* --- (수정) '모범 답안' 버튼 컨트롤 --- */
+        /* '모범 답안' 버튼 컨트롤 */
         #answer-button-controls {
             display: flex;
             justify-content: center;
@@ -131,7 +131,7 @@
 <body>
 
     <div id="practice-container">
-        <h1>이직대비 면접 연습</h1>
+        <h1>중등수학팀 연습 면접 연습 시뮬레이터</h1>
         
         <div id="next-question-container">
             <button id="next-question-btn">다음 질문</button>
@@ -151,11 +151,17 @@
     </div>
 
     <script>
-        // 1. 질문 및 모범 답안 데이터 (변경 없음)
+        // 1. 질문 및 모범 답안 데이터
         const qaData = [
+            // --- (수정) 새 질문/답변 추가 ---
+            {
+                question: "수학팀이 몇 명입니까?",
+                answer: "<strong>수학 콘텐츠실</strong>은 <strong>35명</strong>이고, <br><strong>수학국정교과서팀</strong>은 <strong>20명 내외</strong>로 예정되어 있습니다.<br>여기에 <strong>디자인 11명</strong>, <strong>디지털콘텐츠 14명</strong>, <strong>교정교열 윤문인력 9명</strong> 등을 더해...<br><strong>100명 이상의 인력</strong>을 투입할 것으로 예상하고 있습니다. 저도 그 구성원이 되어 열심히 하고 싶습니다."
+            },
+            // --- 기존 질문/답변 ---
             {
                 question: "본인의 경력 사항에 대해 간단하게 이야기해 보세요.",
-                answer: "대학에서 <strong>수학교육</strong>을 전공하였고, 교과서 및 참고서 개발 경력은 총 13.5년입니다. 동아출판에서는 10년  <strong>초, 중, 고 검정 수학</strong> 교과서와 고등 참고서를 개발하였습니다."
+                answer: "대학에서 <strong>수학(교육)</strong>을 전공하였고, 교과서 및 참고서 개발 경력은 총 00년입니다. 00년 동안 <strong>수학</strong> 교과서와 백점 00과 같은 참고서 등을 개발하였습니다."
             },
             {
                 question: "교과서 개발 프로세스에 대해 아는 대로 설명해 보세요.",

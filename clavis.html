@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clavis 훈련소 - 서술형 강화 프로젝트</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@400;700;800&display=swap');
+
+        :root {
+            --primary-color: #1a4f9c; /* 신뢰감을 주는 딥 블루 (동아출판 느낌) */
+            --secondary-color: #d9534f; /* 중요 포인트 레드 */
+            --accent-color: #f0ad4e; /* Clavis 열쇠 골드 */
+            --bg-color: #f4f7f6;
+            --paper-color: #ffffff;
+            --text-color: #333;
+            --guide-gray: #e9ecef;
+        }
+
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .page-container {
+            width: 100%;
+            max-width: 800px;
+            background-color: var(--paper-color);
+            padding: 40px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            position: relative;
+        }
+
+        /* Header Section */
+        header {
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 10px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+
+        h1 {
+            font-size: 24px;
+            margin: 0;
+            color: var(--primary-color);
+            font-weight: 900;
+        }
+
+        h1 span {
+            color: var(--secondary-color);
+            font-size: 0.8em;
+        }
+
+        .chapter-info {
+            font-size: 14px;
+            color: #666;
+            font-weight: 500;
+        }
+
+        /* Problem Section */
+        .problem-section {
+            margin-bottom: 30px;
+        }
+
+        .q-badge {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 14px;
+            margin-right: 8px;
+        }
+
+        .difficulty {
+            display: inline-block;
+            font-size: 12px;
+            color: var(--secondary-color);
+            border: 1px solid var(--secondary-color);
+            padding: 1px 5px;
+            border-radius: 10px;
+            margin-left: 5px;
+            vertical-align: middle;
+        }
+
+        .problem-text {
+            font-family: 'Nanum Myeongjo', serif;
+            font-size: 18px;
+            line-height: 1.8;
+            margin-top: 10px;
+        }
+
+        /* Clavis Highlights (Underline/Highlight Effect) */
+        .clavis-mark {
+            background: linear-gradient(to top, #fff700 40%, transparent 40%);
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .clavis-mark:hover {
+            background: #fff700;
+        }
+
+        /* Clavis Key Section */
+        .clavis-box {
+            background-color: #eef6ff;
+            border-left: 5px solid var(--primary-color);
+            padding: 15px 20px;
+            border-radius: 0 8px 8px 0;
+            margin-bottom: 30px;
+            position: relative;
+        }
+
+        .clavis-title {
+            font-weight: 800;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        .clavis-icon {
+            font-size: 20px;
+        }
+
+        .clavis-content ul {
+            margin: 0;
+            padding-left: 20px;
+            font-size: 14px;
+            color: #444;
+        }
+        
+        .clavis-content li {
+            margin-bottom: 5px;
+        }
+
+        /* M.A.P. Section */
+        .map-section {
+            border: 2px solid var(--guide-gray);
+            border-radius: 12px;
+            padding: 20px;
+            background-color: #fafafa;
+        }
+
+        .map-header {
+            text-align: center;
+            font-weight: 900;
+            color: #555;
+            letter-spacing: 2px;
+            margin-bottom: 20px;
+            border-bottom: 1px dashed #ccc;
+            padding-bottom: 10px;
+        }
+
+        .map-step {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .step-label {
+            flex: 0 0 80px;
+            text-align: right;
+            font-weight: 800;
+            color: var(--secondary-color);
+            font-size: 14px;
+            padding-top: 5px;
+        }
+        
+        .step-label span {
+            display: block;
+            font-size: 10px;
+            color: #888;
+            font-weight: normal;
+        }
+
+        .step-content {
+            flex: 1;
+            background-color: white;
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .input-blank {
+            border: none;
+            border-bottom: 1px solid var(--primary-color);
+            background-color: #f0f4f8;
+            color: var(--primary-color);
+            font-weight: bold;
+            text-align: center;
+            width: 80px;
+            padding: 2px 5px;
+            font-family: inherit;
+        }
+        
+        .input-blank:focus {
+            outline: none;
+            background-color: #e0eaf5;
+        }
+
+        .equation {
+            font-family: 'Times New Roman', serif;
+            font-style: italic;
+        }
+
+        /* Footer / Decor */
+        .footer-note {
+            text-align: right;
+            font-size: 12px;
+            color: #999;
+            margin-top: 20px;
+        }
+        
+        .btn-check {
+            display: block;
+            width: 100%;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: background 0.2s;
+        }
+
+        .btn-check:hover {
+            background-color: #143d7a;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="page-container">
+        <header>
+            <h1>Clavis <span>훈련소</span></h1>
+            <div class="chapter-info">중2-1. 연립방정식의 활용 | 내신 만점 서술형</div>
+        </header>
+
+        <section class="problem-section">
+            <div>
+                <span class="q-badge">Q. 08</span>
+                <span class="difficulty">난이도 상</span>
+            </div>
+            <div class="problem-text">
+                둘레의 길이가 1.5km인 호수 공원이 있다. <span class="clavis-mark" title="Clavis: 이동 거리가 같다 / 시간은 동일하다">철수와 영희가 같은 지점에서 동시에 출발</span>하여 각자 일정한 속력으로 호수 둘레를 따라 돌고 있다. 두 사람이 <span class="clavis-mark" title="Clavis: 거리의 합 = 둘레">반대 방향으로 돌면 10분 후</span>에 처음으로 만나고, <span class="clavis-mark" title="Clavis: 거리의 차 = 둘레">같은 방향으로 돌면 50분 후</span>에 철수가 영희를 처음으로 다시 만난다. 이때, 철수와 영희의 속력을 각각 구하시오. (단, 철수가 영희보다 빠르다.)
+            </div>
+        </section>
+
+        <section class="clavis-box">
+            <div class="clavis-title">
+                <span class="clavis-icon">🗝️</span> Clavis : "방향에 따른 속력의 합과 차를 이용하라!"
+            </div>
+            <div class="clavis-content">
+                <ul>
+                    <li><b>Clavis 1 (미지수 설정):</b> 구하고자 하는 '속력'을 각각 <span class="equation">x, y</span>로 둡니다.</li>
+                    <li><b>Clavis 2 (공식):</b> (거리) = (속력) × (시간) 공식을 기억하세요.</li>
+                    <li><b>Hidden Clue:</b> 반대 방향은 '합', 같은 방향은 '차'가 호수 둘레가 됩니다.</li>
+                </ul>
+            </div>
+        </section>
+
+        <section class="map-section">
+            <div class="map-header">🗺️ M.A.P. 서술형 전개 지도</div>
+
+            <div class="map-step">
+                <div class="step-label">
+                    Step 1<br>
+                    <span>Method</span>
+                </div>
+                <div class="step-content">
+                    <strong>미지수 정하기 & 단위 통일</strong><br>
+                    <p style="margin: 5px 0 10px 0; color:#666; font-size:12px;">문제의 단위(분, m)를 통일하고 미지수를 설정합니다.</p>
+                    (1) 철수의 속력을 분속 <span class="equation">x</span> m, 영희의 속력을 분속 <span class="equation">y</span> m라 하자.<br>
+                    (2) 호수의 둘레 1.5km는 <input type="text" class="input-blank" placeholder="숫자"> m로 환산한다.
+                </div>
+            </div>
+
+            <div class="map-step">
+                <div class="step-label">
+                    Step 2<br>
+                    <span>Approach</span>
+                </div>
+                <div class="step-content">
+                    <strong>방향에 따른 방정식 세우기</strong><br>
+                    <p style="margin: 5px 0 10px 0; color:#666; font-size:12px;">Clavis를 이용해 두 상황에 대한 식을 세웁니다.</p>
+                    ① <b>반대 방향</b> (거리의 합 = 둘레) : <br>
+                    &nbsp;&nbsp;&nbsp; <span class="equation">10x + 10y = </span> <input type="text" class="input-blank" placeholder="식 또는 수"><br><br>
+                    ② <b>같은 방향</b> (거리의 차 = 둘레) : <br>
+                    &nbsp;&nbsp;&nbsp; <span class="equation">50x - 50y = </span> <input type="text" class="input-blank" placeholder="식 또는 수">
+                </div>
+            </div>
+
+            <div class="map-step">
+                <div class="step-label">
+                    Step 3<br>
+                    <span>Path</span>
+                </div>
+                <div class="step-content">
+                    <strong>계산 및 답안 작성</strong><br>
+                    <p style="margin: 5px 0 10px 0; color:#666; font-size:12px;">연립방정식을 풀고 최종 답을 적으세요.</p>
+                    두 식을 연립하여 풀면,<br>
+                    <span class="equation">x</span> = <input type="text" class="input-blank" style="width:50px"> , 
+                    <span class="equation">y</span> = <input type="text" class="input-blank" style="width:50px"><br><br>
+                    <b>∴ 정답: 철수 분속 100m, 영희 분속 50m</b>
+                </div>
+            </div>
+            
+            <button class="btn-check" onclick="alert('정답입니다! Clavis 획득 완료 🗝️')">채점하기</button>
+        </section>
+
+        <div class="footer-note">
+            Clavis 훈련소 © Dong-A Publishing. All rights reserved.
+        </div>
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>확률 서바이벌: 운수 좋은 날?</title>
+    <style>
+        :root {
+            --primary-color: #6c5ce7;
+            --secondary-color: #a29bfe;
+            --success-color: #00b894;
+            --danger-color: #d63031;
+            --bg-color: #2d3436;
+            --card-bg: #dfe6e9;
+            --text-color: #2d3436;
+        }
+
+        body {
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+            margin: 0;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* --- HUD (헤드업 디스플레이) --- */
+        .status-bar {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            max-width: 600px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            backdrop-filter: blur(5px);
+            box-sizing: border-box;
+        }
+
+        .money-badge {
+            background-color: #fdcb6e;
+            color: #2d3436;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .inventory {
+            font-size: 1.2em;
+        }
+
+        /* --- 메인 게임 컨테이너 --- */
+        .game-container {
+            width: 100%;
+            max-width: 500px;
+            margin-top: 80px; /* 헤더 공간 확보 */
+            margin-bottom: 40px;
+            padding: 0 20px;
+            box-sizing: border-box;
+        }
+
+        .game-card {
+            background-color: var(--card-bg);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            animation: slideUp 0.5s ease-out;
+            position: relative;
+            overflow: hidden;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .screen-header {
+            border-bottom: 2px solid rgba(0,0,0,0.1);
+            padding-bottom: 15px;
+            margin-bottom: 15px;
+        }
+
+        .screen-title {
+            margin: 0;
+            font-size: 1.4em;
+            color: var(--primary-color);
+        }
+
+        .location-tag {
+            display: inline-block;
+            background: #b2bec3;
+            color: white;
+            font-size: 0.8em;
+            padding: 3px 8px;
+            border-radius: 5px;
+            margin-top: 5px;
+        }
+
+        .situation-text {
+            font-size: 1.1em;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            min-height: 80px;
+        }
+
+        .highlight {
+            color: var(--danger-color);
+            font-weight: bold;
+            background: rgba(214, 48, 49, 0.1);
+            padding: 0 4px;
+            border-radius: 3px;
+        }
+
+        /* --- 선택지 버튼 --- */
+        .choices {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 20px;
+            opacity: 0; /* 타이핑 완료 후 표시 */
+            transition: opacity 0.5s;
+        }
+
+        .choice-btn {
+            background: white;
+            border: 2px solid var(--primary-color);
+            color: var(--primary-color);
+            padding: 15px;
+            border-radius: 12px;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: left;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .choice-btn:hover:not(:disabled) {
+            background: var(--primary-color);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(108, 92, 231, 0.3);
+        }
+
+        .choice-btn:disabled {
+            border-color: #ccc;
+            color: #999;
+            background: #f0f0f0;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* --- 결과 피드백 영역 --- */
+        .result-overlay {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            background: rgba(255,255,255,0.5);
+            display: none; /* JS로 제어 */
+        }
+
+        .result-title {
+            font-size: 1.3em;
+            font-weight: bold;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .result-good { color: var(--success-color); }
+        .result-bad { color: var(--danger-color); }
+
+        .next-btn {
+            background: var(--success-color);
+            color: white;
+            border: none;
+            width: 100%;
+            padding: 15px;
+            font-size: 1.1em;
+            font-weight: bold;
+            border-radius: 12px;
+            margin-top: 20px;
+            cursor: pointer;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(0, 184, 148, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(0, 184, 148, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(0, 184, 148, 0); }
+        }
+
+        /* --- 서스펜스 애니메이션 (계산 중) --- */
+        .calculating-overlay {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.7);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            z-index: 10;
+            border-radius: 20px;
+            display: none;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #fff;
+            border-top: 4px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 15px;
+        }
+
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* --- 엔딩 화면 --- */
+        .ending-summary {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+        .rank-badge {
+            font-size: 3em;
+            font-weight: 900;
+            text-align: center;
+            display: block;
+            margin: 10px 0;
+            text-shadow: 2px 2px 0px rgba(0,0,0,0.1);
+        }
+        .rank-S { color: #fdcb6e; text-shadow: 0 0 10px #fdcb6e; }
+        .rank-A { color: #00b894; }
+        .rank-B { color: #0984e3; }
+        .rank-C { color: #636e72; }
+        .rank-F { color: #d63031; }
+
+    </style>
+</head>
+<body>
+
+<div class="status-bar">
+    <div class="money-badge">
+        <span>💰</span>
+        <span id="moneyDisplay">1000</span>원
+    </div>
+    <div class="inventory" id="inventoryDisplay">
+        </div>
+</div>
+
+<div class="game-container" id="gameArea">
+    </div>
+
+<script>
+    // --- 게임 데이터 및 상태 관리 ---
+    const gameState = {
+        screen: 1,
+        money: 1000,
+        inventory: [],
+        rainChance: 0,
+        history: [], // 엔딩 텍스트 저장
+        stats: {
+            successCount: 0, // 성공적인 선택 횟수 (랭크 산정용)
+            failCount: 0
+        }
+    };
+
+    const SOUND_EFFECTS = {
+        bgm: null, // 실제 사운드 파일이 있다면 여기에 연결
+    };
+
+    // 화면 데이터
+    const screens = {
+        1: {
+            title: "AM 08:00 - 현관 앞",
+            location: "집",
+            getSituation: () => `뉴스 속보입니다.<br>"오늘 강수 확률은 <span class='highlight'>${gameState.rainChance}%</span>입니다."<br>하늘은 애매하게 흐립니다. 우산, 가져갈까요?`,
+            choices: [
+                { text: "🌂 챙겨간다 (확실한 대비)", type: "safe" },
+                { text: "🏃 그냥 간다 (가벼운 등교)", type: "risk" }
+            ]
+        },
+        2: {
+            title: "AM 08:20 - 문구점 앞",
+            location: "등굣길",
+            getSituation: () => `전설의 뽑기 기계가 보입니다.<br>"한정판 피규어 획득 확률 <span class='highlight'>10%</span>!"<br>참가비는 100원. 10번 하면 1번은 된다는 건데...`,
+            choices: [
+                { text: "🎲 딱 한 번만 도전! (-100원)", type: "try" },
+                { text: "👀 구경만 하고 지나간다", type: "pass" }
+            ]
+        },
+        3: {
+            title: "AM 08:55 - 지각 위기",
+            location: "학교 앞",
+            getSituation: () => `큰일 났습니다! 지각입니다.<br>선생님이 정문과 후문 중 <span class='highlight'>한 곳(50%)</span>에만 계십니다.<br>어디로 들어가야 안 걸릴까요?`,
+            choices: [
+                { text: "🏫 정문으로 당당하게!", type: "gateA" },
+                { text: "🚪 후문으로 은밀하게...", type: "gateB" }
+            ]
+        },
+        4: {
+            title: "AM 11:30 - 시험 시간",
+            location: "교실",
+            getSituation: () => `수학 시험 마지막 문제.<br>도저히 모르겠습니다. 답은 4개 중 하나.<br>찍어서 맞출 확률은 <span class='highlight'>25%</span>입니다.`,
+            choices: [
+                { text: "1번이 답일 거야!", type: "pick1" },
+                { text: "2번이 느낌이 와!", type: "pick2" },
+                { text: "3번이 행운의 숫자!", type: "pick3" },
+                { text: "4번으로 밀자!", type: "pick4" }
+            ]
+        },
+        5: {
+            title: "PM 04:00 - 빵집",
+            location: "하굣길",
+            getSituation: () => `마지막 초코소라빵이 하나 남았습니다.<br>내 앞에는 2명이 있고, 그들이 이 빵을 집을 확률은 각각 <span class='highlight'>50%</span>입니다.<br>기다려 볼까요?`,
+            choices: [
+                { text: "🍞 제발 남기를... 줄 선다!", type: "wait" },
+                { text: "🏠 포기하고 집에 간다", type: "leave" }
+            ]
+        },
+        6: {
+            title: "PM 05:00 - 도서관",
+            location: "동네",
+            getSituation: () => `혼자 있고 싶은데, 친구들을 마주칠까 겁납니다.<br>수미가 올 확률 50%, 지은이가 올 확률 33%.<br>둘 다 없어야 성공입니다.`,
+            choices: [
+                { text: "📚 조용히 잠입 시도!", type: "enter" },
+                { text: "💨 위험하다, 그냥 집으로", type: "skip" }
+            ]
+        }
+    };
+
+    // --- 초기화 함수 ---
+    function initGame() {
+        gameState.screen = 1;
+        gameState.money = 1000;
+        gameState.inventory = [];
+        gameState.history = [];
+        gameState.stats = { successCount: 0, failCount: 0 };
+        gameState.rainChance = Math.floor(Math.random() * 81) + 10; // 10~90%
+        
+        updateHUD();
+        renderScreen(1);
+    }
+
+    // --- HUD 업데이트 ---
+    function updateHUD() {
+        // 돈 애니메이션 (숫자 카운팅 효과는 생략하고 즉시 반영)
+        document.getElementById('moneyDisplay').innerText = gameState.money;
+        
+        const invContainer = document.getElementById('inventoryDisplay');
+        invContainer.innerHTML = gameState.inventory.map(item => {
+            if(item === 'umbrella') return '🌂';
+            if(item === 'doll') return '🤖';
+            if(item === 'bread') return '🥐';
+            return '';
+        }).join(' ');
+    }
+
+    // --- 화면 렌더링 (타이핑 효과 포함) ---
+    function renderScreen(screenNum) {
+        if (screenNum > 6) {
+            renderEnding();
+            return;
+        }
+
+        const data = screens[screenNum];
+        const container = document.getElementById('gameArea');
+        
+        container.innerHTML = `
+            <div class="game-card">
+                <div class="screen-header">
+                    <span class="location-tag">${data.location}</span>
+                    <h2 class="screen-title">${data.title}</h2>
+                </div>
+                <div class="situation-text" id="typewriterTarget"></div>
+                
+                <div class="choices" id="choicesContainer">
+                    ${data.choices.map((choice, index) => `
+                        <button class="choice-btn" onclick="makeChoice('${choice.type}', ${index})">
+                            ${choice.text}
+                        </button>
+                    `).join('')}
+                </div>
+
+                <div class="calculating-overlay" id="calcOverlay">
+                    <div class="spinner"></div>
+                    <div id="calcText">확률 계산 중...</div>
+                </div>
+
+                <div class="result-overlay" id="resultBox">
+                    <div class="result-title" id="resultTitle"></div>
+                    <p id="resultDesc"></p>
+                    <button class="next-btn" onclick="nextScreen()">다음으로 진행 ▶</button>
+                </div>
+            </div>
+        `;
+
+        // 타이핑 효과
+        const target = document.getElementById('typewriterTarget');
+        const text = data.getSituation();
+        // HTML 태그가 포함되어 있어 간단히 innerHTML로 처리하되, 페이드인 효과만 줌
+        target.innerHTML = text;
+        
+        // 버튼 표시 딜레이
+        setTimeout(() => {
+            document.getElementById('choicesContainer').style.opacity = 1;
+        }, 500);
+    }
+
+    // --- 선택 처리 로직 ---
+    function makeChoice(type, index) {
+        // 버튼 비활성화
+        const btns = document.querySelectorAll('.choice-btn');
+        btns.forEach(b => b.disabled = true);
+        btns[index].style.background = '#6c5ce7';
+        btns[index].style.color = '#fff';
+
+        // 서스펜스 (계산 중 화면)
+        const overlay = document.getElementById('calcOverlay');
+        const calcText = document.getElementById('calcText');
+        overlay.style.display = 'flex';
+
+        const msgs = ["확률 변수 대입 중...", "운명의 주사위 굴리는 중...", "결과 예측 중..."];
+        let msgIdx = 0;
+        
+        // 텍스트 롤링 효과
+        const interval = setInterval(() => {
+            calcText.innerText = msgs[msgIdx++ % msgs.length];
+        }, 500);
+
+        // 1.5초 후 결과 공개
+        setTimeout(() => {
+            clearInterval(interval);
+            overlay.style.display = 'none';
+            resolveOutcome(type);
+        }, 1500);
+    }
+
+    // --- 결과 판정 로직 ---
+    function resolveOutcome(type) {
+        let isSuccess = false;
+        let title = "";
+        let desc = "";
+        let log = ""; // 엔딩용 요약
+
+        const screen = gameState.screen;
+
+        if (screen === 1) { // 비
+            const isRain = Math.random() * 100 < gameState.rainChance;
+            if (type === 'safe') { // 우산 챙김
+                gameState.inventory.push('umbrella');
+                if (isRain) {
+                    isSuccess = true;
+                    title = "🌧️ 비가 내렸습니다!";
+                    desc = "하지만 당신은 우산이 있죠. 뽀송뽀송하게 등교 성공!";
+                    log = "비 오는 날 우산을 챙겨 위기를 모면함";
+                } else {
+                    isSuccess = true; // 나쁜 결과는 아님
+                    title = "☀️ 맑음";
+                    desc = "비는 안 왔지만, 유비무환의 자세는 훌륭했습니다. 조금 무거웠을 뿐.";
+                    log = "맑은 날 우산을 챙겨 운동함";
+                }
+            } else { // 안 챙김
+                if (isRain) {
+                    isSuccess = false;
+                    title = "🌧️ 비가 쏟아집니다!";
+                    desc = "우산이 없어서 생쥐 꼴이 되었습니다. 기분이 찝찝합니다.";
+                    log = "우산을 안 챙겨 비에 쫄딱 젖음";
+                } else {
+                    isSuccess = true;
+                    title = "☀️ 쾌청!";
+                    desc = "비는 오지 않았습니다. 가벼운 두 손으로 기분 좋게 등교!";
+                    log = "우산을 안 챙긴 도박에 성공하여 편안함";
+                }
+            }
+        } 
+        else if (screen === 2) { // 뽑기
+            if (type === 'pass') {
+                isSuccess = true;
+                title = "현명한 판단";
+                desc = "10% 확률은 너무 낮죠. 소중한 100원을 아꼈습니다.";
+                log = "낮은 확률의 도박을 피하고 돈을 아낌";
+            } else {
+                if (gameState.money < 100) {
+                    isSuccess = false;
+                    title = "잔액 부족";
+                    desc = "돈이 없어서 시도조차 못했습니다...";
+                    log = "돈이 없어 뽑기를 못함";
+                } else {
+                    gameState.money -= 100;
+                    const win = Math.random() < 0.1;
+                    if (win) {
+                        isSuccess = true;
+                        gameState.inventory.push('doll');
+                        title = "🎉 대박! 당첨!";
+                        desc = "10%의 확률을 뚫었습니다! 한정판 피규어 획득!";
+                        log = "10% 확률을 뚫고 뽑기에 당첨됨";
+                    } else {
+                        isSuccess = false;
+                        title = "꽝...";
+                        desc = "역시 90%의 실패 확률이 더 높았군요. 100원이 날아갔습니다.";
+                        log = "뽑기에 도전했으나 돈만 날림";
+                    }
+                }
+            }
+        }
+        else if (screen === 3) { // 지각
+            const teacherPos = Math.random() < 0.5 ? 'A' : 'B';
+            const myChoice = type === 'gateA' ? 'A' : 'B';
+            
+            if (myChoice !== teacherPos) {
+                isSuccess = true;
+                title = "😎 잠입 성공!";
+                desc = "선생님은 반대편 문에 계셨습니다. 휴, 살았다!";
+                log = "지각 단속을 피해 무사히 들어감";
+            } else {
+                isSuccess = false;
+                title = "😱 딱 걸렸다!";
+                desc = "문 틈으로 선생님과 눈이 마주쳤습니다. 사랑의 매...";
+                log = "지각 단속에 걸려 혼남";
+            }
+        }
+        else if (screen === 4) { // 시험
+            const answer = Math.floor(Math.random() * 4) + 1;
+            const myPick = parseInt(type.replace('pick', ''));
+            
+            if (answer === myPick) {
+                isSuccess = true;
+                title = "💯 정답입니다!";
+                desc = `신의 한 수! 정답은 ${answer}번이었습니다.`;
+                log = "시험 문제를 찍어서 맞춤";
+            } else {
+                isSuccess = false;
+                title = "❌ 땡!";
+                desc = `아쉽네요. 정답은 ${answer}번이었습니다.`;
+                log = "시험 문제를 찍어서 틀림";
+            }
+        }
+        else if (screen === 5) { // 빵
+            if (type === 'leave') {
+                isSuccess = false; // 중립
+                title = "귀가";
+                desc = "빵을 포기하고 집으로 갑니다.";
+                log = "빵 구매를 포기함";
+            } else {
+                // 내가 먹으려면 앞 두명(각 50%)이 모두 안 사야 함 -> 0.5 * 0.5 = 0.25
+                const p1Buy = Math.random() < 0.5;
+                const p2Buy = Math.random() < 0.5;
+                
+                if (!p1Buy && !p2Buy) {
+                    if (gameState.money >= 1000) {
+                        gameState.money -= 1000;
+                        gameState.inventory.push('bread');
+                        isSuccess = true;
+                        title = "🥐 득템 성공!";
+                        desc = "앞사람들이 기적처럼 빵을 안 샀습니다! 25%의 행운!";
+                        log = "줄을 서서 마지막 빵을 쟁취함";
+                    } else {
+                        isSuccess = false;
+                        title = "💸 돈이 부족해...";
+                        desc = "빵은 남았는데 돈이 없어서 못 샀습니다. 비극입니다.";
+                        log = "빵은 남았으나 돈이 없어 못 삼";
+                    }
+                } else {
+                    isSuccess = false;
+                    title = "😭 품절";
+                    desc = "앞사람이 빵을 채갔습니다. 줄 선 시간이 아깝네요.";
+                    log = "줄을 섰으나 앞에서 빵이 품절됨";
+                }
+            }
+        }
+        else if (screen === 6) { // 도서관
+             if (type === 'skip') {
+                isSuccess = true;
+                title = "안전 귀가";
+                desc = "리스크를 피하고 집으로 왔습니다.";
+                log = "친구들을 피해 바로 귀가함";
+            } else {
+                const sumi = Math.random() < 0.5;
+                const jieun = Math.random() < (1/3);
+                
+                if (!sumi && !jieun) {
+                    isSuccess = true;
+                    title = "🤫 완벽한 평화";
+                    desc = "도서관에 아무도 없었습니다! 조용히 독서 성공.";
+                    log = "도서관 잠입에 성공해 평화를 누림";
+                } else {
+                    isSuccess = false;
+                    title = "📢 들켰다!";
+                    desc = `도서관 문을 열자마자 ${sumi ? '수미' : ''} ${jieun ? '지은' : ''} 와 마주쳤습니다.`;
+                    log = "도서관에서 친구들과 마주쳐 시끄러워짐";
+                }
+            }
+        }
+
+        // 상태 업데이트 및 UI 표시
+        if (isSuccess) gameState.stats.successCount++;
+        else gameState.stats.failCount++;
+        gameState.history.push(log);
+        updateHUD();
+
+        const resultBox = document.getElementById('resultBox');
+        const resultTitle = document.getElementById('resultTitle');
+        const resultDesc = document.getElementById('resultDesc');
+        
+        resultBox.style.display = 'block';
+        resultTitle.innerHTML = title;
+        resultTitle.className = 'result-title ' + (isSuccess ? 'result-good' : 'result-bad');
+        resultDesc.innerHTML = desc;
+    }
+
+    // --- 다음 화면 이동 ---
+    function nextScreen() {
+        gameState.screen++;
+        updateHUD();
+        renderScreen(gameState.screen);
+    }
+
+    // --- 엔딩 화면 ---
+    function renderEnding() {
+        const container = document.getElementById('gameArea');
+        
+        // 랭크 계산
+        const total = gameState.stats.successCount + gameState.stats.failCount;
+        const score = gameState.stats.successCount;
+        let rank = 'C';
+        let rankClass = 'rank-C';
+        
+        if (score >= 5) { rank = 'S'; rankClass = 'rank-S'; }
+        else if (score >= 4) { rank = 'A'; rankClass = 'rank-A'; }
+        else if (score >= 3) { rank = 'B'; rankClass = 'rank-B'; }
+        else if (score >= 1) { rank = 'C'; rankClass = 'rank-C'; }
+        else { rank = 'F'; rankClass = 'rank-F'; }
+
+        container.innerHTML = `
+            <div class="game-card" style="text-align: center;">
+                <h2 style="color:var(--primary-color)">🏆 오늘의 결과</h2>
+                
+                <div class="ending-summary">
+                    <p>당신의 운과 선택 능력은?</p>
+                    <span class="rank-badge ${rankClass}">Rank ${rank}</span>
+                    <p>성공: ${score}회 / 실패: ${gameState.stats.failCount}회</p>
+                    <p>최종 소지금: ${gameState.money}원</p>
+                </div>
+
+                <div style="text-align: left; background: #f1f2f6; padding: 15px; border-radius: 10px; margin-bottom: 20px;">
+                    <strong>📝 하루 일지</strong>
+                    <ul style="padding-left: 20px; color: #636e72;">
+                        ${gameState.history.map(h => `<li>${h}</li>`).join('')}
+                    </ul>
+                </div>
+
+                <button class="next-btn" style="background:var(--primary-color)" onclick="initGame()">🔄 다시 살아보기</button>
+            </div>
+        `;
+    }
+
+    // 게임 시작
+    window.onload = initGame;
+
+</script>
+
+</body>
+</html>

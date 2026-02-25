@@ -1,0 +1,51 @@
+{
+  "timezone": "Asia/Seoul",
+  "request": {
+    "user_agent": "yes24-monitor/1.0 (respect robots.txt; contact: your-email@example.com)",
+    "timeout_sec": 20,
+    "retries": 3,
+    "sleep_between_requests_sec": 1.2
+  },
+  "output": {
+    "top_n": 15,
+    "max_list_items_in_report": 60,
+    "full_list_csv": true
+  },
+  "categories": [
+    {
+      "key": "elem",
+      "name": "초등참고서",
+      "categoryNumber": "001001044"
+    },
+    {
+      "key": "mid",
+      "name": "중등참고서",
+      "categoryNumber": "001001049"
+    },
+    {
+      "key": "high",
+      "name": "고등참고서",
+      "categoryNumber": "001001050"
+    }
+  ],
+  "sources": {
+    "daily_bestseller": "https://www.yes24.com/product/category/bestseller?categoryNumber={categoryNumber}",
+    "weekly_bestseller": "https://www.yes24.com/product/category/weekbestseller?categoryNumber={categoryNumber}",
+    "monthly_bestseller": "https://www.yes24.com/product/category/monthbestseller?categoryNumber={categoryNumber}",
+    "newproduct": "https://www.yes24.com/product/category/newproduct?categoryNumber={categoryNumber}",
+    "yes24_choice": "https://www.yes24.com/product/category/more/{categoryNumber}?ElemNo=207&ElemSeq=1",
+    "now_book_template": "https://www.yes24.com/product/category/more/{categoryNumber}?ElemNo=208&ElemSeq={elemSeq}"
+  },
+  "now_book_elemSeq_try_order": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10
+  ]
+}

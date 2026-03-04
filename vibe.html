@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>바이브 코딩: 비전문가를 위한 AI 실무 가이드</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Urbanist:wght@400;500;700&family=Noto+Sans+KR:wght@300;400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <style>
+        /* 1. 기본 설정 및 테마 정의 (실제 슬라이드 모드) */
+        * { box-sizing: border-box; }
+        body {
+            background-color: #0f172a;
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden; /* 스크롤 방지 */
+            font-family: 'Noto Sans KR', sans-serif;
+            user-select: none; /* 클릭 시 텍스트 선택 방지 */
+        }
+
+        .slide-container {
+            position: absolute;
+            width: 1280px;
+            height: 720px;
+            background-color: #020617; /* 깊은 다크 블루 배경 */
+            color: #f8fafc;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            padding: 60px;
+            border-radius: 12px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            
+            /* 슬라이드 전환 애니메이션 */
+            opacity: 0;
+            visibility: hidden;
+            transform: scale(0.95);
+            transition: all 0.4s ease-in-out;
+            z-index: 1;
+        }
+
+        .slide-container.active {
+            opacity: 1;
+            visibility: visible;
+            transform: scale(1);
+            z-index: 10;
+        }
+
+        /* 반응형: 화면이 작을 때 슬라이드 크기 축소 */
+        @media (max-width: 1300px) {
+            .slide-container { transform: scale(0.8); }
+            .slide-container.active { transform: scale(0.8); }
+        }
+        @media (max-width: 1050px) {
+            .slide-container { transform: scale(0.6); }
+            .slide-container.active { transform: scale(0.6); }
+        }
+
+        /* 배경 장식 */
+        .slide-container::before {
+            content: '';
+            position: absolute;
+            top: -10%;
+            right: -10%;
+            width: 40%;
+            height: 40%;
+            background: radial-gradient(circle, rgba(56, 189, 248, 0.1) 0%, transparent 70%);
+            z-index: 0;
+        }
+
+        /* 2. 공통 요소 스타일링 */
+        .slide-title {
+            font-size: 48px;
+            font-weight: 700;
+            margin-bottom: 40px;
+            color: #38bdf8; /* 스카이 블루 포인트 */
+            letter-spacing: -1px;
+            z-index: 1;
+            margin-top: 0;
+        }
+        .slide-title span { color: #f8fafc; }
+
+        .content-area {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            z-index: 1;
+        }
+
+        /* 3. 레이아웃 특정 스타일 */
+        .title-layout { text-align: center; justify-content: center; height: 100%; }
+        .title-layout h1 { font-size: 80px; margin: 0; color: #38bdf8; }
+        .title-layout .subtitle { font-size: 32px; color: #94a3b8; margin-top: 20px; font-weight: 300; }
+
+        .two-column { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center; }
+
+        .tiled-content { display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px; }
+        .tile {
+            background: rgba(30, 41, 59, 0.5);
+            border: 1px solid rgba(56, 189, 248, 0.2);
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+        }
+        .tile .icon { font-size: 50px; color: #38bdf8; margin-bottom: 25px; }
+        .tile h3 { font-size: 28px; margin-bottom: 15px; color: #f8fafc; margin-top:0; }
+        .tile p { font-size: 18px; color: #94a3b8; line-height: 1.6; margin:0; }
+
+        /* 이미지/아이콘 플레이스홀더 */
+        .image-wrapper { 
+            border-radius: 16px; 
+            overflow: hidden; 
+            border: 1px solid rgba(255, 255, 255, 0.1); 
+            height: 400px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            background: linear-gradient(135deg, #1e293b, #0f172a);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 100px;
+            color: #38bdf8;
+        }
+
+        .bullet-list { list-style: none; padding: 0; margin: 0; }
+        .bullet-list li { position: relative; padding-left: 40px; margin-bottom: 25px; font-size: 24px; color: #cbd5e1; line-height: 1.4; }
+        .bullet-list li::before { content: '→'; position: absolute; left: 0; color: #38bdf8; font-weight: bold; }
+
+        .number-highlight { font-size: 120px; font-weight: 800; color: #38bdf8; line-height: 1; }
+
+        .comparison-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; background: rgba(56, 189, 248, 0.2); border-radius: 12px; overflow: hidden; }
+        .comparison-item { background: #020617; padding: 40px; }
+        .comparison-item h4 { font-size: 28px; color: #38bdf8; margin-top: 0; margin-bottom: 20px; }
+
+        .section-title-layout { text-align: center; }
+        .section-title-layout h2 { font-size: 64px; color: #f8fafc; margin: 0; }
+        .section-title-layout hr { width: 100px; border: 2px solid #38bdf8; margin: 30px auto; }
+        
+        .bleed-image-layout { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 0; align-items: stretch; }
+        .bleed-text-side { padding: 60px; display: flex; flex-direction: column; justify-content: center; height: 100%; z-index: 2;}
+        .bleed-image-side { 
+            width: 100%; 
+            height: 100%; 
+            background: linear-gradient(135deg, #0f172a, #1e293b);
+            border-radius: 0 12px 12px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 120px;
+            color: rgba(56, 189, 248, 0.4);
+        }
+
+        /* 하단 안내 문구 & 페이지 번호 */
+        .slide-hint {
+            position: fixed;
+            bottom: 20px;
+            color: #475569;
+            font-size: 16px;
+            z-index: 100;
+        }
+        .page-number {
+            position: absolute;
+            bottom: 30px;
+            right: 40px;
+            font-size: 18px;
+            color: #475569;
+            z-index: 2;
+        }
+    </style>
+</head>
+<body>
+
+<!-- 하단 가이드 -->
+<div class="slide-hint"><i class="fas fa-mouse-pointer"></i> 클릭하거나 방향키(◀ ▶)를 눌러 이동하세요</div>
+
+<!-- 슬라이드 1: 타이틀 -->
+<div class="slide-container active title-layout" id="slide1">
+    <div class="content-area">
+        <h1>바이브 코딩 (Vibe Coding)</h1>
+        <p class="subtitle">비개발자 팀장을 위한 실무 AI 활용 가이드</p>
+    </div>
+    <div class="page-number">1 / 15</div>
+</div>
+
+<!-- 슬라이드 2: 섹션 소개 -->
+<div class="slide-container section-title-layout" id="slide2">
+    <div class="content-area">
+        <hr>
+        <h2>01. 바이브 코딩이란?</h2>
+        <p style="font-size: 24px; color: #94a3b8; margin-top: 20px;">"말하는 대로 이루어지는 개발의 시대"</p>
+    </div>
+    <div class="page-number">2 / 15</div>
+</div>
+
+<!-- 슬라이드 3: 사례 (게임) -->
+<div class="slide-container" id="slide3">
+    <h2 class="slide-title">사례: <span>대화로 만드는 게임</span></h2>
+    <div class="content-area">
+        <div class="two-column">
+            <div>
+                <ul class="bullet-list">
+                    <li>유튜브 화제의 영상: "Vibe Coding a Game"</li>
+                    <li>복잡한 알고리즘 설계 없이</li>
+                    <li>"장애물을 피해 점수 얻는 게임 만들어줘"</li>
+                    <li>채팅 몇 번으로 완성되는 결과물</li>
+                </ul>
+            </div>
+            <div class="image-wrapper">
+                <i class="fas fa-gamepad"></i>
+            </div>
+        </div>
+    </div>
+    <div class="page-number">3 / 15</div>
+</div>
+
+<!-- 슬라이드 4: 실제 활용 01 -->
+<div class="slide-container bleed-image-layout" id="slide4">
+    <div class="bleed-text-side">
+        <h2 class="slide-title">실제 활용 01<br><span>PPT 자동화</span></h2>
+        <p style="font-size: 22px; color: #cbd5e1; line-height: 1.6;">
+            <strong>과거:</strong> 인터넷에서 스크립트를 검색하고 내 상황에 맞춰 수정하느라 몇 시간을 허비했습니다.<br><br>
+            <strong>현재:</strong> "폴더 내 모든 PPT를 PDF로 변환하고 암호를 걸어줘"라고 말하면 AI가 10초 만에 코드를 완성합니다.
+        </p>
+    </div>
+    <div class="bleed-image-side">
+        <i class="fas fa-file-powerpoint"></i>
+    </div>
+    <div class="page-number">4 / 15</div>
+</div>
+
+<!-- 슬라이드 5: 실제 활용 02 -->
+<div class="slide-container" id="slide5">
+    <h2 class="slide-title">실제 활용 02<br><span>QR 코드 일괄 생성</span></h2>
+    <div class="content-area">
+        <div class="two-column">
+            <div class="image-wrapper">
+                <i class="fas fa-qrcode"></i>
+            </div>
+            <div>
+                <ul class="bullet-list">
+                    <li>구글 시트 웹 주소 → QR 변환</li>
+                    <li>이미지 자동 다운로드 스크립트</li>
+                    <li>단순 반복 작업을 0분으로 단축</li>
+                    <li>비개발자도 관리 도구를 직접 제작</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="page-number">5 / 15</div>
+</div>
+
+<!-- 슬라이드 6: 실제 활용 03 -->
+<div class="slide-container" id="slide6">
+    <h2 class="slide-title">실제 활용 03<br><span>동영상 썸네일 추출</span></h2>
+    <div class="content-area">
+        <div class="two-column">
+            <div>
+                <ul class="bullet-list">
+                    <li>ffmpeg를 활용한 배치파일(.bat) 제작</li>
+                    <li>여러 동영상의 1.5초 구간 썸네일 자동 추출</li>
+                    <li>비디오 편집 프로그램 없이 대량 작업 완수</li>
+                    <li>단순 수작업 노동을 AI 코드로 완벽히 자동화</li>
+                </ul>
+            </div>
+            <div class="image-wrapper">
+                <i class="fas fa-film"></i>
+            </div>
+        </div>
+    </div>
+    <div class="page-number">6 / 15</div>
+</div>
+
+<!-- 슬라이드 7: 실제 활용 04 -->
+<div class="slide-container" id="slide7">
+    <h2 class="slide-title">실제 활용 04<br><span>대량 파일명 일괄 변경</span></h2>
+    <div class="content-area">
+        <div class="two-column">
+            <div class="image-wrapper">
+                <i class="fas fa-folder-tree"></i>
+            </div>
+            <div>
+                <ul class="bullet-list">
+                    <li>폴더 내 대량의 파일명 목록 추출</li>
+                    <li>구글 시트(엑셀)에 데이터 자동 정리</li>
+                    <li>사내 규칙에 맞게 파일명 변형 규칙 적용</li>
+                    <li>버튼 한 번으로 전체 파일명 일괄 변경 스크립트 작성</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="page-number">7 / 15</div>
+</div>
+
+<!-- 슬라이드 8: 실제 활용 05 -->
+<div class="slide-container" id="slide8">
+    <h2 class="slide-title">실제 활용 05<br><span>AIDT 게임 제작</span></h2>
+    <div class="content-area">
+        <div class="two-column">
+            <div>
+                <ul class="bullet-list">
+                    <li><strong>편집자 (비개발자):</strong> 창의적인 게임 아이디어 기획</li>
+                    <li><strong>AI (LLM):</strong> 기획을 바탕으로 HTML 게임 초안 작성</li>
+                    <li><strong>개발자:</strong> 초안을 넘겨받아 실제 게임으로 개발 고도화</li>
+                    <li>기획 의도가 코드로 즉시 구현되는 새로운 경험</li>
+                </ul>
+            </div>
+            <div class="image-wrapper">
+                <i class="fas fa-people-arrows"></i>
+            </div>
+        </div>
+    </div>
+    <div class="page-number">8 / 15</div>
+</div>
+
+<!-- 슬라이드 8-1: 실제 활용 06 (이 발표자료 제작) -->
+<div class="slide-container" id="slide8_1">
+    <h2 class="slide-title">실제 활용 06<br><span>이 발표 자료 제작</span></h2>
+    <div class="content-area">
+        <div class="two-column">
+            <div>
+                <ul class="bullet-list">
+                    <li>사실 <strong>이 발표 자료도 Gemini를 이용하여</strong> 만들었습니다.</li>
+                    <li>"팀장급 대상 발표 자료를 만들어줘"라는 자연어 대화가 그 시작이었습니다.</li>
+                    <li>단순 텍스트 초안부터 지금 보시는 HTML 슬라이드 화면 구현까지</li>
+                    <li>이 자료를 만드는 과정 자체가 완벽한 <strong>'바이브 코딩'</strong>의 사례입니다.</li>
+                </ul>
+            </div>
+            <div class="image-wrapper" style="padding: 0; background: none; border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+                <img src="사례06.png" alt="Gemini 발표자료 제작 화면" style="width: 100%; height: 100%; object-fit: cover; border-radius: 12px; border: 1px solid rgba(255,255,255,0.2);">
+            </div>
+        </div>
+    </div>
+    <div class="page-number">9 / 16</div>
+</div>
+
+<!-- 슬라이드 9: 협업 프로세스 (요청에 따라 사례 뒤로 이동) -->
+<div class="slide-container" id="slide9">
+    <h2 class="slide-title">새로운 <span>협업 프로세스</span></h2>
+    <div class="content-area">
+        <div class="tiled-content">
+            <div class="tile">
+                <div class="icon"><i class="fas fa-lightbulb"></i></div>
+                <h3>아이디어 제시</h3>
+                <p>비개발자가 자연어로<br>비즈니스 로직과 요구사항을<br>AI에게 설명합니다.</p>
+            </div>
+            <div class="tile" style="background: rgba(56, 189, 248, 0.1);">
+                <div class="icon"><i class="fas fa-robot"></i></div>
+                <h3>AI 코드 생성</h3>
+                <p>LLM(대규모 언어 모델)이<br>제시된 아이디어를 바탕으로<br>즉시 실행 가능한 코드를 짭니다.</p>
+            </div>
+            <div class="tile">
+                <div class="icon"><i class="fas fa-shield-halved"></i></div>
+                <h3>설계 및 보안</h3>
+                <p>개발자는 생성된 코드의<br>데이터 구조를 검토하고<br>배포와 보안을 책임집니다.</p>
+            </div>
+        </div>
+    </div>
+    <div class="page-number">9 / 15</div>
+</div>
+
+<!-- 슬라이드 10: 과거와 현재 비교 -->
+<div class="slide-container" id="slide10">
+    <h2 class="slide-title">1년 만의 <span>천지개벽</span></h2>
+    <div class="content-area">
+        <div class="comparison-grid">
+            <div class="comparison-item">
+                <h4>과거 (2023)</h4>
+                <p style="color: #94a3b8; font-size: 20px; line-height: 1.8;">
+                    • 처리량 한계로 답변 끊김 현상<br>
+                    • 구문별로 조각내어 사람이 수동 조립<br>
+                    • <strong>최소한의 코딩 지식 필수</strong>
+                </p>
+            </div>
+            <div class="comparison-item" style="border-left: 2px solid rgba(56, 189, 248, 0.2);">
+                <h4>현재 (2024~)</h4>
+                <p style="color: #f8fafc; font-size: 20px; line-height: 1.8;">
+                    • 대용량 컨텍스트 처리 (한 번에 전체 코드)<br>
+                    • Cursor AI, VSCode+Codex 등 활용<br>
+                    • <strong>타자만 칠 수 있으면 개발 가능</strong>
+                </p>
+            </div>
+        </div>
+    </div>
+    <div class="page-number">10 / 15</div>
+</div>
+
+<!-- 슬라이드 11: 시사점 01 -->
+<div class="slide-container" id="slide11">
+    <h2 class="slide-title">시사점 01: <span>직접 해보십시오</span></h2>
+    <div class="content-area">
+        <div class="two-column">
+            <div class="image-wrapper" style="padding: 0; background: none; border: none; background-color: white; height: 380px;">
+                <img src="image_ad5baa.jpg" alt="CEO AI Meme" style="width: 100%; height: 100%; object-fit: contain; border-radius: 12px;">
+            </div>
+            <div>
+                <ul class="bullet-list">
+                    <li>무작정 "AI 도입해!"라고 외치는 것은 피해야 할 방향입니다</li>
+                    <li>'될 것 같은데 해봐' 대신 <strong>'직접 해보니 되니까 시켜라'</strong></li>
+                    <li>직접 해봐야 AI의 가능성과 한계를 정확히 이해할 수 있습니다</li>
+                    <li>팀장님들부터 AI 리터러시를 갖춰야 올바른 업무 지시가 가능합니다</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="page-number">11 / 15</div>
+</div>
+
+<!-- 슬라이드 12: 시사점 02 -->
+<div class="slide-container" id="slide12">
+    <h2 class="slide-title">시사점 02: <span>과거의 경험을 버리십시오</span></h2>
+    <div class="content-area">
+        <div class="tiled-content">
+            <div class="tile">
+                <div class="icon"><i class="fas fa-calendar-xmark"></i></div>
+                <h3>어제 안 된 일</h3>
+                <p>몇 달 전의 실패는<br>오늘의 성공이 될 수 있습니다.</p>
+            </div>
+            <div class="tile">
+                <div class="icon"><i class="fas fa-keyboard"></i></div>
+                <h3>낮아진 진입장벽</h3>
+                <p>코딩 지식이 아니라<br>논리적 타이핑이 핵심입니다.</p>
+            </div>
+            <div class="tile">
+                <div class="icon"><i class="fas fa-bolt"></i></div>
+                <h3>업데이트 속도</h3>
+                <p>기술은 우리가 상상하는 것보다<br>훨씬 빠르게 진보합니다.</p>
+            </div>
+        </div>
+    </div>
+    <div class="page-number">12 / 15</div>
+</div>
+
+<!-- 슬라이드 13: 한계점 -->
+<div class="slide-container" id="slide13">
+    <h2 class="slide-title">현실과 <span>한계점</span></h2>
+    <div class="content-area">
+        <ul class="bullet-list" style="max-width: 900px; margin: 0 auto;">
+            <li><strong>비전문가용 마법?</strong> 대단해 보이지만 복잡한 구조 설계에는 분명한 한계가 존재합니다.</li>
+            <li><strong>잠잠해진 열풍:</strong> "다 되는 줄 알았는데" 생각보다 마음대로 되지 않아 포기하는 사례도 많습니다.</li>
+            <li><strong>전문가의 영역:</strong> 개발자가 직접 Cursor AI 등을 활용할 때 10배 더 강력한 도구가 됩니다.</li>
+            <li><strong>지속 가능한 발전:</strong> 결국 비개발자도 코딩의 흐름을 이해하려는 기초 지식이 동반되어야 합니다.</li>
+        </ul>
+    </div>
+    <div class="page-number">13 / 15</div>
+</div>
+
+<!-- 슬라이드 14: 마무리 -->
+<div class="slide-container" id="slide14">
+    <h2 class="slide-title">마치며: <span>나의 도전</span></h2>
+    <div class="content-area">
+        <div class="two-column">
+            <div>
+                <p style="font-size: 26px; line-height: 1.8; color: #cbd5e1;">
+                    현재 저는 <strong>VSCode + Codex + Supabase</strong>를 개인적으로 공부하고 있습니다.<br><br>
+                    비개발자가 이런 낯선 기술의 중심부에 관심을 갖게 만드는 것,<br><br>
+                    그것이 바로 AI가 우리에게 준 가장 큰 기회이자 역할이 아닐까 싶습니다.
+                </p>
+            </div>
+            <div class="image-wrapper">
+                <i class="fas fa-laptop-code"></i>
+            </div>
+        </div>
+    </div>
+    <div class="page-number">14 / 15</div>
+</div>
+
+<!-- 슬라이드 15: 엔딩 -->
+<div class="slide-container section-title-layout" id="slide15">
+    <div class="content-area">
+        <h2>감사합니다</h2>
+        <p style="font-size: 24px; color: #38bdf8; margin-top: 20px;">궁금하신 점이 있다면 말씀해 주세요.</p>
+        <div style="margin-top: 50px; color: #64748b; font-size: 20px;">수학 교과서팀 김형순 파트장</div>
+    </div>
+    <div class="page-number">15 / 15</div>
+</div>
+
+<script>
+    // 슬라이드 작동을 위한 자바스크립트 로직
+    const slides = document.querySelectorAll('.slide-container');
+    let currentSlide = 0;
+
+    // 전체 슬라이드 페이지 번호 자동 업데이트 (15 -> 16장 등 유동적 변경)
+    slides.forEach((slide, index) => {
+        const pageNumDiv = slide.querySelector('.page-number');
+        if (pageNumDiv) {
+            pageNumDiv.innerText = `${index + 1} / ${slides.length}`;
+        }
+    });
+
+    function showSlide(index) {
+        slides.forEach((slide, i) => {
+            slide.classList.remove('active');
+            if (i === index) {
+                slide.classList.add('active');
+            }
+        });
+    }
+
+    // 키보드 방향키 및 스페이스바 제어
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowRight' || e.key === 'Space' || e.key === ' ') {
+            currentSlide = Math.min(currentSlide + 1, slides.length - 1);
+            showSlide(currentSlide);
+        } else if (e.key === 'ArrowLeft') {
+            currentSlide = Math.max(currentSlide - 1, 0);
+            showSlide(currentSlide);
+        }
+    });
+
+    // 마우스 클릭 제어 (화면 오른쪽 클릭 = 다음, 왼쪽 클릭 = 이전)
+    document.addEventListener('click', (e) => {
+        const screenWidth = window.innerWidth;
+        if (e.clientX > screenWidth / 2) {
+            currentSlide = Math.min(currentSlide + 1, slides.length - 1);
+        } else {
+            currentSlide = Math.max(currentSlide - 1, 0);
+        }
+        showSlide(currentSlide);
+    });
+</script>
+
+</body>
+</html>

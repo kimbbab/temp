@@ -18,156 +18,116 @@
             padding: 20px;
             box-sizing: border-box;
         }
-        h2 { color: #333; margin-bottom: 20px; }
+        h2 { color: #333; margin-bottom: 20px; text-align: center; word-break: keep-all; }
         
-        #roulette-container { 
-            position: relative; 
-            width: 320px; 
-            height: 320px; 
-            margin-bottom: 25px; 
-        }
-        canvas { 
-            border-radius: 50%; 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2); 
-            background-color: white;
-            transform: rotate(-90deg);
-        }
-        .pointer { 
-            position: absolute; 
-            top: -15px; 
-            left: 50%; 
-            transform: translateX(-50%); 
-            width: 0; 
-            height: 0; 
-            border-left: 15px solid transparent; 
-            border-right: 15px solid transparent; 
-            border-top: 30px solid #ff4757; 
-            z-index: 10; 
-        }
-        
-        #spinBtn { 
-            padding: 12px 40px; 
-            font-size: 20px; 
-            font-weight: bold; 
-            background-color: #2ed573; 
-            color: white; 
-            border: none; 
-            border-radius: 8px; 
-            cursor: pointer; 
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            transition: all 0.2s ease-in-out; 
-            margin-bottom: 20px;
-        }
-        #spinBtn:hover { 
-            background-color: #27ae60; 
-            transform: translateY(-2px);
-        }
-        #spinBtn:disabled { 
-            background-color: #ced4da; 
-            cursor: not-allowed; 
-            transform: none;
-        }
-        
-        #result-text { 
-            font-size: 24px; 
-            font-weight: bold; 
-            color: #ff4757; 
-            height: 35px; 
+        /* 룰렛 화면 컨테이너 */
+        #roulette-view {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
         }
 
-        #result-card {
-            display: none; 
-            margin-top: 15px;
-            padding: 20px;
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-            text-align: center;
-            max-width: 320px;
-            border: 2px solid #ff4757;
-            opacity: 0;
-            transition: opacity 0.5s ease-in-out;
+        /* 결과 공유받은 화면 컨테이너 (처음엔 숨김) */
+        #shared-view {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 400px;
         }
-        #result-desc { 
-            font-size: 16px; 
-            color: #555; 
-            line-height: 1.5; 
-            word-break: keep-all;
-        }
+
+        #roulette-container { position: relative; width: 320px; height: 320px; margin-bottom: 25px; }
+        canvas { border-radius: 50%; box-shadow: 0 4px 15px rgba(0,0,0,0.2); background-color: white; transform: rotate(-90deg); }
+        .pointer { position: absolute; top: -15px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 15px solid transparent; border-right: 15px solid transparent; border-top: 30px solid #ff4757; z-index: 10; }
         
-        .share-buttons {
-            display: flex;
-            gap: 10px;
-            margin-top: 20px;
-            justify-content: center;
+        #spinBtn { padding: 12px 40px; font-size: 20px; font-weight: bold; background-color: #2ed573; color: white; border: none; border-radius: 8px; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: all 0.2s; margin-bottom: 20px; }
+        #spinBtn:hover { background-color: #27ae60; transform: translateY(-2px); }
+        #spinBtn:disabled { background-color: #ced4da; cursor: not-allowed; transform: none; }
+        
+        #result-text { font-size: 24px; font-weight: bold; color: #ff4757; height: 35px; }
+
+        #result-card {
+            display: none; margin-top: 15px; padding: 20px; background: white; border-radius: 12px; box-shadow: 0 10px 20px rgba(0,0,0,0.1); text-align: center; max-width: 320px; border: 2px solid #ff4757; opacity: 0; transition: opacity 0.5s ease-in-out;
         }
-        .share-btn {
-            padding: 10px 15px;
-            font-size: 14px;
-            font-weight: bold;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: opacity 0.2s;
-        }
+        #result-desc { font-size: 16px; color: #555; line-height: 1.5; word-break: keep-all; margin: 0; }
+        
+        .share-buttons { display: flex; gap: 10px; margin-top: 20px; justify-content: center; }
+        .share-btn { padding: 10px 15px; font-size: 14px; font-weight: bold; border: none; border-radius: 8px; cursor: pointer; transition: opacity 0.2s; }
         .share-btn:hover { opacity: 0.8; }
         .copy-btn { background-color: #f1f2f6; color: #2f3542; }
         .kakao-btn { background-color: #FEE500; color: #000000; }
         
-        .map-btn {
-            display: block;
-            margin-top: 15px;
-            padding: 10px 20px;
-            background-color: #03c75a; 
-            color: white;
-            text-decoration: none;
-            font-weight: bold;
-            border-radius: 8px;
-            transition: background 0.2s;
-        }
+        .map-btn { display: block; margin-top: 15px; padding: 10px 20px; background-color: #03c75a; color: white; text-decoration: none; font-weight: bold; border-radius: 8px; transition: background 0.2s; text-align: center;}
         .map-btn:hover { background-color: #02a348; }
+
+        /* 공유 결과창 리스트 스타일 */
+        .list-item {
+            width: 100%; padding: 15px; margin-bottom: 12px; border-radius: 10px; background: white; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05); border: 1px solid #eee; box-sizing: border-box; text-align: left;
+        }
+        .list-item h3 { margin: 0 0 5px 0; color: #2f3542; font-size: 18px; }
+        .list-item p { margin: 0; font-size: 14px; color: #747d8c; line-height: 1.4; word-break: keep-all; }
+        
+        /* 당첨된 식당 강조 스타일 */
+        .highlight {
+            border: 3px solid #ff4757; background-color: #fff0f0; transform: scale(1.03); 
+            box-shadow: 0 4px 15px rgba(255, 71, 87, 0.2);
+        }
+        .highlight h3 { color: #ff4757; font-size: 20px;}
+        .highlight::before { 
+            content: '🎉 친구의 픽 (당첨!)'; font-size: 13px; color: #ff4757; font-weight: bold; 
+            display: inline-block; margin-bottom: 8px; background: #ffeaa7; padding: 3px 8px; border-radius: 15px;
+        }
+
+        #go-home-btn {
+            width: 100%; padding: 15px; font-size: 18px; font-weight: bold; background-color: #3498db; color: white; 
+            border: none; border-radius: 8px; cursor: pointer; margin-top: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        #go-home-btn:hover { background-color: #2980b9; }
+
     </style>
 </head>
 <body>
 
-    <h2>오늘은 어디로 갈까요? 🤔</h2>
-    <div id="roulette-container">
-        <div class="pointer"></div>
-        <canvas id="wheel" width="320" height="320"></canvas>
-    </div>
-    
-    <button id="spinBtn">돌리기!</button>
-    <div id="result-text"></div>
-
-    <div id="result-card">
-        <p id="result-desc"></p>
-        <a id="map-link" class="map-btn" href="#" target="_blank">네이버 지도에서 보기</a>
+    <div id="roulette-view">
+        <h2>오늘은 어디로 갈까요? 🤔</h2>
+        <div id="roulette-container">
+            <div class="pointer"></div>
+            <canvas id="wheel" width="320" height="320"></canvas>
+        </div>
         
-        <div class="share-buttons">
-            <button id="copyBtn" class="share-btn copy-btn">🔗 결과 복사</button>
-            <button id="kakaoBtn" class="share-btn kakao-btn">💬 카톡 공유</button>
+        <button id="spinBtn">돌리기!</button>
+        <div id="result-text"></div>
+
+        <div id="result-card">
+            <p id="result-desc"></p>
+            <a id="map-link" class="map-btn" href="#" target="_blank">네이버 지도에서 보기</a>
+            
+            <div class="share-buttons">
+                <button id="copyBtn" class="share-btn copy-btn">🔗 결과 복사</button>
+                <button id="kakaoBtn" class="share-btn kakao-btn">💬 카톡 공유</button>
+            </div>
         </div>
     </div>
 
+    <div id="shared-view">
+        <h2>친구가 공유한 오늘의 식당! 🍽️</h2>
+        <div id="restaurant-list" style="width: 100%;">
+            </div>
+        <button id="go-home-btn" onclick="location.href='https://kimbbab.github.io/temp/meat.html'">나도 룰렛 돌려보기 🎰</button>
+    </div>
+
     <script>
-        // 카카오 SDK 에러 방지 처리
+        // 본인의 페이지 링크 (이 링크 뒤에 ?result=식당이름 을 붙여서 공유할 예정입니다)
+        const myPageUrl = "https://kimbbab.github.io/temp/meat.html";
+
+        // 카카오 초기화
         try {
             if (window.Kakao && !Kakao.isInitialized()) {
                 Kakao.init('527014d7c9b229fbcbc75917689b6e2d'); 
             }
-        } catch(e) {
-            console.warn("카카오 초기화 대기 중");
-        }
-
-        const canvas = document.getElementById("wheel");
-        const ctx = canvas.getContext("2d");
-        const spinBtn = document.getElementById("spinBtn");
-        const resultText = document.getElementById("result-text");
-        const resultCard = document.getElementById("result-card");
-        const resultDesc = document.getElementById("result-desc");
-        const mapLink = document.getElementById("map-link");
-        const copyBtn = document.getElementById("copyBtn");
-        const kakaoBtn = document.getElementById("kakaoBtn");
+        } catch(e) { console.warn("카카오 대기 중"); }
 
         const items = ["장군집", "대송참숯", "마포옥", "맛찬들", "유일순대"];
         const colors = ["#ffb8b8", "#ffcccc", "#f8efba", "#c8d6e5", "#cf6a87"];
@@ -180,124 +140,167 @@
             "유일순대": { desc: "은은한 인삼 향이 매력적인, 늘 웨이팅이 끊이지 않는 지역 찐 순대국 맛집 🥘", link: "https://map.naver.com/p/search/광명%20유일순대" }
         };
 
-        let currentAngle = 0;
-        let isSpinning = false;
-        let spinTimeout = null;
-        let currentSelectedItem = "";
-        
-        const arc = Math.PI * 2 / items.length;
+        // ==========================================
+        // [새로 추가된 핵심 기능] 접속한 URL 확인하기
+        // URL 뒤에 ?result=식당이름 이 붙어있는지 확인합니다.
+        // ==========================================
+        const urlParams = new URLSearchParams(window.location.search);
+        const sharedResult = urlParams.get('result');
 
-        function drawWheel() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            for (let i = 0; i < items.length; i++) {
-                const angle = currentAngle + i * arc;
-                ctx.beginPath();
-                ctx.fillStyle = colors[i];
-                ctx.moveTo(canvas.width / 2, canvas.height / 2);
-                ctx.arc(canvas.width / 2, canvas.height / 2, canvas.width / 2, angle, angle + arc, false);
-                ctx.fill();
-                ctx.save();
-                ctx.fillStyle = "#2f3542";
-                ctx.font = "bold 20px 'Malgun Gothic'";
-                ctx.translate(canvas.width / 2 + Math.cos(angle + arc / 2) * 100, canvas.height / 2 + Math.sin(angle + arc / 2) * 100);
-                ctx.rotate(angle + arc / 2 + Math.PI / 2);
-                ctx.fillText(items[i], -ctx.measureText(items[i]).width / 2, 0);
-                ctx.restore();
-            }
-        }
-
-        function spin() {
-            if (isSpinning) return;
-            isSpinning = true;
-            spinBtn.disabled = true;
-            resultText.innerText = "두구두구두구... 🥁";
-            resultCard.style.opacity = 0;
-            setTimeout(() => { resultCard.style.display = "none"; }, 300);
-
-            const spinAngleStart = Math.random() * 10 + 20; 
-            let spinTime = 0;
-            const spinTimeTotal = Math.random() * 3000 + 4000;
-
-            function rotateWheel() {
-                spinTime += 30;
-                if (spinTime >= spinTimeTotal) {
-                    stopRotateWheel();
-                    return;
+        if (sharedResult && items.includes(sharedResult)) {
+            // 파라미터가 있다면 (누군가 공유한 링크로 들어왔다면) -> 공유 결과 화면 보여주기
+            document.getElementById('roulette-view').style.display = 'none';
+            document.getElementById('shared-view').style.display = 'flex';
+            
+            const listContainer = document.getElementById('restaurant-list');
+            
+            // 5개 식당 리스트를 쭉 그려줍니다.
+            items.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'list-item';
+                // 당첨된 식당만 highlight 클래스를 추가해서 화려하게 만듭니다.
+                if (item === sharedResult) {
+                    div.classList.add('highlight');
                 }
-                const spinAngle = spinAngleStart - easeOut(spinTime, 0, spinAngleStart, spinTimeTotal);
-                currentAngle += (spinAngle * Math.PI / 180);
-                drawWheel();
-                spinTimeout = requestAnimationFrame(rotateWheel);
-            }
-            rotateWheel();
-        }
-
-        function stopRotateWheel() {
-            cancelAnimationFrame(spinTimeout);
-            const degrees = currentAngle * 180 / Math.PI;
-            const arcd = arc * 180 / Math.PI;
-            const index = Math.floor((360 - degrees % 360) / arcd) % items.length;
-            
-            currentSelectedItem = items[index];
-            resultText.innerHTML = "🎉 <b>" + currentSelectedItem + "</b> 당첨! 🎉";
-            resultDesc.innerText = restaurantData[currentSelectedItem].desc;
-            mapLink.href = restaurantData[currentSelectedItem].link;
-            
-            resultCard.style.display = "block";
-            setTimeout(() => { resultCard.style.opacity = 1; }, 50);
-
-            isSpinning = false;
-            spinBtn.disabled = false;
-        }
-
-        function easeOut(t, b, c, d) {
-            const ts = (t /= d) * t;
-            const tc = ts * t;
-            return b + c * (tc + -3 * ts + 3 * t);
-        }
-
-        drawWheel();
-        spinBtn.addEventListener("click", spin);
-
-        // 결과 텍스트 복사하기
-        copyBtn.addEventListener("click", () => {
-            if (!currentSelectedItem) return;
-            const textToShare = `[오늘의 식당 당첨: ${currentSelectedItem}]\n\n${restaurantData[currentSelectedItem].desc}\n\n📍 위치 보기:\n${restaurantData[currentSelectedItem].link}`;
-            
-            navigator.clipboard.writeText(textToShare).then(() => {
-                alert("결과가 복사되었습니다. 원하는 곳에 붙여넣기 하세요!");
-            }).catch(err => {
-                alert("복사에 실패했습니다.");
+                div.innerHTML = `
+                    <h3>${item}</h3>
+                    <p>${restaurantData[item].desc}</p>
+                `;
+                listContainer.appendChild(div);
             });
-        });
 
-        // 카카오톡 공유하기
-        kakaoBtn.addEventListener("click", () => {
-            if (!currentSelectedItem) return;
-            
-            if (!window.Kakao || !Kakao.isInitialized()) {
-                alert("카카오톡 공유를 사용하려면 코드에 JavaScript 키를 먼저 입력해야 합니다.\n(대신 '결과 복사' 버튼을 눌러 공유해주세요!)");
-                return;
+        } else {
+            // 파라미터가 없다면 (그냥 접속했다면) -> 기본 룰렛 화면 보여주기
+            document.getElementById('roulette-view').style.display = 'flex';
+            document.getElementById('shared-view').style.display = 'none';
+
+            // --- 기존 룰렛 구동 코드 ---
+            const canvas = document.getElementById("wheel");
+            const ctx = canvas.getContext("2d");
+            const spinBtn = document.getElementById("spinBtn");
+            const resultText = document.getElementById("result-text");
+            const resultCard = document.getElementById("result-card");
+            const resultDesc = document.getElementById("result-desc");
+            const mapLink = document.getElementById("map-link");
+            const copyBtn = document.getElementById("copyBtn");
+            const kakaoBtn = document.getElementById("kakaoBtn");
+
+            let currentAngle = 0;
+            let isSpinning = false;
+            let spinTimeout = null;
+            let currentSelectedItem = "";
+            const arc = Math.PI * 2 / items.length;
+
+            function drawWheel() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                for (let i = 0; i < items.length; i++) {
+                    const angle = currentAngle + i * arc;
+                    ctx.beginPath();
+                    ctx.fillStyle = colors[i];
+                    ctx.moveTo(canvas.width / 2, canvas.height / 2);
+                    ctx.arc(canvas.width / 2, canvas.height / 2, canvas.width / 2, angle, angle + arc, false);
+                    ctx.fill();
+                    ctx.save();
+                    ctx.fillStyle = "#2f3542";
+                    ctx.font = "bold 20px 'Malgun Gothic'";
+                    ctx.translate(canvas.width / 2 + Math.cos(angle + arc / 2) * 100, canvas.height / 2 + Math.sin(angle + arc / 2) * 100);
+                    ctx.rotate(angle + arc / 2 + Math.PI / 2);
+                    ctx.fillText(items[i], -ctx.measureText(items[i]).width / 2, 0);
+                    ctx.restore();
+                }
             }
 
-            Kakao.Share.sendDefault({
-                objectType: 'text',
-                text: `[오늘의 식당 당첨: ${currentSelectedItem}]\n${restaurantData[currentSelectedItem].desc}`,
-                link: {
-                    mobileWebUrl: restaurantData[currentSelectedItem].link,
-                    webUrl: restaurantData[currentSelectedItem].link,
-                },
-                buttons: [
-                    {
-                        title: '지도에서 보기',
-                        link: {
-                            mobileWebUrl: restaurantData[currentSelectedItem].link,
-                            webUrl: restaurantData[currentSelectedItem].link,
-                        },
+            function spin() {
+                if (isSpinning) return;
+                isSpinning = true;
+                spinBtn.disabled = true;
+                resultText.innerText = "두구두구두구... 🥁";
+                resultCard.style.opacity = 0;
+                setTimeout(() => { resultCard.style.display = "none"; }, 300);
+
+                const spinAngleStart = Math.random() * 10 + 20; 
+                let spinTime = 0;
+                const spinTimeTotal = Math.random() * 3000 + 4000;
+
+                function rotateWheel() {
+                    spinTime += 30;
+                    if (spinTime >= spinTimeTotal) { stopRotateWheel(); return; }
+                    const spinAngle = spinAngleStart - easeOut(spinTime, 0, spinAngleStart, spinTimeTotal);
+                    currentAngle += (spinAngle * Math.PI / 180);
+                    drawWheel();
+                    spinTimeout = requestAnimationFrame(rotateWheel);
+                }
+                rotateWheel();
+            }
+
+            function stopRotateWheel() {
+                cancelAnimationFrame(spinTimeout);
+                const degrees = currentAngle * 180 / Math.PI;
+                const arcd = arc * 180 / Math.PI;
+                const index = Math.floor((360 - degrees % 360) / arcd) % items.length;
+                
+                currentSelectedItem = items[index];
+                resultText.innerHTML = "🎉 <b>" + currentSelectedItem + "</b> 당첨! 🎉";
+                resultDesc.innerText = restaurantData[currentSelectedItem].desc;
+                mapLink.href = restaurantData[currentSelectedItem].link;
+                
+                resultCard.style.display = "block";
+                setTimeout(() => { resultCard.style.opacity = 1; }, 50);
+
+                isSpinning = false;
+                spinBtn.disabled = false;
+            }
+
+            function easeOut(t, b, c, d) {
+                const ts = (t /= d) * t;
+                const tc = ts * t;
+                return b + c * (tc + -3 * ts + 3 * t);
+            }
+
+            drawWheel();
+            spinBtn.addEventListener("click", spin);
+
+            // 결과 복사 (링크 변경 반영)
+            copyBtn.addEventListener("click", () => {
+                if (!currentSelectedItem) return;
+                const shareLink = `${myPageUrl}?result=${encodeURIComponent(currentSelectedItem)}`;
+                const textToShare = `[오늘의 식당: ${currentSelectedItem}]\n\n전체 후보와 친구의 당첨 결과 보기 👇\n${shareLink}`;
+                navigator.clipboard.writeText(textToShare).then(() => { alert("결과가 복사되었습니다!"); });
+            });
+
+            // 카카오톡 공유 (링크 변경 반영)
+            kakaoBtn.addEventListener("click", () => {
+                if (!currentSelectedItem) return;
+                
+                // 공유할 링크 뒤에 선택된 식당 파라미터 붙이기
+                const shareLink = `${myPageUrl}?result=${encodeURIComponent(currentSelectedItem)}`;
+
+                Kakao.Share.sendDefault({
+                    objectType: 'text',
+                    text: `[오늘의 식당: ${currentSelectedItem}]\n${restaurantData[currentSelectedItem].desc}`,
+                    link: {
+                        mobileWebUrl: shareLink,
+                        webUrl: shareLink,
                     },
-                ],
+                    buttons: [
+                        {
+                            title: '결과 전체보기',
+                            link: {
+                                mobileWebUrl: shareLink,
+                                webUrl: shareLink,
+                            },
+                        },
+                        {
+                            title: '지도에서 보기',
+                            link: {
+                                mobileWebUrl: restaurantData[currentSelectedItem].link,
+                                webUrl: restaurantData[currentSelectedItem].link,
+                            },
+                        },
+                    ],
+                });
             });
-        });
+        }
     </script>
 </body>
 </html>

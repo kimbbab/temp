@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>피자 성향 테스트</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="ambient ambient-left"></div>
+  <div class="ambient ambient-right"></div>
+
+  <main class="page-shell">
+    <section class="hero">
+      <p class="eyebrow">Pizza Personality Lab</p>
+      <h1>
+        <span class="headline-line">오늘의 성격으로</span>
+        <span class="headline-line">피자를 뽑아드립니다.</span>
+      </h1>
+      <p class="hero-copy">
+        피자 취향은 안 묻습니다. 대신 고양이와 대화할지, 우주선에서 무슨 일을 맡을지,
+        반짝이를 발견하면 뿌릴지 같은 쓸데없이 진지한 질문으로 성격을 읽습니다.
+        토핑은 날아오고, 결과는 팡팡 터지고, 마지막엔 바로 주문 화면으로 넘깁니다.
+      </p>
+      <div class="hero-chips">
+        <span>말도 안 되는 설문</span>
+        <span>토핑 발사</span>
+        <span>주문 핸드오프</span>
+      </div>
+    </section>
+
+    <section class="lab-grid">
+      <form id="quizForm" class="survey-card">
+        <div class="card-head">
+          <p class="section-kicker">Taste Scanner</p>
+          <h2>6문항으로 끝</h2>
+        </div>
+
+        <fieldset class="question-block">
+          <legend>1. 약속 시간 10분 전에 길을 잃었습니다. 당신은?</legend>
+          <div class="option-grid three-up">
+            <label class="option-pill">
+              <input type="radio" name="energy" value="calm" checked>
+              <span>침착하게 지도를 접고 느낌으로 걷는다</span>
+            </label>
+            <label class="option-pill">
+              <input type="radio" name="energy" value="spark">
+              <span>뛰면서 친구에게 브이로그를 남긴다</span>
+            </label>
+            <label class="option-pill">
+              <input type="radio" name="energy" value="wild">
+              <span>새로운 인생을 시작한다</span>
+            </label>
+          </div>
+        </fieldset>
+
+        <fieldset class="question-block">
+          <legend>2. 길고양이가 먼저 말을 걸었습니다. 첫 반응은?</legend>
+          <div class="option-grid three-up">
+            <label class="option-pill">
+              <input type="radio" name="flavor" value="savory" checked>
+              <span>정중히 인사하고 대화의 톤을 맞춘다</span>
+            </label>
+            <label class="option-pill">
+              <input type="radio" name="flavor" value="balanced">
+              <span>간식 제공 조건으로 협상한다</span>
+            </label>
+            <label class="option-pill">
+              <input type="radio" name="flavor" value="sweet">
+              <span>비밀 임무를 받으러 왔다고 확신한다</span>
+            </label>
+          </div>
+        </fieldset>
+
+        <fieldset class="question-block">
+          <legend>3. 엘리베이터 거울 속 내가 먼저 윙크했습니다. 어떻게 할까요?</legend>
+          <div class="option-grid three-up">
+            <label class="option-pill">
+              <input type="radio" name="adventure" value="safe" checked>
+              <span>못 본 척하고 목적 층만 누른다</span>
+            </label>
+            <label class="option-pill">
+              <input type="radio" name="adventure" value="medium">
+              <span>나도 윙크하고 상황을 지켜본다</span>
+            </label>
+            <label class="option-pill">
+              <input type="radio" name="adventure" value="max">
+              <span>거울 속 나와 공동 사업을 시작한다</span>
+            </label>
+          </div>
+        </fieldset>
+
+        <fieldset class="question-block">
+          <legend>4. 주머니에서 반짝이 한 줌이 나왔습니다. 용도는?</legend>
+          <div class="option-grid three-up">
+            <label class="option-pill">
+              <input type="radio" name="social" value="solo" checked>
+              <span>집에 가서 분류 보관한다</span>
+            </label>
+            <label class="option-pill">
+              <input type="radio" name="social" value="duo">
+              <span>친구와 나눠 들고 하늘에 뿌린다</span>
+            </label>
+            <label class="option-pill">
+              <input type="radio" name="social" value="party">
+              <span>우주의 신호라고 생각하고 따라간다</span>
+            </label>
+          </div>
+        </fieldset>
+
+        <fieldset class="question-block">
+          <legend>5. 우주선 부기장이 된다면 맡고 싶은 파트는?</legend>
+          <div class="option-grid three-up">
+            <label class="option-pill">
+              <input type="radio" name="texture" value="soft" checked>
+              <span>체크리스트와 운항 로그 정리</span>
+            </label>
+            <label class="option-pill">
+              <input type="radio" name="texture" value="crisp">
+              <span>선내 분위기 담당 DJ</span>
+            </label>
+            <label class="option-pill">
+              <input type="radio" name="texture" value="loaded">
+              <span>외계 문명과 즉석 친목 외교</span>
+            </label>
+          </div>
+        </fieldset>
+
+        <fieldset class="question-block">
+          <legend>6. 금요일 밤 몰래 발동하는 초능력은?</legend>
+          <div class="option-grid three-up">
+            <label class="option-pill">
+              <input type="radio" name="finish" value="comfort" checked>
+              <span>이불 동굴을 순식간에 완성한다</span>
+            </label>
+            <label class="option-pill">
+              <input type="radio" name="finish" value="spicy">
+              <span>심심한 음식을 전부 매콤하게 바꾼다</span>
+            </label>
+            <label class="option-pill">
+              <input type="radio" name="finish" value="fresh">
+              <span>방 안 공기를 숲속처럼 바꾼다</span>
+            </label>
+          </div>
+        </fieldset>
+
+        <div class="form-actions">
+          <button class="primary-button" type="submit">피자 뽑기</button>
+          <button class="ghost-button" type="button" id="surpriseMe">랜덤 모드</button>
+        </div>
+      </form>
+
+      <section class="result-card" id="resultCard" aria-live="polite">
+        <div class="card-head">
+          <p class="section-kicker">Launch Bay</p>
+          <h2>추천 결과</h2>
+        </div>
+
+        <div class="pizza-stage">
+          <div class="pizza-box-lid">OPEN</div>
+          <div class="pizza-plate">
+            <div class="pizza-surface" id="pizzaSurface"></div>
+            <div class="burst-layer" id="burstLayer"></div>
+          </div>
+        </div>
+
+        <div class="result-copy" id="resultCopy">
+          <p class="placeholder-title">아직 조합 분석 전입니다.</p>
+          <p class="placeholder-body">설문을 돌리면 당신의 피자 성향을 읽고 한 판을 조립합니다.</p>
+        </div>
+
+        <div class="recommend-tags" id="recommendTags"></div>
+
+        <section class="brand-reco" id="brandReco">
+          <div class="brand-reco-head">
+            <p class="section-kicker">Real Menus</p>
+            <h3>실제 브랜드 메뉴 추천</h3>
+          </div>
+          <div class="brand-menu-list" id="brandMenuList">
+            <p class="brand-placeholder">결과가 나오면 실제 브랜드 메뉴 3가지를 같이 추천합니다.</p>
+          </div>
+        </section>
+
+        <div class="delivery-card" id="deliveryCard">
+          <label class="service-copy" for="handoffText">주문용 문구</label>
+          <div class="handoff-row">
+            <input id="handoffText" type="text" readonly value="추천 결과가 나오면 주문 문구를 자동 생성합니다.">
+            <button id="copyOrder" type="button" class="ghost-button">복사</button>
+          </div>
+          <div class="delivery-buttons">
+            <a class="delivery-button" id="openOfficial" href="https://www.pizzaalvolo.co.kr/" target="_blank" rel="noreferrer">공식 주문</a>
+            <a class="delivery-button" id="openBaemin" href="https://www.baemin.com/" target="_blank" rel="noreferrer">배민 열기</a>
+            <a class="delivery-button" id="openYogiyo" href="https://www.yogiyo.co.kr/" target="_blank" rel="noreferrer">요기요 열기</a>
+            <a class="delivery-button" id="openCoupang" href="https://www.coupangeats.com/" target="_blank" rel="noreferrer">쿠팡이츠 열기</a>
+          </div>
+          <p class="service-note">배달 앱 검색창에 붙여넣기만 하면 되도록 주문 문구를 같이 만듭니다.</p>
+        </div>
+
+        <div class="result-actions">
+          <button class="primary-button" id="replayEffects" type="button">토핑 한 번 더 발사</button>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>

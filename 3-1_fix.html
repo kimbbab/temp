@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>세 자리 수 덧셈 퀴즈 (3지선다)</title>
+    <style>
+        body { font-family: 'Malgun Gothic', sans-serif; display: flex; flex-direction: column; align-items: center; background-color: #f8f9fa; padding: 20px; }
+        .container { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; width: 380px; }
+        .menu { margin-bottom: 25px; display: flex; gap: 8px; justify-content: center; }
+        button.mode-btn { padding: 10px; cursor: pointer; border: 2px solid #e9ecef; border-radius: 10px; background: white; color: #495057; font-size: 0.85rem; flex: 1; transition: 0.2s; }
+        button.mode-btn.active { background: #4a90e2; color: white; border-color: #4a90e2; font-weight: bold; }
+        
+        .problem-area { font-size: 2.8rem; margin: 20px 0; text-align: right; display: inline-block; border-bottom: 4px solid #343a40; padding: 10px 20px; line-height: 1.2; font-weight: bold; }
+        
+        .options-container { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
+        .option-btn { padding: 15px; font-size: 1.2rem; cursor: pointer; border: 2px solid #dee2e6; border-radius: 12px; background: #fff; transition: 0.2s; font-weight: bold; }
+        .option-btn:hover { background: #f1f3f5; border-color: #ced4da; }
+        .option-btn.correct { background: #d4edda; border-color: #28a745; color: #155724; }
+        .option-btn.wrong { background: #f8d7da; border-color: #dc3545; color: #721c24; }
+
+        .feedback { margin-top: 20px; font-size: 1.1rem; height: 30px; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="menu">
+        <button onclick="setMode(2, this)" class="mode-btn">[2차시]<br>받아올림 없음</button>
+        <button onclick="setMode(3, this)" class="mode-btn">[3차시]<br>받아올림 1회</button>
+        <button onclick="setMode(4, this)" class="mode-btn">[4차시]<br>받아올림 여러번</button>
+    </div>
+
+    <div id="game-ui" style="display:none;">
+        <div class="problem-area">
+            <div><span id="n1">000</span></div>
+            <div>+ <span id="n2">000</span></div>
+        </div>
+
+        <div class="options-container" id="options">
+            </div>
+
+        <div class="feedback" id="feedbackMsg"></div>
+    </div>
+</div>
+
+<script>
+    let currentMode = 2;
+    let correctAnswer = 0;
+    let isAnswered = false;
+
+    function setMode(mode, btn) {
+        currentMode = mode;
+        document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById('game-ui').style.display = 'block';
+        generateProblem();
+    }
+
+    function generateProblem() {
+        let num1, num2;
+        isAnswered = false;
+        document.getElementById('feedbackMsg').innerText = '';
+        
+        // 1. 문제 생성 로직
+        if (currentMode === 2) { // 받아올림 없음
+            num1 = Math.floor(Math.random() * 700) + 100;
+            let d1 = Math.floor(num1/100), d2 = Math.floor((num1%100)/10), d3 = num1%10;
+            num2 = (Math.floor(Math.random()*(9-d1))+1)*100 + (Math.floor(Math.random()*(9-d2)))*10 + (Math.floor(Math.random()*(9-d3)));
+        } else if (currentMode === 3) { // 받아올림 1회
+            do {
+                num1 = Math.floor(Math.random() * 700) + 100;
+                num2 = Math.floor(Math.random() * (850 - num1)) + 100;
+                let c1 = (num1 % 10 + num2 % 10 >= 10);
+                let c2 = (Math.floor(num1/10)%10 + Math.floor(num2/10)%10 + (c1?1:0) >= 10);
+                if ((c1 && !c2) || (!c1 && c2)) break;
+            } while(true);
+        } else { // 받아올림 여러번
+            do {
+                num1 = Math.floor(Math.random() * 600) + 100;
+                num2 = Math.floor(Math.random() * (900 - num1)) + 100;
+                let c1 = (num1 % 10 + num2 % 10 >= 10);
+                let c2 = (Math.floor(num1/10)%10 + Math.floor(num2/10)%10 + (c1?1:0) >= 10);
+                if (c1 && c2) break;
+            } while(true);
+        }
+
+        correctAnswer = num1 + num2;
+        document.getElementById('n1').innerText = num1;
+        document.getElementById('n2').innerText = num2;
+
+        // 2. 보기 생성 (정답 1개 + 오답 2개)
+        let choices = [correctAnswer];
+        while(choices.length < 3) {
+            // 정답과 비슷하게 10이나 100 차이가 나는 오답 생성
+            let offset = (Math.random() > 0.5 ? 1 : -1) * (Math.random() > 0.5 ? 10 : 100);
+            let wrong = correctAnswer + offset;
+            if(wrong > 0 && !choices.includes(wrong)) choices.push(wrong);
+        }
+        
+        // 보기 섞기
+        choices.sort(() => Math.random() - 0.5);
+
+        // 3. 버튼 렌더링
+        const optionsDiv = document.getElementById('options');
+        optionsDiv.innerHTML = '';
+        choices.forEach(val => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.innerText = val;
+            btn.onclick = () => checkAnswer(val, btn);
+            optionsDiv.appendChild(btn);
+        });
+    }
+
+    function checkAnswer(selected, btn) {
+        if (isAnswered) return; // 이미 답을 골랐으면 무시
+        
+        const feedback = document.getElementById('feedbackMsg');
+        if (selected === correctAnswer) {
+            btn.classList.add('correct');
+            feedback.innerText = "정답입니다! 잘했어요! ✨";
+            feedback.style.color = "#28a745";
+            isAnswered = true;
+            setTimeout(generateProblem, 1500); // 1.5초 후 자동 다음 문제
+        } else {
+            btn.classList.add('wrong');
+            feedback.innerText = "다시 한번 생각해봐요! 🎈";
+            feedback.style.color = "#dc3545";
+        }
+    }
+</script>
+
+</body>
+</html>

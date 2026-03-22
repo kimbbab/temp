@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>세 자리 수 덧셈 연습장</title>
+    <style>
+        body { font-family: 'Malgun Gothic', sans-serif; display: flex; flex-direction: column; align-items: center; background-color: #f0f4f8; padding: 20px; }
+        .container { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); text-align: center; width: 350px; }
+        h2 { color: #333; margin-bottom: 20px; font-size: 1.2rem; }
+        .menu { margin-bottom: 20px; display: flex; gap: 5px; flex-wrap: wrap; justify-content: center; }
+        button { padding: 8px 12px; cursor: pointer; border: none; border-radius: 5px; background: #4a90e2; color: white; font-weight: bold; transition: 0.3s; }
+        button:hover { background: #357abd; }
+        button.active { background: #2c3e50; }
+        .problem-box { font-size: 2.5rem; margin: 30px 0; letter-spacing: 5px; text-align: right; display: inline-block; border-bottom: 3px solid #333; padding-bottom: 10px; }
+        input { width: 100%; font-size: 2rem; text-align: center; border: 2px solid #ddd; border-radius: 8px; margin-top: 15px; padding: 5px; }
+        .result { margin-top: 15px; font-weight: bold; height: 24px; }
+        .correct { color: #2ecc71; }
+        .wrong { color: #e74c3c; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="menu">
+        <button onclick="setMode(2, this)" id="btn2">[2차시] 없음</button>
+        <button onclick="setMode(3, this)" id="btn3">[3차시] 1회</button>
+        <button onclick="setMode(4, this)" id="btn4">[4차시] 여러번</button>
+    </div>
+
+    <h2 id="title">단계를 선택해 주세요</h2>
+    
+    <div id="game-area" style="display:none;">
+        <div class="problem-box">
+            <div id="num1">000</div>
+            <div>+ <span id="num2">000</span></div>
+        </div>
+        <input type="number" id="userAnswer" placeholder="정답 입력" onkeyup="if(window.event.keyCode==13){checkAnswer()}">
+        <div class="result" id="resultMsg"></div>
+        <button onclick="generateProblem()" style="margin-top: 10px; width: 100%; background: #2ecc71;">다음 문제</button>
+    </div>
+</div>
+
+<script>
+    let currentMode = 2;
+    let answer = 0;
+
+    function setMode(mode, btn) {
+        currentMode = mode;
+        const titles = {
+            2: "[2차시] 받아올림이 없는 덧셈",
+            3: "[3차시] 받아올림이 한 번 있는 덧셈",
+            4: "[4차시] 받아올림이 여러 번 있는 덧셈"
+        };
+        document.getElementById('title').innerText = titles[mode];
+        document.getElementById('game-area').style.display = 'block';
+        
+        // 버튼 활성화 스타일
+        document.querySelectorAll('.menu button').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        
+        generateProblem();
+    }
+
+    function generateProblem() {
+        let n1, n2;
+        document.getElementById('userAnswer').value = '';
+        document.getElementById('resultMsg').innerText = '';
+        document.getElementById('userAnswer').focus();
+
+        if (currentMode === 2) {
+            // 받아올림 없음: 각 자릿수의 합이 9 이하가 되도록 설정
+            n1 = Math.floor(Math.random() * 800) + 100;
+            let d1 = Math.floor(n1 / 100), d2 = Math.floor((n1 % 100) / 10), d3 = n1 % 10;
+            n2 = (Math.floor(Math.random() * (9 - d1)) + 1) * 100 +
+                 (Math.floor(Math.random() * (10 - d2))) * 10 +
+                 (Math.floor(Math.random() * (10 - d3)));
+        } 
+        else if (currentMode === 3) {
+            // 받아올림 1회: 한 자릿수만 합이 10 이상이 되도록 설정
+            let retry = true;
+            while(retry) {
+                n1 = Math.floor(Math.random() * 800) + 100;
+                n2 = Math.floor(Math.random() * (900 - n1)) + 100;
+                let c1 = (n1 % 10 + n2 % 10 >= 10);
+                let c2 = (Math.floor(n1/10)%10 + Math.floor(n2/10)%10 + (c1?1:0) >= 10);
+                // 받아올림이 정확히 1번 발생하는 경우 (백의자리 제외)
+                if ((c1 && !c2) || (!c1 && c2)) retry = false;
+            }
+        } 
+        else {
+            // 받아올림 여러 번
+            let retry = true;
+            while(retry) {
+                n1 = Math.floor(Math.random() * 700) + 100;
+                n2 = Math.floor(Math.random() * (900 - n1)) + 100;
+                let c1 = (n1 % 10 + n2 % 10 >= 10);
+                let c2 = (Math.floor(n1/10)%10 + Math.floor(n2/10)%10 + (c1?1:0) >= 10);
+                if (c1 && c2) retry = false;
+            }
+        }
+
+        answer = n1 + n2;
+        document.getElementById('num1').innerText = n1;
+        document.getElementById('num2').innerText = n2;
+    }
+
+    function checkAnswer() {
+        const userVal = parseInt(document.getElementById('userAnswer').value);
+        const msg = document.getElementById('resultMsg');
+        if (userVal === answer) {
+            msg.innerText = "정답입니다! 잘했어요! 👏";
+            msg.className = "result correct";
+            setTimeout(generateProblem, 1500); // 1.5초 후 다음 문제
+        } else {
+            msg.innerText = "다시 한번 계산해 볼까요? 🤔";
+            msg.className = "result wrong";
+        }
+    }
+</script>
+
+</body>
+</html>

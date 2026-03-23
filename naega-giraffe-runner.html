@@ -1,0 +1,990 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>내가그린기린그림</title>
+  <style>
+    :root {
+      --bg1: #fff8e7;
+      --bg2: #ffd89b;
+      --ink: #3c2a1e;
+      --accent: #ff9f1c;
+      --accent2: #f77f00;
+      --panel: rgba(255,255,255,0.88);
+      --danger: #d62828;
+      --good: #2a9d8f;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+      color: var(--ink);
+      background: linear-gradient(180deg, var(--bg1), #ffe9b6 45%, #ffd59e 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .app {
+      width: min(1100px, 100%);
+      display: grid;
+      grid-template-columns: 1fr 300px;
+      gap: 16px;
+      align-items: start;
+    }
+    .game-shell {
+      position: relative;
+      border-radius: 24px;
+      overflow: hidden;
+      box-shadow: 0 22px 50px rgba(0,0,0,0.18);
+      background: #fff;
+      border: 2px solid rgba(60,42,30,0.1);
+    }
+    canvas {
+      display: block;
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      background: linear-gradient(180deg, #cdeaff 0%, #fff0c7 70%, #f8d490 100%);
+      cursor: pointer;
+    }
+    .hud {
+      position: absolute;
+      inset: 14px 14px auto 14px;
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 10px;
+      pointer-events: none;
+    }
+    .pill {
+      background: rgba(255,255,255,0.75);
+      backdrop-filter: blur(6px);
+      border: 1px solid rgba(0,0,0,0.07);
+      border-radius: 16px;
+      padding: 10px 12px;
+      box-shadow: 0 10px 24px rgba(0,0,0,0.08);
+    }
+    .pill .label {
+      font-size: 12px;
+      opacity: 0.75;
+      margin-bottom: 4px;
+    }
+    .pill .value {
+      font-weight: 800;
+      font-size: 18px;
+    }
+    .overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(60,42,30,0.25);
+      padding: 20px;
+    }
+    .card {
+      width: min(560px, 100%);
+      background: var(--panel);
+      backdrop-filter: blur(10px);
+      border-radius: 24px;
+      padding: 26px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.16);
+      border: 1px solid rgba(255,255,255,0.55);
+    }
+    h1 {
+      margin: 0 0 8px;
+      font-size: clamp(28px, 4vw, 44px);
+      line-height: 1.05;
+    }
+    .subtitle {
+      margin: 0 0 18px;
+      opacity: 0.8;
+      line-height: 1.5;
+    }
+    .row { display: flex; gap: 10px; flex-wrap: wrap; }
+    input[type="text"] {
+      flex: 1;
+      min-width: 140px;
+      border: 1px solid rgba(0,0,0,0.14);
+      border-radius: 14px;
+      padding: 12px 14px;
+      font-size: 16px;
+      background: rgba(255,255,255,0.96);
+    }
+    button {
+      appearance: none;
+      border: 0;
+      border-radius: 14px;
+      padding: 12px 16px;
+      font-weight: 800;
+      font-size: 15px;
+      cursor: pointer;
+      transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+      box-shadow: 0 10px 18px rgba(0,0,0,0.1);
+    }
+    button:hover { transform: translateY(-1px); }
+    button.primary { background: linear-gradient(180deg, var(--accent), var(--accent2)); color: white; }
+    button.secondary { background: white; color: var(--ink); }
+    button.ghost { background: rgba(255,255,255,0.7); color: var(--ink); }
+    .difficulty {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin: 14px 0 18px;
+    }
+    .difficulty button.active {
+      outline: 3px solid rgba(247,127,0,0.25);
+      background: linear-gradient(180deg, #ffb74d, #f77f00);
+      color: white;
+    }
+    .side {
+      background: rgba(255,255,255,0.72);
+      border-radius: 24px;
+      padding: 18px;
+      box-shadow: 0 14px 32px rgba(0,0,0,0.12);
+      border: 1px solid rgba(255,255,255,0.55);
+    }
+    .side h2 {
+      margin: 0 0 10px;
+      font-size: 20px;
+    }
+    .rank-list { margin: 0; padding-left: 20px; }
+    .rank-list li { margin: 8px 0; }
+    .tip {
+      margin-top: 18px;
+      padding: 14px;
+      border-radius: 18px;
+      background: rgba(255, 211, 105, 0.3);
+      line-height: 1.55;
+      font-size: 14px;
+    }
+    .question-box {
+      display: grid;
+      gap: 12px;
+      margin-top: 12px;
+    }
+    .math {
+      font-size: clamp(28px, 5vw, 42px);
+      font-weight: 900;
+      letter-spacing: -0.02em;
+      text-align: center;
+      background: white;
+      border-radius: 20px;
+      padding: 18px;
+    }
+    .feedback {
+      min-height: 24px;
+      font-weight: 700;
+      text-align: center;
+    }
+    .good { color: var(--good); }
+    .bad { color: var(--danger); }
+    .mobile-hint {
+      margin-top: 10px;
+      font-size: 13px;
+      opacity: 0.7;
+      text-align: center;
+    }
+    @media (max-width: 900px) {
+      .app { grid-template-columns: 1fr; }
+      .hud { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="game-shell">
+      <canvas id="game" width="960" height="540" aria-label="내가그린기린그림 게임 화면"></canvas>
+
+      <div class="hud">
+        <div class="pill"><div class="label">점수</div><div class="value" id="scoreView">0</div></div>
+        <div class="pill"><div class="label">속도</div><div class="value" id="speedView">0</div></div>
+        <div class="pill"><div class="label">점프</div><div class="value" id="jumpView">0 / 3</div></div>
+        <div class="pill"><div class="label">목숨</div><div class="value" id="lifeView">3</div></div>
+        <div class="pill"><div class="label">이름</div><div class="value" id="nameView">???</div></div>
+      </div>
+
+      <div class="overlay" id="startOverlay">
+        <div class="card">
+          <h1>내가그린기린그림</h1>
+          <p class="subtitle">기린이 초원을 달리다가 장애물에 부딪히면 수학 문제를 풀어야 살아남습니다. 스페이스바, 위 방향키, 또는 클릭으로 점프하세요.</p>
+          <div class="row">
+            <input id="nameInput" type="text" maxlength="12" placeholder="플레이어 이름" />
+            <button class="secondary" id="randomNameBtn">랜덤 이름</button>
+          </div>
+          <div class="difficulty">
+            <button class="secondary active" data-level="easy">초보</button>
+            <button class="secondary" data-level="normal">중수</button>
+            <button class="secondary" data-level="hard">고수</button>
+          </div>
+          <div class="row">
+            <button class="primary" id="startBtn">시작</button>
+          </div>
+          <div class="mobile-hint">모바일에서는 화면 아무 곳이나 탭해도 점프합니다.</div>
+        </div>
+      </div>
+
+      <div class="overlay" id="quizOverlay" style="display:none;">
+        <div class="card">
+          <h1 style="font-size:32px;">앗, 장애물!</h1>
+          <p class="subtitle" id="quizIntro">정답을 맞히면 다시 달립니다. 틀리면 목숨이 1 줄어요.</p>
+          <div class="question-box">
+            <div class="math" id="questionView">7 + 8 = ?</div>
+            <input id="answerInput" type="text" inputmode="numeric" placeholder="정답 입력" />
+            <div class="feedback" id="feedbackView"></div>
+            <div class="row">
+              <button class="primary" id="submitAnswerBtn">정답 확인</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="overlay" id="gameOverOverlay" style="display:none;">
+        <div class="card">
+          <h1 style="font-size:34px;">기린이 지쳤어요…</h1>
+          <p class="subtitle" id="gameOverText">최종 점수 0점</p>
+          <div class="row">
+            <button class="primary" id="restartBtn">다시 시작</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <aside class="side">
+      <h2>최고 점수</h2>
+      <ol class="rank-list" id="rankList"></ol>
+      <div class="tip">
+        <strong>게임 구성</strong><br>
+        1. 기린 러너 기본 달리기<br>
+        2. 3단 점프 가능<br>
+        3. 충돌 시 수학 문제 출제<br>
+        4. 정답이면 계속 진행, 오답이면 목숨 감소<br>
+        5. 점수는 로컬에 저장
+      </div>
+    </aside>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('game');
+    const ctx = canvas.getContext('2d');
+
+    const scoreView = document.getElementById('scoreView');
+    const speedView = document.getElementById('speedView');
+    const jumpView = document.getElementById('jumpView');
+    const lifeView = document.getElementById('lifeView');
+    const nameView = document.getElementById('nameView');
+    const rankList = document.getElementById('rankList');
+
+    const startOverlay = document.getElementById('startOverlay');
+    const quizOverlay = document.getElementById('quizOverlay');
+    const gameOverOverlay = document.getElementById('gameOverOverlay');
+
+    const nameInput = document.getElementById('nameInput');
+    const randomNameBtn = document.getElementById('randomNameBtn');
+    const startBtn = document.getElementById('startBtn');
+    const difficultyButtons = [...document.querySelectorAll('.difficulty button')];
+
+    const questionView = document.getElementById('questionView');
+    const answerInput = document.getElementById('answerInput');
+    const submitAnswerBtn = document.getElementById('submitAnswerBtn');
+    const feedbackView = document.getElementById('feedbackView');
+    const quizIntro = document.getElementById('quizIntro');
+    const gameOverText = document.getElementById('gameOverText');
+    const restartBtn = document.getElementById('restartBtn');
+
+    const groundY = 430;
+    const gravity = 0.78;
+    let state = 'start';
+    let selectedDifficulty = 'easy';
+    let lastTime = 0;
+    let obstacleTimer = 0;
+    let clouds = [];
+    let hills = [];
+    let grasses = [];
+    let particles = [];
+    let currentQuiz = null;
+    let difficultyLabel = '초보';
+
+    const giraffeNames = ['초원왕', '롱넥', '무늬천재', '달려기린', '점프기린', '기린도사'];
+
+    const player = {
+      x: 160,
+      y: groundY,
+      w: 70,
+      h: 120,
+      vy: 0,
+      jumpsUsed: 0,
+      maxJumps: 3,
+      squash: 0,
+      blink: 0,
+      get onGround() {
+        return this.y >= groundY;
+      }
+    };
+
+    const game = {
+      score: 0,
+      speed: 340,
+      distance: 0,
+      lives: 3,
+      playerName: '???',
+      difficulty: 'easy',
+      paused: true,
+      obstacles: [],
+      bestSaved: false,
+    };
+
+    const DIFFICULTY = {
+      easy: { label: '초보', baseSpeed: 330, speedGain: 9, spawnMin: 1.25, spawnMax: 2.1, quizMax: 15 },
+      normal: { label: '중수', baseSpeed: 360, speedGain: 12, spawnMin: 1.0, spawnMax: 1.75, quizMax: 30 },
+      hard: { label: '고수', baseSpeed: 395, speedGain: 15, spawnMin: 0.9, spawnMax: 1.55, quizMax: 70 },
+    };
+
+    function rand(min, max) {
+      return Math.random() * (max - min) + min;
+    }
+    function randi(min, max) {
+      return Math.floor(rand(min, max + 1));
+    }
+    function clamp(v, min, max) {
+      return Math.min(max, Math.max(min, v));
+    }
+
+    function resetWorld() {
+      clouds = Array.from({ length: 5 }, (_, i) => ({ x: i * 220 + rand(0, 100), y: rand(40, 180), speed: rand(12, 26), size: rand(0.8, 1.4) }));
+      hills = Array.from({ length: 4 }, (_, i) => ({ x: i * 280, w: rand(180, 260), h: rand(50, 100) }));
+      grasses = Array.from({ length: 20 }, () => ({ x: rand(0, canvas.width), y: rand(455, 520), h: rand(8, 22) }));
+      particles = [];
+    }
+
+    function updateHUD() {
+      scoreView.textContent = Math.floor(game.score);
+      speedView.textContent = Math.floor(game.speed);
+      jumpView.textContent = `${player.jumpsUsed} / ${player.maxJumps}`;
+      lifeView.textContent = game.lives;
+      nameView.textContent = game.playerName;
+    }
+
+    function resetGame() {
+      const config = DIFFICULTY[selectedDifficulty];
+      difficultyLabel = config.label;
+      game.score = 0;
+      game.distance = 0;
+      game.speed = config.baseSpeed;
+      game.lives = 3;
+      game.difficulty = selectedDifficulty;
+      game.obstacles = [];
+      game.paused = false;
+      game.bestSaved = false;
+      obstacleTimer = 0;
+      currentQuiz = null;
+      feedbackView.textContent = '';
+      feedbackView.className = 'feedback';
+      player.y = groundY;
+      player.vy = 0;
+      player.jumpsUsed = 0;
+      player.squash = 0;
+      player.blink = 0;
+      resetWorld();
+      updateHUD();
+    }
+
+    function chooseDifficulty(level) {
+      selectedDifficulty = level;
+      difficultyButtons.forEach(btn => btn.classList.toggle('active', btn.dataset.level === level));
+    }
+
+    difficultyButtons.forEach(btn => {
+      btn.addEventListener('click', () => chooseDifficulty(btn.dataset.level));
+    });
+
+    randomNameBtn.addEventListener('click', () => {
+      nameInput.value = giraffeNames[randi(0, giraffeNames.length - 1)];
+    });
+
+    function startGame() {
+      game.playerName = nameInput.value.trim() || giraffeNames[randi(0, giraffeNames.length - 1)];
+      nameView.textContent = game.playerName;
+      startOverlay.style.display = 'none';
+      gameOverOverlay.style.display = 'none';
+      quizOverlay.style.display = 'none';
+      state = 'running';
+      resetGame();
+    }
+
+    startBtn.addEventListener('click', startGame);
+    restartBtn.addEventListener('click', () => {
+      gameOverOverlay.style.display = 'none';
+      state = 'start';
+      startOverlay.style.display = 'flex';
+    });
+
+    function spawnObstacle() {
+      const kindRoll = Math.random();
+      let type = 'bush';
+      if (kindRoll > 0.7) type = 'rock';
+      if (kindRoll > 0.9) type = 'bird';
+
+      const obstacle = {
+        type,
+        x: canvas.width + 40,
+        passed: false,
+      };
+
+      if (type === 'bush') {
+        obstacle.w = rand(40, 72);
+        obstacle.h = rand(45, 65);
+        obstacle.y = groundY - obstacle.h + 4;
+      } else if (type === 'rock') {
+        obstacle.w = rand(34, 60);
+        obstacle.h = rand(32, 48);
+        obstacle.y = groundY - obstacle.h + 6;
+      } else {
+        obstacle.w = 60;
+        obstacle.h = 38;
+        obstacle.y = rand(260, 360);
+        obstacle.floatPhase = rand(0, Math.PI * 2);
+      }
+
+      game.obstacles.push(obstacle);
+    }
+
+    function jump() {
+      if (state !== 'running' || game.paused) return;
+      if (player.jumpsUsed >= player.maxJumps) return;
+      player.vy = -13.8;
+      player.jumpsUsed += 1;
+      player.squash = 1;
+      for (let i = 0; i < 10; i++) {
+        particles.push({
+          x: player.x + 20,
+          y: groundY + player.h - 10,
+          vx: rand(-2, 2),
+          vy: rand(-4, -1),
+          life: rand(0.4, 0.8)
+        });
+      }
+      updateHUD();
+    }
+
+    function collision(a, b) {
+      return a.x < b.x + b.w &&
+             a.x + a.w > b.x &&
+             a.y < b.y + b.h &&
+             a.y + a.h > b.y;
+    }
+
+    function playerHitbox() {
+      return { x: player.x + 16, y: player.y + 18, w: 40, h: 96 };
+    }
+
+    function generateQuiz() {
+      const max = DIFFICULTY[game.difficulty].quizMax;
+      let a = randi(2, Math.max(10, Math.floor(max * 0.7)));
+      let b = randi(2, Math.max(10, Math.floor(max * 0.7)));
+      const typeRoll = Math.random();
+      let q = '';
+      let answer = 0;
+
+      if (game.difficulty === 'easy' || typeRoll < 0.45) {
+        if (Math.random() < 0.5) {
+          q = `${a} + ${b}`;
+          answer = a + b;
+        } else {
+          if (b > a) [a, b] = [b, a];
+          q = `${a} - ${b}`;
+          answer = a - b;
+        }
+      } else if (typeRoll < 0.8) {
+        a = randi(2, game.difficulty === 'hard' ? 12 : 9);
+        b = randi(2, game.difficulty === 'hard' ? 12 : 9);
+        q = `${a} × ${b}`;
+        answer = a * b;
+      } else {
+        b = randi(2, game.difficulty === 'hard' ? 12 : 9);
+        answer = randi(2, game.difficulty === 'hard' ? 12 : 9);
+        a = b * answer;
+        q = `${a} ÷ ${b}`;
+      }
+      return { q, answer };
+    }
+
+    function openQuiz(obstacle) {
+      game.paused = true;
+      state = 'quiz';
+      currentQuiz = generateQuiz();
+      currentQuiz.obstacle = obstacle;
+      questionView.textContent = `${currentQuiz.q} = ?`;
+      quizIntro.textContent = `난이도 ${difficultyLabel}. 맞히면 다시 달리고, 틀리면 목숨이 1 줄어요.`;
+      answerInput.value = '';
+      feedbackView.textContent = '';
+      feedbackView.className = 'feedback';
+      quizOverlay.style.display = 'flex';
+      setTimeout(() => answerInput.focus(), 50);
+    }
+
+    function resolveQuiz() {
+      if (!currentQuiz) return;
+      const value = Number(answerInput.value.trim());
+      if (!Number.isFinite(value)) {
+        feedbackView.textContent = '숫자로 입력해 주세요.';
+        feedbackView.className = 'feedback bad';
+        return;
+      }
+
+      if (value === currentQuiz.answer) {
+        feedbackView.textContent = '정답! 기린이 다시 달립니다.';
+        feedbackView.className = 'feedback good';
+        particles.push(...Array.from({ length: 20 }, () => ({
+          x: currentQuiz.obstacle.x,
+          y: currentQuiz.obstacle.y,
+          vx: rand(-3, 3),
+          vy: rand(-5, -1),
+          life: rand(0.5, 1.2)
+        })));
+        game.obstacles = game.obstacles.filter(o => o !== currentQuiz.obstacle);
+        setTimeout(() => {
+          quizOverlay.style.display = 'none';
+          currentQuiz = null;
+          state = 'running';
+          game.paused = false;
+        }, 500);
+      } else {
+        game.lives -= 1;
+        updateHUD();
+        feedbackView.textContent = `오답! 정답은 ${currentQuiz.answer}`;
+        feedbackView.className = 'feedback bad';
+        game.obstacles = game.obstacles.filter(o => o !== currentQuiz.obstacle);
+        setTimeout(() => {
+          quizOverlay.style.display = 'none';
+          currentQuiz = null;
+          if (game.lives <= 0) {
+            endGame();
+          } else {
+            state = 'running';
+            game.paused = false;
+          }
+        }, 800);
+      }
+    }
+
+    submitAnswerBtn.addEventListener('click', resolveQuiz);
+    answerInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') resolveQuiz();
+    });
+
+    function endGame() {
+      state = 'gameover';
+      game.paused = true;
+      saveScore();
+      renderRankings();
+      gameOverText.textContent = `${game.playerName} · 최종 점수 ${Math.floor(game.score)}점 · 난이도 ${difficultyLabel}`;
+      gameOverOverlay.style.display = 'flex';
+    }
+
+    function getScores() {
+      try {
+        return JSON.parse(localStorage.getItem('giraffe-runner-scores') || '[]');
+      } catch {
+        return [];
+      }
+    }
+
+    function saveScore() {
+      if (game.bestSaved) return;
+      const list = getScores();
+      list.push({
+        name: game.playerName,
+        score: Math.floor(game.score),
+        difficulty: difficultyLabel,
+        date: new Date().toLocaleDateString('ko-KR')
+      });
+      list.sort((a, b) => b.score - a.score);
+      localStorage.setItem('giraffe-runner-scores', JSON.stringify(list.slice(0, 8)));
+      game.bestSaved = true;
+    }
+
+    function renderRankings() {
+      const list = getScores();
+      rankList.innerHTML = '';
+      if (!list.length) {
+        rankList.innerHTML = '<li>아직 기록이 없습니다.</li>';
+        return;
+      }
+      list.forEach(item => {
+        const li = document.createElement('li');
+        li.textContent = `${item.name} · ${item.score}점 · ${item.difficulty}`;
+        rankList.appendChild(li);
+      });
+    }
+
+    function update(dt) {
+      if (game.paused) {
+        updateParticles(dt / 1000);
+        return;
+      }
+
+      const seconds = dt / 1000;
+      const config = DIFFICULTY[game.difficulty];
+      game.distance += game.speed * seconds;
+      game.score += seconds * 42;
+      game.speed += config.speedGain * seconds * 0.6;
+
+      player.vy += gravity;
+      player.y += player.vy;
+      if (player.y >= groundY) {
+        player.y = groundY;
+        player.vy = 0;
+        player.jumpsUsed = 0;
+      }
+      player.squash = Math.max(0, player.squash - seconds * 3);
+      if (player.blink > 0) player.blink -= seconds;
+
+      obstacleTimer -= seconds;
+      if (obstacleTimer <= 0) {
+        spawnObstacle();
+        obstacleTimer = rand(config.spawnMin, config.spawnMax);
+      }
+
+      game.obstacles.forEach(ob => {
+        ob.x -= game.speed * seconds;
+        if (ob.type === 'bird') ob.y += Math.sin((performance.now() / 320) + ob.floatPhase) * 0.6;
+        if (!ob.passed && ob.x + ob.w < player.x) {
+          ob.passed = true;
+          game.score += 15;
+        }
+      });
+      game.obstacles = game.obstacles.filter(ob => ob.x + ob.w > -80);
+
+      clouds.forEach(c => {
+        c.x -= c.speed * seconds;
+        if (c.x < -140) {
+          c.x = canvas.width + rand(40, 180);
+          c.y = rand(40, 180);
+        }
+      });
+      hills.forEach(h => {
+        h.x -= game.speed * seconds * 0.12;
+        if (h.x + h.w < 0) {
+          h.x = canvas.width + rand(40, 160);
+          h.w = rand(180, 260);
+          h.h = rand(50, 100);
+        }
+      });
+      grasses.forEach(g => {
+        g.x -= game.speed * seconds;
+        if (g.x < -10) {
+          g.x = canvas.width + rand(10, 120);
+          g.h = rand(8, 22);
+        }
+      });
+
+      updateParticles(seconds);
+
+      const ph = playerHitbox();
+      const hit = game.obstacles.find(ob => collision(ph, ob));
+      if (hit) {
+        player.blink = 0.5;
+        openQuiz(hit);
+      }
+
+      updateHUD();
+    }
+
+    function updateParticles(seconds) {
+      particles.forEach(p => {
+        p.x += p.vx * (seconds * 60);
+        p.y += p.vy * (seconds * 60);
+        p.vy += 0.08;
+        p.life -= seconds;
+      });
+      particles = particles.filter(p => p.life > 0);
+    }
+
+    function drawCloud(cloud) {
+      ctx.save();
+      ctx.translate(cloud.x, cloud.y);
+      ctx.scale(cloud.size, cloud.size);
+      ctx.fillStyle = 'rgba(255,255,255,0.95)';
+      ctx.beginPath();
+      ctx.arc(0, 22, 18, 0, Math.PI * 2);
+      ctx.arc(22, 14, 24, 0, Math.PI * 2);
+      ctx.arc(48, 24, 20, 0, Math.PI * 2);
+      ctx.arc(28, 28, 22, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+
+    function drawHills() {
+      ctx.fillStyle = '#b4d295';
+      hills.forEach(h => {
+        ctx.beginPath();
+        ctx.ellipse(h.x + h.w / 2, 410, h.w / 2, h.h, 0, 0, Math.PI * 2);
+        ctx.fill();
+      });
+    }
+
+    function drawGround() {
+      ctx.fillStyle = '#c99a55';
+      ctx.fillRect(0, 470, canvas.width, 70);
+      ctx.fillStyle = '#7cb342';
+      ctx.fillRect(0, 454, canvas.width, 26);
+      ctx.strokeStyle = 'rgba(60,42,30,0.12)';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(0, 470);
+      for (let x = 0; x <= canvas.width; x += 30) {
+        ctx.lineTo(x, 468 + Math.sin((x + performance.now() * 0.08) * 0.03) * 2);
+      }
+      ctx.stroke();
+
+      ctx.strokeStyle = '#5f8f2d';
+      ctx.lineWidth = 2;
+      grasses.forEach(g => {
+        ctx.beginPath();
+        ctx.moveTo(g.x, 456);
+        ctx.lineTo(g.x + Math.sin((performance.now() * 0.01) + g.x) * 2, 456 - g.h);
+        ctx.stroke();
+      });
+    }
+
+    function drawGiraffe() {
+      const bob = Math.sin(performance.now() * 0.015) * 2;
+      const bodyScaleY = player.squash > 0 ? 0.92 : 1;
+      const legStretch = player.onGround ? Math.sin(performance.now() * 0.03) * 6 : -10;
+      ctx.save();
+      ctx.translate(player.x, player.y + bob);
+      if (player.blink > 0 && Math.floor(player.blink * 10) % 2 === 0) {
+        ctx.globalAlpha = 0.45;
+      }
+
+      // shadow
+      ctx.fillStyle = 'rgba(0,0,0,0.14)';
+      ctx.beginPath();
+      ctx.ellipse(35, 122, 42, 10, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.scale(1, bodyScaleY);
+      // tail
+      ctx.strokeStyle = '#7b4d25';
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.moveTo(10, 48);
+      ctx.quadraticCurveTo(-8, 52, 0, 80);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(-2, 84, 5, 0, Math.PI * 2);
+      ctx.fillStyle = '#7b4d25';
+      ctx.fill();
+
+      // body
+      ctx.fillStyle = '#f4b860';
+      roundRect(ctx, 8, 28, 64, 46, 20, true, false);
+
+      // neck
+      ctx.save();
+      ctx.translate(56, 10);
+      ctx.rotate(-0.08);
+      roundRect(ctx, 0, 0, 18, 52, 10, true, false);
+      ctx.restore();
+
+      // head
+      ctx.fillStyle = '#f4b860';
+      roundRect(ctx, 58, -4, 34, 24, 10, true, false);
+      roundRect(ctx, 84, 2, 16, 12, 6, true, false);
+      // ears & ossicones
+      ctx.fillStyle = '#7b4d25';
+      roundRect(ctx, 66, -12, 4, 12, 3, true, false);
+      roundRect(ctx, 79, -12, 4, 12, 3, true, false);
+      roundRect(ctx, 62, -8, 5, 7, 3, true, false);
+      roundRect(ctx, 82, -8, 5, 7, 3, true, false);
+
+      // legs
+      ctx.fillStyle = '#f4b860';
+      [16, 32, 50, 64].forEach((lx, idx) => {
+        const swing = player.onGround ? Math.sin(performance.now() * 0.03 + idx) * 5 : 0;
+        roundRect(ctx, lx + swing, 68, 8, 44 + (idx % 2 === 0 ? legStretch : -legStretch * 0.5), 4, true, false);
+      });
+      ctx.fillStyle = '#5e3d22';
+      [16, 32, 50, 64].forEach((lx, idx) => {
+        const swing = player.onGround ? Math.sin(performance.now() * 0.03 + idx) * 5 : 0;
+        ctx.fillRect(lx + swing - 1, 110, 12, 8);
+      });
+
+      // spots
+      ctx.fillStyle = '#9c5a1f';
+      [[16,34],[28,50],[44,34],[58,52],[62,18],[70,8],[76,36]].forEach(([sx, sy]) => {
+        ctx.beginPath();
+        ctx.arc(sx, sy, randSpot(sx, sy), 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      // face
+      ctx.fillStyle = '#3c2a1e';
+      ctx.beginPath();
+      ctx.arc(83, 7, 2.7, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillRect(96, 7, 2, 2);
+      ctx.beginPath();
+      ctx.moveTo(90, 14);
+      ctx.quadraticCurveTo(95, 18, 99, 14);
+      ctx.strokeStyle = '#3c2a1e';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    function randSpot(x, y) {
+      const n = Math.abs(Math.sin(x * 12.9898 + y * 78.233));
+      return 4 + (n * 3);
+    }
+
+    function roundRect(ctx, x, y, width, height, radius, fill, stroke) {
+      if (typeof radius === 'number') {
+        radius = { tl: radius, tr: radius, br: radius, bl: radius };
+      }
+      ctx.beginPath();
+      ctx.moveTo(x + radius.tl, y);
+      ctx.lineTo(x + width - radius.tr, y);
+      ctx.quadraticCurveTo(x + width, y, x + width, y + radius.tr);
+      ctx.lineTo(x + width, y + height - radius.br);
+      ctx.quadraticCurveTo(x + width, y + height, x + width - radius.br, y + height);
+      ctx.lineTo(x + radius.bl, y + height);
+      ctx.quadraticCurveTo(x, y + height, x, y + height - radius.bl);
+      ctx.lineTo(x, y + radius.tl);
+      ctx.quadraticCurveTo(x, y, x + radius.tl, y);
+      ctx.closePath();
+      if (fill) ctx.fill();
+      if (stroke) ctx.stroke();
+    }
+
+    function drawObstacle(ob) {
+      ctx.save();
+      ctx.translate(ob.x, ob.y);
+      if (ob.type === 'bush') {
+        ctx.fillStyle = '#4caf50';
+        ctx.beginPath();
+        ctx.arc(16, ob.h - 8, 18, Math.PI, 0);
+        ctx.arc(32, ob.h - 18, 22, Math.PI, 0);
+        ctx.arc(52, ob.h - 10, 18, Math.PI, 0);
+        ctx.fill();
+        ctx.fillStyle = '#7a5230';
+        ctx.fillRect(28, ob.h - 8, 6, 10);
+      } else if (ob.type === 'rock') {
+        ctx.fillStyle = '#8d99ae';
+        ctx.beginPath();
+        ctx.moveTo(6, ob.h);
+        ctx.lineTo(0, 14);
+        ctx.lineTo(ob.w * 0.35, 0);
+        ctx.lineTo(ob.w * 0.75, 8);
+        ctx.lineTo(ob.w, ob.h);
+        ctx.closePath();
+        ctx.fill();
+      } else {
+        ctx.fillStyle = '#6d4c41';
+        ctx.beginPath();
+        ctx.ellipse(28, 16, 22, 12, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.moveTo(14, 20);
+        ctx.lineTo(0, 8);
+        ctx.lineTo(12, 12);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.moveTo(42, 18);
+        ctx.lineTo(58, 6);
+        ctx.lineTo(50, 18);
+        ctx.fill();
+      }
+      ctx.restore();
+    }
+
+    function drawParticles() {
+      particles.forEach(p => {
+        ctx.globalAlpha = clamp(p.life, 0, 1);
+        ctx.fillStyle = '#ff9f1c';
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 3, 0, Math.PI * 2);
+        ctx.fill();
+      });
+      ctx.globalAlpha = 1;
+    }
+
+    function render() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // sky glow
+      const grad = ctx.createRadialGradient(760, 90, 20, 760, 90, 170);
+      grad.addColorStop(0, 'rgba(255,250,220,0.95)');
+      grad.addColorStop(1, 'rgba(255,250,220,0)');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // sun
+      ctx.fillStyle = '#ffd166';
+      ctx.beginPath();
+      ctx.arc(760, 90, 38, 0, Math.PI * 2);
+      ctx.fill();
+
+      clouds.forEach(drawCloud);
+      drawHills();
+      drawGround();
+      game.obstacles.forEach(drawObstacle);
+      drawGiraffe();
+      drawParticles();
+
+      if (state === 'start') {
+        ctx.fillStyle = 'rgba(255,255,255,0.25)';
+        ctx.font = '800 44px Pretendard, sans-serif';
+        ctx.fillText('press any button to start', 210, 250);
+      }
+    }
+
+    function loop(timestamp) {
+      const dt = Math.min(33, timestamp - lastTime || 16.7);
+      lastTime = timestamp;
+      update(dt);
+      render();
+      requestAnimationFrame(loop);
+    }
+
+    function handlePrimaryAction() {
+      if (state === 'start') {
+        return;
+      }
+      if (state === 'running') {
+        jump();
+      }
+    }
+
+    window.addEventListener('keydown', (e) => {
+      const focusedInput = document.activeElement && ['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName);
+      if (['Space', 'ArrowUp', 'KeyW'].includes(e.code)) {
+        if (!focusedInput) e.preventDefault();
+        if (state === 'start' && !focusedInput) {
+          startGame();
+          return;
+        }
+        if (state === 'running') jump();
+      }
+      if (e.key === 'Enter' && state === 'start' && document.activeElement !== answerInput) {
+        startGame();
+      }
+    });
+
+    canvas.addEventListener('pointerdown', () => {
+      if (state === 'start') {
+        startGame();
+        return;
+      }
+      if (state === 'running') jump();
+    });
+
+    renderRankings();
+    resetWorld();
+    updateHUD();
+    requestAnimationFrame(loop);
+  </script>
+</body>
+</html>

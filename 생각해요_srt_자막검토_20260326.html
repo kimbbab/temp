@@ -1,0 +1,518 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>생각해요 SRT 자막 검토 결과</title>
+  <style>
+    :root {
+      --bg: #f3f6f8;
+      --panel: #ffffff;
+      --ink: #173042;
+      --muted: #5e7483;
+      --line: #d7e1e8;
+      --accent: #146c94;
+      --accent-soft: #e6f3f8;
+      --warn: #9a3412;
+      --warn-soft: #fff1ea;
+      --ok: #166534;
+      --ok-soft: #ebf7ef;
+      --shadow: 0 16px 48px rgba(13, 39, 58, 0.08);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Pretendard", "Noto Sans KR", "Segoe UI", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top left, #dceef6 0, transparent 28%),
+        linear-gradient(180deg, #edf4f7 0%, var(--bg) 100%);
+    }
+
+    .wrap {
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 36px 24px 56px;
+    }
+
+    .hero,
+    .section {
+      background: var(--panel);
+      border: 1px solid rgba(215, 225, 232, 0.9);
+      border-radius: 24px;
+      box-shadow: var(--shadow);
+    }
+
+    .hero {
+      padding: 30px 32px;
+      margin-bottom: 22px;
+    }
+
+    .eyebrow {
+      display: inline-block;
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+
+    h1 {
+      margin: 14px 0 10px;
+      font-size: 34px;
+      line-height: 1.18;
+    }
+
+    .sub {
+      margin: 0;
+      color: var(--muted);
+      font-size: 16px;
+      line-height: 1.7;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 22px;
+    }
+
+    .summary-card {
+      padding: 18px 20px;
+      border-radius: 18px;
+      background: #f8fbfc;
+      border: 1px solid var(--line);
+    }
+
+    .summary-card strong {
+      display: block;
+      font-size: 28px;
+      line-height: 1;
+      margin-bottom: 8px;
+    }
+
+    .summary-card span {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .section {
+      padding: 24px 28px;
+      margin-top: 18px;
+    }
+
+    h2 {
+      margin: 0 0 12px;
+      font-size: 22px;
+    }
+
+    .note {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    .highlights {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 18px;
+    }
+
+    .highlight {
+      padding: 16px 18px;
+      border-radius: 16px;
+      border: 1px solid var(--line);
+      background: linear-gradient(180deg, #ffffff 0%, #f8fbfc 100%);
+    }
+
+    .highlight.bad {
+      background: var(--warn-soft);
+      border-color: #f2cbb6;
+    }
+
+    .highlight.good {
+      background: var(--ok-soft);
+      border-color: #bfdfc6;
+    }
+
+    .highlight strong {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 15px;
+    }
+
+    .highlight p {
+      margin: 0;
+      font-size: 14px;
+      line-height: 1.6;
+      color: var(--muted);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 16px;
+      font-size: 14px;
+      table-layout: fixed;
+    }
+
+    th,
+    td {
+      padding: 14px 12px;
+      border-bottom: 1px solid var(--line);
+      vertical-align: top;
+      text-align: left;
+      line-height: 1.6;
+      word-break: break-word;
+    }
+
+    th {
+      background: #f7fafb;
+      color: #385161;
+      font-size: 13px;
+      letter-spacing: 0.01em;
+    }
+
+    .type {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .type.typo { background: #eef4ff; color: #2457a6; }
+    .type.expr { background: #fff5e8; color: #9a5800; }
+    .type.srt { background: #fff1ea; color: var(--warn); }
+
+    code {
+      display: inline-block;
+      padding: 2px 6px;
+      border-radius: 8px;
+      background: #f3f7fa;
+      font-family: "Cascadia Code", "Consolas", monospace;
+      font-size: 12.5px;
+    }
+
+    .footer {
+      margin-top: 16px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.7;
+    }
+
+    @media (max-width: 960px) {
+      .summary-grid,
+      .highlights {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    @media (max-width: 680px) {
+      .wrap {
+        padding: 20px 14px 36px;
+      }
+
+      .hero,
+      .section {
+        padding: 20px 18px;
+        border-radius: 18px;
+      }
+
+      h1 {
+        font-size: 28px;
+      }
+
+      .summary-grid,
+      .highlights {
+        grid-template-columns: 1fr;
+      }
+
+      table,
+      thead,
+      tbody,
+      th,
+      td,
+      tr {
+        display: block;
+      }
+
+      thead {
+        display: none;
+      }
+
+      tr {
+        border-bottom: 1px solid var(--line);
+        padding: 10px 0;
+      }
+
+      td {
+        border: 0;
+        padding: 6px 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <section class="hero">
+      <span class="eyebrow">자막 품질 점검 리포트</span>
+      <h1>생각해요 SRT 자막 검토 결과</h1>
+      <p class="sub">
+        검토 대상: <code>D:\hyungsoon.kim\바탕화면\업무\영상\생각해요_srt</code><br>
+        전체 36개 SRT 파일, 417개 자막 큐를 기준으로 맞춤법, 오탈자, 띄어쓰기, 수식 표기, SRT 형식을 점검했습니다.
+        전반적인 내용 흐름은 자연스러웠고, 의미를 크게 해치는 오류보다는 띄어쓰기와 표기 통일, 일부 SRT 형식 문제가 중심이었습니다.
+      </p>
+      <div class="summary-grid">
+        <div class="summary-card">
+          <strong>36</strong>
+          <span>검토한 SRT 파일 수</span>
+        </div>
+        <div class="summary-card">
+          <strong>417</strong>
+          <span>검토한 자막 큐 수</span>
+        </div>
+        <div class="summary-card">
+          <strong>21</strong>
+          <span>수정 권장 항목</span>
+        </div>
+        <div class="summary-card">
+          <strong>3</strong>
+          <span>즉시 수정 권장 SRT 형식 오류</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>빠른 요약</h2>
+      <p class="note">
+        우선순위는 <strong>SRT 형식 오류 3건</strong>, 그다음으로는 <strong>수식 주변 띄어쓰기와 표기 통일</strong>,
+        마지막으로 <strong>몇몇 어색한 문장 표현</strong>입니다.
+        특히 수식에서 조사 앞뒤 띄어쓰기가 흔들리는 경우가 반복되어, 실제 배포 전 일괄 교정하는 편이 좋습니다.
+      </p>
+      <div class="highlights">
+        <div class="highlight bad">
+          <strong>우선 수정 1</strong>
+          <p><code>2단원\중학_수학3_생각해요_2_4 20260313_v1.srt</code>, <code>4단원\중학_수학3_생각해요_4_3 20260305.srt</code>에서 타이밍이 겹칩니다.</p>
+        </div>
+        <div class="highlight bad">
+          <strong>우선 수정 2</strong>
+          <p><code>7단원\중학_수학3_생각해요_7_2 20260311_v1.srt</code>의 한 타이밍 줄이 SRT 표준 형식과 다릅니다.</p>
+        </div>
+        <div class="highlight good">
+          <strong>전체 평가</strong>
+          <p>내용 전개 자체는 대체로 자연스럽고, 교육 내용상 치명적인 의미 오류는 눈에 띄지 않았습니다.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>세부 수정 권장 사항</h2>
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 70px;">번호</th>
+            <th style="width: 110px;">유형</th>
+            <th style="width: 250px;">위치</th>
+            <th>원문</th>
+            <th>수정 제안</th>
+            <th>메모</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>1</td>
+            <td><span class="type typo">띄어쓰기</span></td>
+            <td><code>1단원\중학_수학3_생각해요_1_1 20260223_v1.srt</code><br>cue 4 / 00:00:20,000</td>
+            <td>여기 가로1, 세로1인 이 타일이 보이지?</td>
+            <td>여기 가로 1, 세로 1인 이 타일이 보이지?</td>
+            <td>숫자 앞뒤 띄어쓰기를 맞추면 읽기성이 좋아집니다.</td>
+          </tr>
+          <tr>
+            <td>2</td>
+            <td><span class="type expr">표현</span></td>
+            <td><code>1단원\중학_수학3_생각해요_1_2 20260224_v1.srt</code><br>cue 1 / 00:00:05,400</td>
+            <td>친구들이 √5²값을 구하고 있습니다.</td>
+            <td>친구들이 √5²의 값을 구하고 있습니다.</td>
+            <td>명사 결합이 어색해 조사 <code>의</code>를 넣는 편이 자연스럽습니다.</td>
+          </tr>
+          <tr>
+            <td>3</td>
+            <td><span class="type typo">띄어쓰기·오탈자</span></td>
+            <td><code>1단원\중학_수학3_생각해요_1_3 20260227_v1.srt</code><br>cue 6-7</td>
+            <td>√2 가 궁금하면 ...<br>이런 소수가나와요.</td>
+            <td>√2가 궁금하면 ...<br>이런 소수가 나와요.</td>
+            <td>수식 뒤 조사와 일반 문장 띄어쓰기가 모두 어긋난 사례입니다.</td>
+          </tr>
+          <tr>
+            <td>4</td>
+            <td><span class="type typo">띄어쓰기·오탈자</span></td>
+            <td><code>1단원\중학_수학3_생각해요_1_4 20260225_v1.srt</code><br>cue 1, 4, 5, 9</td>
+            <td>무리수 √2 를 ...<br>√2 의 위치 ...<br>√2 를 수직선 위에 ...<br>√2 니까요.</td>
+            <td>무리수 √2를 ...<br>√2의 위치 ...<br>√2를 수직선 위에 ...<br>√2니까요.</td>
+            <td>같은 파일 안에서 수식 뒤 조사 띄어쓰기와 <code>니까요</code> 오기가 반복됩니다.</td>
+          </tr>
+          <tr>
+            <td>5</td>
+            <td><span class="type expr">수식 표기</span></td>
+            <td><code>1단원\중학_수학3_생각해요_1_5 20260225_v1.srt</code><br>cue 2 / 00:00:10,000</td>
+            <td>√4 x√9 를 √4x9 로 계산해도 될까?</td>
+            <td>√4×√9를 √(4×9)로 계산해도 될까?</td>
+            <td><code>x</code>가 변수처럼 보일 수 있어 곱셈기호와 괄호를 명확히 쓰는 편이 좋습니다.</td>
+          </tr>
+          <tr>
+            <td>6</td>
+            <td><span class="type typo">띄어쓰기</span></td>
+            <td><code>1단원\중학_수학3_생각해요_1_5 20260225_v1.srt</code><br>cue 8 / 00:00:50,000</td>
+            <td>이건 우리가 궁금해 하던 거잖아?</td>
+            <td>이건 우리가 궁금해하던 거잖아?</td>
+            <td>보조 용언 결합 표현은 붙여 쓰는 편이 자연스럽습니다.</td>
+          </tr>
+          <tr>
+            <td>7</td>
+            <td><span class="type expr">수식 표기</span></td>
+            <td><code>1단원\중학_수학3_생각해요_1_6 20260225_v1.srt</code><br>cue 2 / 00:00:08,500</td>
+            <td>√9/√4 를 √9/4 로 계산해도 될까?</td>
+            <td>√9/√4를 √(9/4)로 계산해도 될까?</td>
+            <td>분모만 루트 밖에 있는 것처럼 읽힐 수 있어 괄호 표기가 필요합니다.</td>
+          </tr>
+          <tr>
+            <td>8</td>
+            <td><span class="type typo">띄어쓰기</span></td>
+            <td><code>1단원\중학_수학3_생각해요_1_7 20260223_v1.srt</code><br>cue 10-11</td>
+            <td>2√2 와 3√2 를 더해야겠구나.<br>√ 가 있는 수들을 ...</td>
+            <td>2√2와 3√2를 더해야겠구나.<br>√가 있는 수들을 ...</td>
+            <td>수식과 조사가 붙는 자리가 반복해서 벌어져 있습니다.</td>
+          </tr>
+          <tr>
+            <td>9</td>
+            <td><span class="type typo">맞춤법</span></td>
+            <td><code>2단원\중학_수학3_생각해요_2_3 20260226_v1.srt</code><br>cue 5 / 00:00:30,000</td>
+            <td>인공 지능을 이용한 살아 있는 형태의 작품들</td>
+            <td>인공지능을 이용한 살아 있는 형태의 작품들</td>
+            <td>통상 표기는 <code>인공지능</code>입니다.</td>
+          </tr>
+          <tr>
+            <td>10</td>
+            <td><span class="type expr">표현</span></td>
+            <td><code>2단원\중학_수학3_생각해요_2_3 20260226_v1.srt</code><br>cue 11 / 00:00:58,000</td>
+            <td>스크린의 가로의 길이를 a만큼, 세로를 b만큼 확장하면</td>
+            <td>스크린의 가로 길이를 a만큼, 세로 길이를 b만큼 확장하면</td>
+            <td><code>가로의 길이</code>는 중복 느낌이 있어 문장을 조금 다듬는 편이 자연스럽습니다.</td>
+          </tr>
+          <tr>
+            <td>11</td>
+            <td><span class="type typo">오탈자</span></td>
+            <td><code>2단원\중학_수학3_생각해요_2_5 20260313_v1.srt</code><br>cue 5 / 00:00:28,000</td>
+            <td>도구를 정확히 짝 짓는 것을 도와 줄래요?</td>
+            <td>도구를 정확히 짝짓는 것을 도와줄래요?</td>
+            <td><code>짝짓다</code>는 붙여 쓰고, <code>도와주다</code>도 붙여 쓰는 편이 자연스럽습니다.</td>
+          </tr>
+          <tr>
+            <td>12</td>
+            <td><span class="type typo">띄어쓰기·오탈자</span></td>
+            <td><code>3단원\중학_수학3_생각해요_3_1 20260220.srt</code>, <code>3단원\중학_수학3_생각해요_3_2 20260220.srt</code><br>cue 3 / cue 6, 13</td>
+            <td>거 같아.<br>거 같은 예감이 들어.<br>떠 올랐어요.</td>
+            <td>것 같아.<br>것 같은 예감이 들어.<br>떠올랐어요.</td>
+            <td><code>것 같-</code>, <code>떠올리다</code> 계열 띄어쓰기가 반복적으로 흔들립니다.</td>
+          </tr>
+          <tr>
+            <td>13</td>
+            <td><span class="type typo">띄어쓰기</span></td>
+            <td><code>3단원\중학_수학3_생각해요_3_3 20260220.srt</code><br>cue 11 / 00:01:07,100</td>
+            <td>교과서 97쪽에 잘 나와있어요.</td>
+            <td>교과서 97쪽에 잘 나와 있어요.</td>
+            <td><code>나와 있다</code>는 띄어 쓰는 편이 표준적입니다.</td>
+          </tr>
+          <tr>
+            <td>14</td>
+            <td><span class="type typo">띄어쓰기</span></td>
+            <td><code>3단원\중학_수학3_생각해요_3_4 20260220.srt</code><br>cue 6, 7, 10</td>
+            <td>한번에 풀 수 있는<br>'마법의 공식'같은 건<br>공식 중에 하나</td>
+            <td>한 번에 풀 수 있는<br>'마법의 공식' 같은 건<br>공식 중 하나</td>
+            <td>자주 나오는 교정 포인트가 한 파일에 모여 있습니다.</td>
+          </tr>
+          <tr>
+            <td>15</td>
+            <td><span class="type expr">띄어쓰기·표현</span></td>
+            <td><code>3단원\중학_수학3_생각해요_3_5 20260222.srt</code><br>cue 9-10</td>
+            <td>그래요. 다같이 해결해 봅시다.<br>계수가 분수가 있는 이차방정식이에요.</td>
+            <td>그래요. 다 같이 해결해 봅시다.<br>계수에 분수가 있는 이차방정식이에요.</td>
+            <td>첫 문장은 띄어쓰기, 둘째 문장은 조사 선택이 어색합니다.</td>
+          </tr>
+          <tr>
+            <td>16</td>
+            <td><span class="type expr">오탈자·표현</span></td>
+            <td><code>4단원\중학_수학3_생각해요_4_2.20260313_V1.srt</code><br>cue 4, 7, 8</td>
+            <td>이차함수 y=x²일차함수처럼 ...<br>x=-3일 때, (-3)²=9 이니까 y=9<br>x=-2 일 때, (-2)²=4 니까 y=4</td>
+            <td>이차함수 y=x²도 일차함수처럼 ...<br>x=-3일 때, (-3)²=9이니까 y=9<br>x=-2일 때, (-2)²=4이니까 y=4</td>
+            <td>cue 4는 <code>도</code>가 빠진 것으로 보이고, 뒤쪽은 수식 주변 띄어쓰기를 정리하면 좋습니다.</td>
+          </tr>
+          <tr>
+            <td>17</td>
+            <td><span class="type expr">수식 표기</span></td>
+            <td><code>4단원\중학_수학3_생각해요_4_3 20260305.srt</code><br>cue 7 / 00:00:38,500</td>
+            <td>이 경사로는 이차함수 y=1/4x²의 그래프 모양이거든.</td>
+            <td>이 경사로는 이차함수 y=(1/4)x²의 그래프 모양이거든.</td>
+            <td>분수 계수는 괄호를 넣어 두는 편이 해석상 안전합니다.</td>
+          </tr>
+          <tr>
+            <td>18</td>
+            <td><span class="type typo">오탈자</span></td>
+            <td><code>4단원\중학_수학3_생각해요_4_4.20260313_V1.srt</code><br>cue 9-10</td>
+            <td>두 이차함 y=x²과 y=x²+3의 ... 표를 한번 ...<br>x=-2 일 때 함숫값이 ...</td>
+            <td>두 이차함수 y=x²과 y=x²+3의 ... 표를 한 번 ...<br>x=-2일 때 함숫값이 ...</td>
+            <td><code>이차함</code>은 탈락된 단어로 보이며, 나머지는 띄어쓰기 보정 대상입니다.</td>
+          </tr>
+          <tr>
+            <td>19</td>
+            <td><span class="type typo">띄어쓰기</span></td>
+            <td><code>5단원\중학_수학3_생각해요_5_3 20260306.srt</code>, <code>6단원\중학_수학3_생각해요_6_1 20260309_v1.srt</code>, <code>6단원\중학_수학3_생각해요_6_2 20260309_v1.srt</code><br>cue 3 / cue 10 / cue 12</td>
+            <td>우리도 따라해 볼까?<br>저를 따라해 보세요.</td>
+            <td>우리도 따라 해 볼까?<br>저를 따라 해 보세요.</td>
+            <td><code>따라 하다</code> 계열 표현이 여러 파일에서 동일하게 붙어 있습니다.</td>
+          </tr>
+          <tr>
+            <td>20</td>
+            <td><span class="type expr">표현</span></td>
+            <td><code>6단원\중학_수학3_생각해요_6_2 20260309_v1.srt</code><br>cue 6 / 00:00:38,000</td>
+            <td>선분 PA와 선분 PB의 두 길이 있네요.</td>
+            <td>선분 PA와 선분 PB의 길이를 비교해 볼 수 있겠네요.</td>
+            <td>현재 문장은 조사 누락으로 비문에 가깝습니다. 비교 상황을 직접 말해 주는 편이 명확합니다.</td>
+          </tr>
+          <tr>
+            <td>21</td>
+            <td><span class="type srt">SRT 형식</span></td>
+            <td>
+              <code>2단원\중학_수학3_생각해요_2_4 20260313_v1.srt</code><br>
+              <code>4단원\중학_수학3_생각해요_4_3 20260305.srt</code><br>
+              <code>7단원\중학_수학3_생각해요_7_2 20260311_v1.srt</code>
+            </td>
+            <td>
+              cue 5가 cue 4와 시간 겹침<br>
+              cue 9가 cue 8과 시간 겹침<br>
+              <code>00:01:03,000--&gt; 00:01:07,000</code>
+            </td>
+            <td>
+              겹치는 시작 시간을 뒤로 조정<br>
+              겹치는 시작 시간을 뒤로 조정<br>
+              <code>00:01:03,000 --&gt; 00:01:07,000</code>
+            </td>
+            <td>일부 플레이어나 편집기에서 자막 표시가 어긋날 수 있어 가장 먼저 수정하는 편이 좋습니다.</td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="footer">
+        참고: 본 검토는 자막 파일 텍스트를 기준으로 수행했습니다. 오디오 대조 검수는 별도로 진행하지 않았으며,
+        수식 표기는 교육용 자막에서 오해를 줄이기 위한 방향으로 제안했습니다.
+      </p>
+    </section>
+  </div>
+</body>
+</html>

@@ -6,298 +6,111 @@
     <title>오늘의 식당 룰렛 🤔</title>
 
     <meta property="og:title" content="오늘의 식당 룰렛 🎰" />
-    <meta property="og:description" content="오늘 뭐 먹지? 고민 해결! 5개 맛집 중 친구가 고른 당첨지는 어디?" />
+    <meta property="og:description" content="오늘 뭐 먹지? 고민 해결! 친구들과 식당 후보를 함께 추가하고 룰렛으로 골라보세요." />
     <meta property="og:image" content="https://images.unsplash.com/photo-1544025162-d76694265947?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" />
     <meta property="og:url" content="https://kimbbab.github.io/temp/meat.html" />
     <meta property="og:type" content="website" />
 
     <script src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.2/kakao.min.js"></script>
-    <style>
-        body { 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            justify-content: center; 
-            min-height: 100vh; 
-            font-family: 'Malgun Gothic', sans-serif; 
-            background-color: #f8f9fa; 
-            margin: 0; 
-            padding: 20px;
-            box-sizing: border-box;
-        }
-        h2 { color: #333; margin-bottom: 20px; text-align: center; word-break: keep-all; }
-        
-        #roulette-view {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            width: 100%;
-        }
-
-        #shared-view {
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            width: 100%;
-            max-width: 420px;
-        }
-
-        #roulette-container { position: relative; width: 320px; height: 320px; margin-bottom: 25px; }
-        canvas { border-radius: 50%; box-shadow: 0 4px 15px rgba(0,0,0,0.2); background-color: white; transform: rotate(-90deg); }
-        .pointer { position: absolute; top: -15px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 15px solid transparent; border-right: 15px solid transparent; border-top: 30px solid #ff4757; z-index: 10; }
-        
-        #spinBtn { padding: 12px 40px; font-size: 20px; font-weight: bold; background-color: #2ed573; color: white; border: none; border-radius: 8px; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: all 0.2s; margin-bottom: 20px; }
-        #spinBtn:hover { background-color: #27ae60; transform: translateY(-2px); }
-        #spinBtn:disabled { background-color: #ced4da; cursor: not-allowed; transform: none; }
-        
-        #result-text { font-size: 24px; font-weight: bold; color: #ff4757; height: 35px; }
-
-        #result-card {
-            display: none; margin-top: 15px; padding: 20px; background: white; border-radius: 12px; box-shadow: 0 10px 20px rgba(0,0,0,0.1); text-align: center; max-width: 320px; border: 2px solid #ff4757; opacity: 0; transition: opacity 0.5s ease-in-out;
-        }
-        #result-desc { font-size: 16px; color: #555; line-height: 1.5; word-break: keep-all; margin: 0; }
-        
-        .share-buttons { display: flex; gap: 10px; margin-top: 20px; justify-content: center; }
-        .share-btn { padding: 10px 15px; font-size: 14px; font-weight: bold; border: none; border-radius: 8px; cursor: pointer; transition: opacity 0.2s; }
-        .share-btn:hover { opacity: 0.8; }
-        .copy-btn { background-color: #f1f2f6; color: #2f3542; }
-        .kakao-btn { background-color: #FEE500; color: #000000; }
-        
-        .map-btn { display: block; margin-top: 15px; padding: 10px 20px; background-color: #03c75a; color: white; text-decoration: none; font-weight: bold; border-radius: 8px; transition: background 0.2s; text-align: center;}
-        .map-btn:hover { background-color: #02a348; }
-
-        .list-item {
-            width: 100%; padding: 20px; margin-bottom: 15px; border-radius: 12px; background: white; 
-            box-shadow: 0 3px 6px rgba(0,0,0,0.06); border: 1px solid #eee; box-sizing: border-box; text-align: left;
-            position: relative; overflow: hidden;
-        }
-        .list-item h3 { margin: 0 0 8px 0; color: #2f3542; font-size: 19px; }
-        .list-item p { margin: 0; font-size: 15px; color: #747d8c; line-height: 1.5; word-break: keep-all; }
-        
-        .highlight {
-            border: 4px solid #ff4757; background-color: #fff0f0; transform: scale(1.04); 
-            box-shadow: 0 6px 20px rgba(255, 71, 87, 0.25);
-        }
-        .highlight h3 { color: #ff4757; font-size: 21px;}
-        .highlight::before { 
-            content: '🎉 친구의 픽!'; font-size: 14px; color: white; font-weight: bold; 
-            display: inline-block; position: absolute; top: 0; left: 0; background-color: #ff4757; 
-            padding: 5px 12px; border-radius: 0 0 10px 0;
-        }
-
-        #go-home-btn {
-            width: 100%; padding: 15px; font-size: 19px; font-weight: bold; background-color: #3498db; color: white; 
-            border: none; border-radius: 8px; cursor: pointer; margin-top: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
-        #go-home-btn:hover { background-color: #2980b9; }
-
-    </style>
+    <link rel="stylesheet" href="./meat.css" />
 </head>
 <body>
+    <div class="page">
+        <div id="roulette-view">
+            <div class="intro">
+                <h1>오늘은 어디로 갈까요? 🤔</h1>
+                <p>친구들이 식당 후보를 직접 추가하고, 모두가 같은 후보 목록으로 룰렛을 돌릴 수 있게 만들었습니다.</p>
+            </div>
 
-    <div id="roulette-view">
-        <h2>오늘은 어디로 갈까요? 🤔</h2>
-        <div id="roulette-container">
-            <div class="pointer"></div>
-            <canvas id="wheel" width="320" height="320"></canvas>
-        </div>
-        
-        <button id="spinBtn">돌리기!</button>
-        <div id="result-text"></div>
+            <div class="layout">
+                <section class="panel wheel-panel">
+                    <div class="section-head">
+                        <h2>오늘의 식당 룰렛</h2>
+                        <span id="restaurant-count" class="badge">0곳</span>
+                    </div>
 
-        <div id="result-card">
-            <p id="result-desc"></p>
-            <a id="map-link" class="map-btn" href="#" target="_blank">네이버 지도에서 보기</a>
-            
-            <div class="share-buttons">
-                <button id="copyBtn" class="share-btn copy-btn">🔗 결과 복사</button>
-                <button id="kakaoBtn" class="share-btn kakao-btn">💬 카톡 공유</button>
+                    <div id="roulette-container">
+                        <div class="pointer"></div>
+                        <canvas id="wheel" width="320" height="320"></canvas>
+                    </div>
+
+                    <button id="spinBtn">돌리기!</button>
+                    <div id="result-text"></div>
+
+                    <div id="result-card">
+                        <h3 id="result-name"></h3>
+                        <p id="result-desc"></p>
+                        <a id="map-link" class="map-btn" href="#" target="_blank" rel="noopener noreferrer">네이버 지도에서 보기</a>
+
+                        <div class="share-buttons">
+                            <button id="copyBtn" class="share-btn copy-btn">🔗 결과 복사</button>
+                            <button id="kakaoBtn" class="share-btn kakao-btn">💬 카톡 공유</button>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="panel">
+                    <div class="section-head">
+                        <h2>식당 직접 추가하기</h2>
+                        <div class="inline-actions">
+                            <button id="refreshRestaurantsBtn" class="secondary-btn" type="button">후보 새로고침</button>
+                        </div>
+                    </div>
+
+                    <div id="config-warning" class="config-warning"></div>
+                    <p class="helper-text">누구나 후보를 추가할 수 있습니다. 저장된 식당은 다른 사람에게도 보이고, 다음 방문 때도 그대로 남습니다.</p>
+
+                    <form id="restaurant-form">
+                        <div class="form-grid">
+                            <div>
+                                <label for="restaurant-name">식당 이름</label>
+                                <input id="restaurant-name" name="name" maxlength="40" placeholder="예: 철산 회식당" required />
+                            </div>
+                            <div>
+                                <label for="restaurant-desc">설명</label>
+                                <textarea id="restaurant-desc" name="description" maxlength="180" placeholder="추천 메뉴나 분위기를 적어주세요." required></textarea>
+                            </div>
+                            <div>
+                                <label for="restaurant-link">지도 링크</label>
+                                <input id="restaurant-link" name="mapLink" maxlength="400" placeholder="https://map.naver.com/..." required />
+                            </div>
+                            <div class="inline-actions">
+                                <button id="submitRestaurantBtn" class="primary-btn" type="submit">식당 추가</button>
+                            </div>
+                        </div>
+                    </form>
+
+                    <div id="form-message" class="message-info"></div>
+                    <div id="load-message" class="message-info"></div>
+
+                    <div class="candidate-section">
+                        <div class="section-head">
+                            <h3>현재 후보 목록</h3>
+                        </div>
+                        <div id="candidate-list" class="candidate-list"></div>
+                    </div>
+                </section>
             </div>
         </div>
-    </div>
 
-    <div id="shared-view">
-        <h2>친구가 공유한 오늘의 식당! 🍽️</h2>
-        <div id="restaurant-list" style="width: 100%;">
+        <div id="shared-view">
+            <div class="intro">
+                <h1>친구가 공유한 오늘의 식당! 🍽️</h1>
+                <p>같은 후보 목록 안에서 친구가 당첨된 식당을 강조해서 보여줍니다.</p>
+            </div>
+
+            <section class="panel shared-panel">
+                <div class="section-head">
+                    <h2>공유된 결과</h2>
+                    <span id="shared-restaurant-count" class="badge">0곳</span>
+                </div>
+                <div id="restaurant-list" class="shared-list"></div>
+            </section>
+
+            <button id="go-home-btn" type="button">나도 룰렛 돌려보기 🎰</button>
         </div>
-        <button id="go-home-btn" onclick="location.href='https://kimbbab.github.io/temp/meat.html'">나도 룰렛 돌려보기 🎰</button>
     </div>
 
-    <script>
-        const myPageUrl = "https://kimbbab.github.io/temp/meat.html";
-
-        try {
-            if (window.Kakao && !Kakao.isInitialized()) {
-                Kakao.init('527014d7c9b229fbcbc75917689b6e2d'); 
-            }
-        } catch(e) { console.warn("카카오 대기 중"); }
-
-        const items = ["장군집", "대송참숯", "마포옥", "맛찬들", "유일순대"];
-        const colors = ["#ffb8b8", "#ffcccc", "#f8efba", "#c8d6e5", "#cf6a87"];
-        
-        const restaurantData = {
-            "장군집": { desc: "가성비 최고! 연탄불에 구워먹는 쫄깃한 돼지 부속고기와 시원한 소주 한 잔 🍶", link: "https://map.naver.com/p/search/광명%20장군집" },
-            "대송참숯": { desc: "입에서 살살 녹는 투뿔 한우! 프라이빗하고 고급스러운 분위기에서 제대로 된 식사를 ✨", link: "https://map.naver.com/p/search/대송참숯" },
-            "마포옥": { desc: "미쉐린 가이드 선정! 맑고 깊은 국물의 한우 양지 설렁탕으로 몸보신 제대로 🥣", link: "https://map.naver.com/p/search/마포옥" },
-            "맛찬들": { desc: "전문가가 구워주는 겉바속촉 끝판왕! 두툼한 숙성 돼지고기의 진수를 맛보세요 🥩", link: "https://map.naver.com/p/search/철산%20맛찬들" },
-            "유일순대": { desc: "은은한 인삼 향이 매력적인, 늘 웨이팅이 끊이지 않는 지역 찐 순대국 맛집 🥘", link: "https://map.naver.com/p/search/광명%20유일순대" }
-        };
-
-        const urlParams = new URLSearchParams(window.location.search);
-        const sharedResult = urlParams.get('result');
-
-        if (sharedResult && items.includes(sharedResult)) {
-            document.getElementById('roulette-view').style.display = 'none';
-            document.getElementById('shared-view').style.display = 'flex';
-            
-            const listContainer = document.getElementById('restaurant-list');
-            
-            items.forEach(item => {
-                const div = document.createElement('div');
-                div.className = 'list-item';
-                if (item === sharedResult) {
-                    div.classList.add('highlight');
-                }
-                div.innerHTML = `
-                    <h3>${item}</h3>
-                    <p>${restaurantData[item].desc}</p>
-                `;
-                listContainer.appendChild(div);
-            });
-
-        } else {
-            document.getElementById('roulette-view').style.display = 'flex';
-            document.getElementById('shared-view').style.display = 'none';
-
-            const canvas = document.getElementById("wheel");
-            const ctx = canvas.getContext("2d");
-            const spinBtn = document.getElementById("spinBtn");
-            const resultText = document.getElementById("result-text");
-            const resultCard = document.getElementById("result-card");
-            const resultDesc = document.getElementById("result-desc");
-            const mapLink = document.getElementById("map-link");
-            const copyBtn = document.getElementById("copyBtn");
-            const kakaoBtn = document.getElementById("kakaoBtn");
-
-            let currentAngle = 0;
-            let isSpinning = false;
-            let spinTimeout = null;
-            let currentSelectedItem = "";
-            const arc = Math.PI * 2 / items.length;
-
-            function drawWheel() {
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                for (let i = 0; i < items.length; i++) {
-                    const angle = currentAngle + i * arc;
-                    ctx.beginPath();
-                    ctx.fillStyle = colors[i];
-                    ctx.moveTo(canvas.width / 2, canvas.height / 2);
-                    ctx.arc(canvas.width / 2, canvas.height / 2, canvas.width / 2, angle, angle + arc, false);
-                    ctx.fill();
-                    ctx.save();
-                    ctx.fillStyle = "#2f3542";
-                    ctx.font = "bold 20px 'Malgun Gothic'";
-                    ctx.translate(canvas.width / 2 + Math.cos(angle + arc / 2) * 100, canvas.height / 2 + Math.sin(angle + arc / 2) * 100);
-                    ctx.rotate(angle + arc / 2 + Math.PI / 2);
-                    ctx.fillText(items[i], -ctx.measureText(items[i]).width / 2, 0);
-                    ctx.restore();
-                }
-            }
-
-            function spin() {
-                if (isSpinning) return;
-                isSpinning = true;
-                spinBtn.disabled = true;
-                resultText.innerText = "두구두구두구... 🥁";
-                resultCard.style.opacity = 0;
-                setTimeout(() => { resultCard.style.display = "none"; }, 300);
-
-                const spinAngleStart = Math.random() * 10 + 20; 
-                let spinTime = 0;
-                const spinTimeTotal = Math.random() * 3000 + 4000;
-
-                function rotateWheel() {
-                    spinTime += 30;
-                    if (spinTime >= spinTimeTotal) { stopRotateWheel(); return; }
-                    const spinAngle = spinAngleStart - easeOut(spinTime, 0, spinAngleStart, spinTimeTotal);
-                    currentAngle += (spinAngle * Math.PI / 180);
-                    drawWheel();
-                    spinTimeout = requestAnimationFrame(rotateWheel);
-                }
-                rotateWheel();
-            }
-
-            function stopRotateWheel() {
-                cancelAnimationFrame(spinTimeout);
-                const degrees = currentAngle * 180 / Math.PI;
-                const arcd = arc * 180 / Math.PI;
-                const index = Math.floor((360 - degrees % 360) / arcd) % items.length;
-                
-                currentSelectedItem = items[index];
-                resultText.innerHTML = "🎉 <b>" + currentSelectedItem + "</b> 당첨! 🎉";
-                resultDesc.innerText = restaurantData[currentSelectedItem].desc;
-                mapLink.href = restaurantData[currentSelectedItem].link;
-                
-                resultCard.style.display = "block";
-                setTimeout(() => { resultCard.style.opacity = 1; }, 50);
-
-                isSpinning = false;
-                spinBtn.disabled = false;
-            }
-
-            function easeOut(t, b, c, d) {
-                const ts = (t /= d) * t;
-                const tc = ts * t;
-                return b + c * (tc + -3 * ts + 3 * t);
-            }
-
-            drawWheel();
-            spinBtn.addEventListener("click", spin);
-
-            copyBtn.addEventListener("click", () => {
-                if (!currentSelectedItem) return;
-                const shareLink = `${myPageUrl}?result=${encodeURIComponent(currentSelectedItem)}`;
-                const textToShare = `[오늘의 식당: ${currentSelectedItem}]\n\n전체 후보와 친구의 당첨 결과 보기 👇\n${shareLink}`;
-                navigator.clipboard.writeText(textToShare).then(() => { alert("결과가 복사되었습니다!"); });
-            });
-
-            kakaoBtn.addEventListener("click", () => {
-                if (!currentSelectedItem) return;
-                
-                // [수정됨] 카카오톡 메시지에 뜰 이미지 URL도 여기 함께 적어줍니다.
-                const imageUrl = "https://images.unsplash.com/photo-1544025162-d76694265947?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80";
-                const shareLink = `${myPageUrl}?result=${encodeURIComponent(currentSelectedItem)}`;
-                
-                Kakao.Share.sendDefault({
-                    objectType: 'feed', // 텍스트만 있는게 아니라 이미지도 보여주기 위해 feed 타입으로 변경
-                    content: {
-                        title: `오늘의 식당 당첨: ${currentSelectedItem} 🎉`,
-                        description: restaurantData[currentSelectedItem].desc,
-                        imageUrl: imageUrl,
-                        link: {
-                            mobileWebUrl: shareLink,
-                            webUrl: shareLink,
-                        },
-                    },
-                    buttons: [
-                        {
-                            title: '결과 전체보기',
-                            link: {
-                                mobileWebUrl: shareLink,
-                                webUrl: shareLink,
-                            },
-                        },
-                        {
-                            title: '지도에서 보기',
-                            link: {
-                                mobileWebUrl: restaurantData[currentSelectedItem].link,
-                                webUrl: restaurantData[currentSelectedItem].link,
-                            },
-                        },
-                    ],
-                });
-            });
-        }
-    </script>
+    <script src="./meat.js"></script>
 </body>
 </html>

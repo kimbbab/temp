@@ -109,6 +109,22 @@ function supabaseHeaders(extra = {}) {
     };
 }
 
+function parseSupabaseError(errorText, fallbackMessage) {
+    try {
+        const parsed = JSON.parse(errorText);
+        if (parsed && parsed.code === "42501") {
+            return "Supabase 정책이 아직 이전 상태입니다. reset_empty SQL을 다시 실행해주세요.";
+        }
+        if (parsed && parsed.message) {
+            return parsed.message;
+        }
+    } catch (error) {
+        // Ignore JSON parsing failures and fall back to the raw text.
+    }
+
+    return errorText || fallbackMessage;
+}
+
 async function loadRestaurants(options = {}) {
     const { silent = false } = options;
 
@@ -127,7 +143,7 @@ async function loadRestaurants(options = {}) {
 
             if (!response.ok) {
                 const errorText = await response.text();
-                throw new Error(errorText || "후보 목록을 불러오지 못했습니다.");
+                throw new Error(parseSupabaseError(errorText, "후보 목록을 불러오지 못했습니다."));
             }
 
             const data = await response.json();
@@ -325,7 +341,7 @@ async function addRestaurant(event) {
 
         if (!response.ok) {
             const errorText = await response.text();
-            throw new Error(errorText || "후보를 저장하지 못했습니다.");
+            throw new Error(parseSupabaseError(errorText, "후보를 저장하지 못했습니다."));
         }
 
         restaurantForm.reset();
@@ -359,7 +375,7 @@ async function deleteRestaurant(restaurant) {
 
         if (!response.ok) {
             const errorText = await response.text();
-            throw new Error(errorText || "후보를 삭제하지 못했습니다.");
+            throw new Error(parseSupabaseError(errorText, "후보를 삭제하지 못했습니다."));
         }
 
         if (currentSelectedName === restaurant.name) {

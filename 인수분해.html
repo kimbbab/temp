@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>이차방정식 인수분해 (양수 우선 탐색)</title>
+    <style>
+        body { font-family: 'Malgun Gothic', sans-serif; display: flex; justify-content: center; padding: 50px; background-color: #f0f2f5; }
+        .container { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 450px; }
+        h2 { text-align: center; color: #2c3e50; margin-bottom: 20px; }
+        .input-row { display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 25px; font-weight: bold; }
+        input { width: 60px; padding: 10px; border: 2px solid #ddd; border-radius: 8px; text-align: center; font-size: 1.1rem; }
+        input:focus { border-color: #3498db; outline: none; }
+        button { width: 100%; padding: 15px; background-color: #3498db; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 1.1rem; transition: 0.3s; }
+        button:hover { background-color: #2980b9; }
+        #result { margin-top: 25px; padding: 20px; border-radius: 8px; display: none; text-align: center; font-size: 1.2rem; line-height: 1.6; }
+        .success { border: 2px solid #27ae60; background-color: #f1f9f5; color: #27ae60; }
+        .fail { border: 2px solid #e74c3c; background-color: #fdf2f2; color: #e74c3c; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>인수분해 계산기</h2>
+    <div class="input-row">
+        <input type="number" id="a" value="1"> <span>x² +</span>
+        <input type="number" id="b" value="-5"> <span>x +</span>
+        <input type="number" id="c" value="6"> <span>= 0</span>
+    </div>
+
+    <button onclick="factorize()">인수분해 결과 보기</button>
+
+    <div id="result"></div>
+</div>
+
+<script>
+    function factorize() {
+        const a = parseInt(document.getElementById('a').value);
+        const b = parseInt(document.getElementById('b').value);
+        const c = parseInt(document.getElementById('c').value);
+        const resultDiv = document.getElementById('result');
+
+        if (isNaN(a) || isNaN(b) || isNaN(c)) {
+            alert("숫자를 모두 입력해주세요.");
+            return;
+        }
+
+        let found = false;
+        let finalStr = "";
+
+        // 1. a의 약수 p, r 찾기 (a = p * r)
+        // 양수부터 찾기 위해 1부터 시작
+        for (let p = 1; p <= Math.abs(a); p++) {
+            if (a % p === 0) {
+                let r = a / p;
+
+                // 2. c의 약수 q, s 찾기 (c = q * s)
+                // c의 약수는 양수/음수 모두 고려해야 하므로 절댓값 범위에서 탐색
+                let absC = Math.abs(c);
+                if (c === 0) {
+                    // c가 0일 때: x(ax + b) 형태
+                    finalStr = formatResult(p, 0, r, b);
+                    found = true;
+                } else {
+                    for (let q = -absC; q <= absC; q++) {
+                        if (q !== 0 && c % q === 0) {
+                            let s = c / q;
+                            // 대각선 공식 확인: ps + rq = b
+                            if (p * s + r * q === b) {
+                                finalStr = formatResult(p, q, r, s);
+                                found = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+            if (found) break;
+        }
+
+        resultDiv.style.display = "block";
+        if (found) {
+            resultDiv.className = "success";
+            resultDiv.innerHTML = `인수분해 성공!<br><span style="font-size:1.5rem">${finalStr} = 0</span>`;
+        } else {
+            resultDiv.className = "fail";
+            resultDiv.innerHTML = "정수 범위 내에서<br>인수분해할 수 없습니다.";
+        }
+    }
+
+    // 결과 문자열 정제 함수 (예: 1x -> x, + -3 -> -3 처리)
+    function formatResult(p, q, r, s) {
+        function makeTerm(coeff, constant) {
+            let res = "";
+            // 일차항 계수 처리
+            if (coeff === 1) res += "x";
+            else if (coeff === -1) res += "-x";
+            else res += coeff + "x";
+
+            // 상수항 처리
+            if (constant > 0) res += " + " + constant;
+            else if (constant < 0) res += " - " + Math.abs(constant);
+            
+            return res;
+        }
+
+        let term1 = makeTerm(p, q);
+        let term2 = makeTerm(r, s);
+        
+        // 상수항이 0이면 (px + 0) 대신 x나 px로 표시
+        if (q === 0) term1 = (p === 1) ? "x" : p + "x";
+        
+        return `(${term1})(${term2})`;
+    }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>가위바위보</title>
+    <style>
+        body { background:#222; color:#fff; text-align:center; padding-top:50px; font-family:sans-serif; }
+        .box { background:#333; width:300px; margin:auto; padding:20px; border-radius:20px; border:5px solid #444; }
+        #disp { font-size:60px; color:#fc0; margin:20px 0; font-weight:bold; height:80px; }
+        .btn { font-size:30px; width:80px; height:80px; cursor:pointer; border-radius:15px; margin:5px; background:#555; color:#fff; border:none; }
+        #startBtn { padding:15px 30px; font-size:20px; cursor:pointer; background:#fc0; border-radius:10px; border:none; font-weight:bold; color:#000; }
+    </style>
+</head>
+<body>
+
+    <div class="box">
+        <h2 style="color:#888;">GAME START</h2>
+        
+        <div id="disp">READY</div>
+        
+        <button id="startBtn" onclick="gameRun()">게임 시작!</button>
+
+        <div id="playUI" style="display:none;">
+            <div style="font-size:40px; margin-bottom:10px;">
+                <span id="pI">❓</span> VS <span id="cI">❓</span>
+            </div>
+            <div id="msg" style="color:#0f0; margin-bottom:10px; font-weight:bold;">선택하세요!</div>
+            <button class="btn" onclick="playNow('가위')">✌️</button>
+            <button class="btn" onclick="playNow('바위')">✊</button>
+            <button class="btn" onclick="playNow('보')">✋</button>
+        </div>
+
+        <p style="color:#666; font-size:14px; margin-top:20px;">
+            승:<span id="tw">0</span> 무:<span id="td">0</span> 패:<span id="tl">0</span>
+        </p>
+    </div>
+
+    <script>
+        var w=0, d=0, l=0;
+
+        // 게임 시작 함수
+        function gameRun() {
+            document.getElementById('startBtn').style.display = 'none';
+            document.getElementById('playUI').style.display = 'none';
+            var dsp = document.getElementById('disp');
+            dsp.style.display = 'block';
+            
+            var c = 3;
+            dsp.innerText = c;
+
+            var timer = setInterval(function() {
+                c--;
+                if (c > 0) {
+                    dsp.innerText = c;
+                } else if (c === 0) {
+                    dsp.innerText = "GO!";
+                } else {
+                    clearInterval(timer);
+                    dsp.style.display = 'none';
+                    document.getElementById('playUI').style.display = 'block';
+                }
+            }, 800);
+        }
+
+        // 결과 판정 함수
+        function playNow(p) {
+            var arr = ['가위', '바위', '보'];
+            var c = arr[Math.floor(Math.random() * 3)];
+            var icos = {'가위':'✌️', '바위':'✊', '보':'✋'};
+
+            document.getElementById('pI').innerText = icos[p];
+            document.getElementById('cI').innerText = icos[c];
+
+            var res = "";
+            if (p === c) { res = "비겼다! 🤝"; d++; }
+            else if ((p=='가위'&&c=='보')||(p=='바위'&&c=='가위')||(p=='보'&&c=='바위')) { res = "이겼다! 🎉"; w++; }
+            else { res = "졌다... 💀"; l++; }
+
+            document.getElementById('msg').innerText = res;
+            document.getElementById('tw').innerText = w;
+            document.getElementById('td').innerText = d;
+            document.getElementById('tl').innerText = l;
+
+            // 1.5초 뒤 초기화
+            setTimeout(function() {
+                document.getElementById('playUI').style.display = 'none';
+                document.getElementById('startBtn').style.display = 'inline-block';
+                document.getElementById('startBtn').innerText = '한 판 더!';
+                document.getElementById('disp').style.display = 'block';
+                document.getElementById('disp').innerText = 'READY';
+                document.getElementById('msg').innerText = '선택하세요!';
+            }, 1500);
+        }
+    </script>
+</body>
+</html>

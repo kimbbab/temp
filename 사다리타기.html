@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>🎨 이모지 사다리타기 게임</title>
+    <style>
+        :root { --line-color: #333; --point-color: #FFD700; }
+        body { font-family: 'Malgun Gothic', sans-serif; background-color: #f0f4f8; display: flex; justify-content: center; padding: 40px 20px; }
+        .container { position: relative; background: white; padding: 50px 40px; border-radius: 25px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); width: 880px; }
+
+        /* 이미지 참고: 우측 상단 말풍선 */
+        .guide-bubble {
+            position: absolute; top: 15px; right: 50px;
+            background: #fff; border: 2.5px solid #333; border-radius: 15px;
+            padding: 10px 22px; font-weight: bold; font-size: 15px; color: #333;
+            box-shadow: 3px 3px 0px #333;
+        }
+        .guide-bubble::after {
+            content: ''; position: absolute; bottom: -12px; right: 25px;
+            border-top: 12px solid #333; border-left: 10px solid transparent; border-right: 10px solid transparent;
+        }
+
+        .setup-menu { margin-bottom: 35px; text-align: left; padding-left: 10px; }
+        select { padding: 5px 10px; border-radius: 5px; border: 2px solid #333; font-weight: bold; }
+        
+        /* 입력창 정렬: 사다리 세로선과 완벽 일치 */
+        .input-wrap { display: flex; justify-content: space-around; width: 800px; margin: 0 auto; }
+        .input-item { flex: 1; display: flex; justify-content: center; }
+        input {
+            width: 85px; padding: 10px; border: 2.5px solid #eee; border-radius: 10px;
+            text-align: center; font-weight: bold; font-size: 14px; transition: 0.3s;
+        }
+        input:focus { border-color: #4A90E2; background-color: #f0f7ff; }
+
+        canvas { background: transparent; display: block; margin: 15px auto; }
+        
+        .btn-group { margin-top: 35px; display: flex; justify-content: center; gap: 20px; }
+        button { 
+            padding: 14px 40px; font-size: 17px; border-radius: 50px; border: 2.5px solid #333;
+            cursor: pointer; font-weight: bold; background: #fff; transition: 0.2s;
+        }
+        .btn-start { background: #333; color: #fff; box-shadow: 0 4px 0 #000; }
+        .btn-start:active { transform: translateY(3px); box-shadow: none; }
+        button:hover:not(:disabled) { background: #f0f0f0; }
+        .btn-start:hover:not(:disabled) { background: #444; }
+
+        /* 결과창 디자인 */
+        #result-display { 
+            margin-top: 30px; padding: 20px; border-radius: 15px;
+            background: #fdfdfd; border: 2px dashed #ccc;
+            font-size: 19px; color: #333; line-height: 1.8;
+        }
+        .res-item { display: inline-block; margin: 5px 15px; padding: 5px 15px; background: #fff; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="guide-bubble">💬 이름과 당첨항목을 적어주세요!</div>
+
+    <div class="setup-menu">
+        <strong>👥 인원 선택:</strong>
+        <select id="member-count" onchange="initGame()">
+            <option value="2">2명</option>
+            <option value="3">3명</option>
+            <option value="4" selected>4명</option>
+            <option value="5">5명</option>
+            <option value="6">6명</option>
+            <option value="7">7명</option>
+            <option value="8">8명</option>
+            <option value="9">9명</option>
+            <option value="10">10명</option>
+        </select>
+    </div>
+
+    <div id="names-container" class="input-wrap"></div>
+    <canvas id="ladderCanvas" width="800" height="380"></canvas>
+    <div id="goals-container" class="input-wrap"></div>
+
+    <div class="btn-group">
+        <button onclick="initGame()">🔄 돌아가기</button>
+        <button id="start-btn" class="btn-start" onclick="runGame()">🚀 사다리 시작</button>
+    </div>
+
+    <div id="result-display"></div>
+</div>
+
+<script>
+    const canvas = document.getElementById('ladderCanvas');
+    const ctx = canvas.getContext('2d');
+    let memberCount, colWidth;
+    let horizontalLines = [];
+    let isGameRunning = false;
+    let showHorizontal = false;
+
+    window.onload = initGame;
+
+    function initGame() {
+        memberCount = parseInt(document.getElementById('member-count').value);
+        colWidth = canvas.width / memberCount; 
+        isGameRunning = false;
+        showHorizontal = false;
+        document.getElementById('start-btn').disabled = false;
+        document.getElementById('result-display').innerHTML = '결과를 기다리는 중... ⏳';
+        
+        setupInputs();
+        generateLadderData();
+        render();
+    }
+
+    function setupInputs() {
+        const nBox = document.getElementById('names-container');
+        const gBox = document.getElementById('goals-container');
+        nBox.innerHTML = ''; gBox.innerHTML = '';
+
+        const defaultGoals = ['🎁 당첨', '❌ 꽝', '☕ 커피', '🍰 디저트', '🍱 간식', '🧹 청소', '🏃 심부름', '👑 왕', '🃏 꽝', '⭐ 행운'];
+
+        for (let i = 0; i < memberCount; i++) {
+            nBox.innerHTML += `<div class="input-item"><input type="text" id="name${i}" value="사람${i+1}"></div>`;
+            gBox.innerHTML += `<div class="input-item"><input type="text" id="goal${i}" value="${defaultGoals[i] || '결과'+(i+1)}"></div>`;
+        }
+    }
+
+    function generateLadderData() {
+        horizontalLines = [];
+        const steps = 15; // 층을 나누어 꼬임 방지
+        const stepHeight = (canvas.height - 40) / steps;
+        for (let s = 0; s < steps; s++) {
+            const col = Math.floor(Math.random() * (memberCount - 1));
+            const y = 20 + (s * stepHeight) + (Math.random() * (stepHeight * 0.7));
+            horizontalLines.push({ col: col, y: y });
+        }
+    }
+
+    function render() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.strokeStyle = '#333';
+        ctx.lineWidth = 4;
+
+        for (let i = 0; i < memberCount; i++) {
+            const x = (i + 0.5) * colWidth;
+            ctx.beginPath();
+            ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height);
+            ctx.stroke();
+        }
+
+        if (showHorizontal) {
+            ctx.lineWidth = 3;
+            horizontalLines.forEach(line => {
+                const x1 = (line.col + 0.5) * colWidth;
+                const x2 = (line.col + 1.5) * colWidth;
+                ctx.beginPath(); ctx.moveTo(x1, line.y); ctx.lineTo(x2, line.y); ctx.stroke();
+            });
+        }
+    }
+
+    async function runGame() {
+        if (isGameRunning) return;
+        isGameRunning = true;
+        showHorizontal = true;
+        render();
+        document.getElementById('start-btn').disabled = true;
+        
+        let results = [];
+        for (let i = 0; i < memberCount; i++) {
+            const endIdx = await drawPath(i);
+            const name = document.getElementById(`name${i}`).value;
+            const goal = document.getElementById(`goal${endIdx}`).value;
+            results.push(`<span class="res-item">👤 <strong>${name}</strong> ➔ ${goal}</span>`);
+        }
+        document.getElementById('result-display').innerHTML = "🎉 <strong>최종 결과 발표</strong> 🎉<br>" + results.join("");
+    }
+
+    async function drawPath(startIdx) {
+        let currentCol = startIdx;
+        let x = (currentCol + 0.5) * colWidth;
+        let y = 0;
+        ctx.strokeStyle = `hsl(${(startIdx * 360 / memberCount)}, 80%, 50%)`;
+        ctx.lineWidth = 7;
+
+        while (y < canvas.height) {
+            let nextLine = horizontalLines
+                .filter(l => (l.col === currentCol || l.col === currentCol - 1) && l.y > y)
+                .sort((a, b) => a.y - b.y)[0];
+
+            let targetY = nextLine ? nextLine.y : canvas.height;
+            await animate(x, y, x, targetY);
+            y = targetY;
+
+            if (nextLine) {
+                let targetX = (nextLine.col === currentCol) ? (currentCol + 1.5) * colWidth : (currentCol - 0.5) * colWidth;
+                await animate(x, y, targetX, y);
+                x = targetX;
+                currentCol = (nextLine.col === currentCol) ? currentCol + 1 : currentCol - 1;
+            }
+        }
+        return currentCol;
+    }
+
+    function animate(x1, y1, x2, y2) {
+        return new Promise(r => {
+            const duration = 80;
+            const start = performance.now();
+            function step(now) {
+                const t = Math.min(1, (now - start) / duration);
+                ctx.beginPath(); ctx.moveTo(x1, y1);
+                ctx.lineTo(x1 + (x2 - x1) * t, y1 + (y2 - y1) * t);
+                ctx.stroke();
+                if (t < 1) requestAnimationFrame(step); else r();
+            }
+            requestAnimationFrame(step);
+        });
+    }
+</script>
+
+</body>
+</html>

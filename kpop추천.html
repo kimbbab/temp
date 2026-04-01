@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>K-POP Top 50 추천기</title>
+    <style>
+        :root { --point: #1DB954; --bg: #121212; --card: #1e1e1e; }
+        body {
+            display: flex; justify-content: center; align-items: center;
+            min-height: 100vh; margin: 0; background: var(--bg);
+            font-family: 'Pretendard', sans-serif; color: white;
+        }
+        .container {
+            text-align: center; background: var(--card); padding: 2.5rem;
+            border-radius: 24px; box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            max-width: 400px; width: 90%;
+        }
+        .album-art {
+            width: 250px; height: 250px; margin: 0 auto 1.5rem;
+            border-radius: 15px; overflow: hidden; background: #333;
+            cursor: pointer; box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+        }
+        #cover-img { width: 100%; height: 100%; object-fit: cover; display: none; }
+        .placeholder { line-height: 250px; font-size: 4rem; }
+        #song-title { font-size: 1.5rem; font-weight: 800; margin-bottom: 0.5rem; color: var(--point); cursor: pointer; }
+        #artist { font-size: 1.1rem; color: #aaa; margin-bottom: 2rem; }
+        button {
+            background: var(--point); color: white; border: none; padding: 15px 35px;
+            border-radius: 50px; font-size: 1.1rem; font-weight: 700; cursor: pointer; transition: 0.3s;
+        }
+        button:hover { background: #1ed760; transform: scale(1.05); }
+
+        /* 가사 모달 */
+        .modal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9); z-index: 999; justify-content: center; align-items: center;
+        }
+        .modal-content {
+            background: #282828; padding: 2.5rem; border-radius: 20px;
+            max-width: 400px; width: 85%; max-height: 70vh; overflow-y: auto;
+            position: relative; text-align: center;
+        }
+        .close-btn { position: absolute; top: 15px; right: 20px; font-size: 1.5rem; cursor: pointer; color: #888; }
+        .lyrics-box { white-space: pre-line; line-height: 2; color: #efefef; margin-top: 1.5rem; font-size: 1.1rem; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="album-art" onclick="openLyrics()">
+        <div class="placeholder">🎵</div>
+        <img id="cover-img" src="" alt="Album Cover">
+    </div>
+    <div id="song-title" onclick="openLyrics()">오늘의 곡 찾기</div>
+    <div id="artist">버튼을 눌러주세요</div>
+    <br>
+    <button onclick="pickSong()">랜덤 K-POP 추천</button>
+</div>
+
+<div id="lyricsModal" class="modal">
+    <div class="modal-content">
+        <span class="close-btn" onclick="closeLyrics()">✕</span>
+        <h2 id="m-title" style="color:var(--point); margin-bottom:5px;"></h2>
+        <div id="m-artist" style="color:#aaa;"></div>
+        <div id="m-lyrics" class="lyrics-box"></div>
+    </div>
+</div>
+
+<script>
+    const kpopList = [
+        { t: "APT.", a: "ROSÉ & Bruno Mars", l: "아파트 아파트\n아파트 아파트\n건배 건배 건배\nLet's get it started!", img: 10 },
+        { t: "Mantra", a: "JENNIE", l: "This is the mantra\n빛이 나는 나의 에너지\n모두가 나를 따라해", img: 11 },
+        { t: "Whiplash", a: "aespa", l: "I'm the Whiplash\n거침없이 밟아봐 더\n심장을 울리는 비트", img: 12 },
+        { t: "Supernova", a: "aespa", l: "사건은 다가와 Ah Oh Ay\n거대하게 폭발해\nI'm a Supernova", img: 13 },
+        { t: "Love Lee", a: "AKMU", l: "너는 너무 사랑스러워\n너의 모든 게 다 예뻐 보여", img: 14 },
+        { t: "밤양갱", a: "비비 (BIBI)", l: "달디달고 달디달고 달디단\n밤양갱 밤양갱", img: 15 },
+        { t: "Ditto", a: "NewJeans", l: "Stay in the middle\n나를 기다려줘", img: 16 },
+        { t: "Hype Boy", a: "NewJeans", l: "Cause I know what you like boy\n너를 본 순간 느꼈어", img: 17 },
+        { t: "Seven", a: "Jungkook (BTS)", l: "Monday Tuesday Wednesday\nThursday Friday Saturday Sunday", img: 18 },
+        { t: "Running Wild", a: "Jin (BTS)", l: "세상 끝까지 달려가\n너와 나의 리듬 맞춰", img: 19 },
+        { t: "Magnetic", a: "ILLIT", l: "You you you you\nlike it magnetic\n자꾸만 끌려가", img: 20 },
+        { t: "Armageddon", a: "aespa", l: "Bring it bang bang\n폭발하는 에너지", img: 21 },
+        { t: "I AM", a: "IVE", l: "내일의 나를 기대해\n눈부신 나의 모습", img: 22 },
+        { t: "Baddie", a: "IVE", l: "I'm a baddie baddie baddie\n누구보다 당당하게", img: 23 },
+        { t: "Drama", a: "aespa", l: "Drama ma ma ma\n시작되는 나의 무대", img: 24 },
+        { t: "Perfect Night", a: "LE SSERAFIM", l: "Tonight I don't care\n완벽한 우리의 밤", img: 25 },
+        { t: "Small Girl", a: "이영지 (feat. 도경수)", l: "I'm a small girl\n너의 눈에 비친 나", img: 26 },
+        { t: "HAPPY", a: "DAY6", l: "그저 행복해지고 싶어\n오늘 하루도 고생했어", img: 27 },
+        { t: "에피소드", a: "이무진", l: "우리의 지난 에피소드\n잊지 못할 그 순간들", img: 28 },
+        { t: "SPOT!", a: "ZICO (feat. JENNIE)", l: "Up and down\n모두가 춤을 추는 곳", img: 29 }
+    ];
+
+    // 부족한 30개를 실제 아티스트 이름으로 추가 채움
+    const extraArtists = ["아이유", "태연", "세븐틴", "Stray Kids", "NCT Dream", "라이즈", "TWS", "키스오브라이프", "권은비", "제이홉"];
+    const extraSongs = ["Love wins all", "To. X", "MAESTRO", "Chk Chk Boom", "Smoothie", "Boom Boom Bass", "첫 만남은 계획대로 되지 않아", "Sticky", "Underwater", "NEURON"];
+
+    for(let i=0; kpopList.length < 50; i++) {
+        kpopList.push({
+            t: extraSongs[i % 10],
+            a: extraArtists[i % 10],
+            l: "신나는 K-POP 리듬!\n가사는 곧 업데이트 됩니다.\n오늘의 추천 곡을 즐겨보세요! 🎵",
+            img: 30 + i
+        });
+    }
+
+    let selectedSong = null;
+
+    function pickSong() {
+        const idx = Math.floor(Math.random() * kpopList.length);
+        selectedSong = kpopList[idx];
+
+        document.getElementById('song-title').innerText = selectedSong.t;
+        document.getElementById('artist').innerText = selectedSong.a;
+        
+        const img = document.getElementById('cover-img');
+        const ph = document.querySelector('.placeholder');
+        
+        img.src = `https://picsum.photos/id/${selectedSong.img}/300/300`;
+        img.style.display = 'block';
+        ph.style.display = 'none';
+    }
+
+    function openLyrics() {
+        if (!selectedSong) { alert("먼저 추천 버튼을 눌러주세요!"); return; }
+        document.getElementById('m-title').innerText = selectedSong.t;
+        document.getElementById('m-artist').innerText = selectedSong.a;
+        document.getElementById('m-lyrics').innerText = selectedSong.l;
+        document.getElementById('lyricsModal').style.display = 'flex';
+    }
+
+    function closeLyrics() { document.getElementById('lyricsModal').style.display = 'none'; }
+    window.onclick = function(e) { if (e.target == document.getElementById('lyricsModal')) closeLyrics(); }
+</script>
+
+</body>
+</html>

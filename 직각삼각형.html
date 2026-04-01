@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>피타고라스 정리 판별기</title>
+    <style>
+        body { font-family: 'Pretendard', -apple-system, sans-serif; display: flex; justify-content: center; padding-top: 50px; background-color: #f8f9fa; color: #333; }
+        .card { background: white; padding: 2.5rem; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 360px; }
+        h2 { text-align: center; color: #222; margin-bottom: 0.8rem; font-size: 1.6rem; }
+        .description { text-align: center; color: #555; font-size: 0.95rem; margin-bottom: 2rem; border-bottom: 1.5px solid #eee; padding-bottom: 1.2rem; font-weight: 500; }
+        .input-group { margin-bottom: 1.2rem; }
+        label { display: block; margin-bottom: 8px; font-size: 0.9rem; color: #444; font-weight: 600; }
+        input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; transition: all 0.2s; font-size: 1rem; }
+        input:focus { border-color: #007bff; outline: none; box-shadow: 0 0 0 3px rgba(0,123,255,0.1); }
+        button { width: 100%; padding: 14px; background-color: #007bff; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 1.1rem; font-weight: bold; margin-top: 10px; transition: background 0.2s; }
+        button:hover { background-color: #0056b3; }
+        #result { margin-top: 20px; padding: 15px; border-radius: 8px; text-align: center; font-weight: bold; display: none; line-height: 1.6; }
+        .success { background-color: #e7f3ff; color: #0056b3; border: 1px solid #d0e3ff; }
+        .fail { background-color: #fff5f5; color: #e03131; border: 1px solid #ffe3e3; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>📐 직각삼각형 판별기</h2>
+    <p class="description">직각삼각형의 각 변의 길이를 A, B, C라고 하자.</p>
+    
+    <div class="input-group">
+        <label>변 A의 길이</label>
+        <input type="number" id="sideA" min="1" step="any">
+    </div>
+    <div class="input-group">
+        <label>변 B의 길이</label>
+        <input type="number" id="sideB" min="1" step="any">
+    </div>
+    <div class="input-group">
+        <label>변 C의 길이</label>
+        <input type="number" id="sideC" min="1" step="any">
+    </div>
+    
+    <button onclick="checkPythagoras()">판별하기</button>
+    <div id="result"></div>
+</div>
+
+<script>
+    function checkPythagoras() {
+        const a = parseFloat(document.getElementById('sideA').value);
+        const b = parseFloat(document.getElementById('sideB').value);
+        const c = parseFloat(document.getElementById('sideC').value);
+        const resultDiv = document.getElementById('result');
+
+        if (isNaN(a) || isNaN(b) || isNaN(c)) {
+            alert("모든 변의 길이를 입력해주세요.");
+            return;
+        }
+
+        if (a < 1 || b < 1 || c < 1) {
+            alert("변의 길이는 1 이상이어야 합니다.");
+            return;
+        }
+
+        let sides = [a, b, c].sort((x, y) => x - y);
+        let s1 = sides[0];
+        let s2 = sides[1];
+        let hyp = sides[2];
+
+        const leftSide = Math.pow(s1, 2) + Math.pow(s2, 2);
+        const rightSide = Math.pow(hyp, 2);
+
+        // 부동 소수점 오차 보정 (아주 미세한 차이는 동일한 것으로 간주)
+        const isRight = Math.abs(leftSide - rightSide) < 1e-10;
+
+        resultDiv.style.display = 'block';
+        if (isRight) {
+            resultDiv.className = 'success';
+            resultDiv.innerHTML = `✅ 직각삼각형이 맞습니다!<br><small>${s1}² + ${s2}² = ${hyp}²</small>`;
+        } else {
+            resultDiv.className = 'fail';
+            resultDiv.innerHTML = `❌ 직각삼각형이 아닙니다.`;
+        }
+    }
+</script>
+
+</body>
+</html>

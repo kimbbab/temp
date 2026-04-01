@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>스마트 소인수분해</title>
+    <style>
+        /* 모바일 우선 디자인 */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f5f7fa;
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+            margin: 0;
+        }
+        .container {
+            background: white;
+            padding: 25px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+        h2 { color: #333; margin-bottom: 20px; }
+        input {
+            width: 100%;
+            padding: 15px;
+            margin-bottom: 15px;
+            border: 2px solid #e0e6ed;
+            border-radius: 12px;
+            font-size: 18px;
+            box-sizing: border-box;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+        input:focus { border-color: #4a90e2; }
+        button {
+            width: 100%;
+            padding: 15px;
+            background-color: #4a90e2;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        button:active { background-color: #357abd; transform: scale(0.98); }
+        #resultArea {
+            margin-top: 25px;
+            padding: 15px;
+            border-radius: 12px;
+            background-color: #f8f9fb;
+            min-height: 50px;
+            word-break: break-all;
+        }
+        .prime-factor { color: #d9534f; font-weight: bold; font-size: 1.2em; }
+        .exponent { vertical-align: super; font-size: 0.7em; color: #333; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>🔢 소인수분해</h2>
+    <input type="number" id="numberInput" placeholder="숫자를 입력하세요" inputmode="numeric">
+    <button onclick="calculate()">계산하기</button>
+
+    <div id="resultArea">
+        <p id="resultText">숫자를 입력하고 버튼을 누르세요.</p>
+    </div>
+</div>
+
+<script>
+    function calculate() {
+        const input = document.getElementById('numberInput').value;
+        const resultText = document.getElementById('resultText');
+        let n = parseInt(input);
+
+        if (isNaN(n) || n < 2) {
+            resultText.innerHTML = "2 이상의 올바른 숫자를 입력해주세요.";
+            return;
+        }
+
+        let factors = {};
+        let tempN = n;
+
+        // 소인수분해 알고리즘
+        for (let i = 2; i * i <= tempN; i++) {
+            while (tempN % i === 0) {
+                factors[i] = (factors[i] || 0) + 1;
+                tempN /= i;
+            }
+        }
+        if (tempN > 1) {
+            factors[tempN] = (factors[tempN] || 0) + 1;
+        }
+
+        // 결과 출력 포맷팅
+        let resultHTML = `<strong>${n} = </strong>`;
+        let parts = [];
+        for (let p in factors) {
+            if (factors[p] > 1) {
+                parts.push(`<span class="prime-factor">${p}</span><span class="exponent">${factors[p]}</span>`);
+            } else {
+                parts.push(`<span class="prime-factor">${p}</span>`);
+            }
+        }
+        resultHTML += parts.join(" × ");
+        resultText.innerHTML = resultHTML;
+    }
+
+    // 엔터키 지원
+    document.getElementById('numberInput').addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') calculate();
+    });
+</script>
+
+</body>
+</html>

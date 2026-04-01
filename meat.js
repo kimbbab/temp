@@ -6,34 +6,7 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 const RESTAURANTS_TABLE = "restaurants";
 const REFRESH_INTERVAL_MS = 15000;
 
-const defaultRestaurants = [
-    {
-        name: "장군집",
-        description: "가성비 최고! 연탄불에 구워먹는 쫄깃한 돼지 부속고기와 시원한 소주 한 잔 🍶",
-        mapLink: "https://map.naver.com/p/search/광명%20장군집"
-    },
-    {
-        name: "대송참숯",
-        description: "입에서 살살 녹는 투뿔 한우! 프라이빗하고 고급스러운 분위기에서 제대로 된 식사를 ✨",
-        mapLink: "https://map.naver.com/p/search/대송참숯"
-    },
-    {
-        name: "마포옥",
-        description: "미쉐린 가이드 선정! 맑고 깊은 국물의 한우 양지 설렁탕으로 몸보신 제대로 🥣",
-        mapLink: "https://map.naver.com/p/search/마포옥"
-    },
-    {
-        name: "맛찬들",
-        description: "전문가가 구워주는 겉바속촉 끝판왕! 두툼한 숙성 돼지고기의 진수를 맛보세요 🥩",
-        mapLink: "https://map.naver.com/p/search/철산%20맛찬들"
-    },
-    {
-        name: "유일순대",
-        description: "은은한 인삼 향이 매력적인, 늘 웨이팅이 끊이지 않는 지역 찐 순대국 맛집 🥘",
-        mapLink: "https://map.naver.com/p/search/광명%20유일순대"
-    }
-];
-
+const defaultRestaurants = [];
 const palette = [
     "#ffb8b8",
     "#ffcccc",
@@ -59,7 +32,6 @@ const resultText = document.getElementById("result-text");
 const resultCard = document.getElementById("result-card");
 const resultName = document.getElementById("result-name");
 const resultDesc = document.getElementById("result-desc");
-const mapLink = document.getElementById("map-link");
 const copyBtn = document.getElementById("copyBtn");
 const kakaoBtn = document.getElementById("kakaoBtn");
 const restaurantCount = document.getElementById("restaurant-count");
@@ -74,8 +46,6 @@ const loadMessage = document.getElementById("load-message");
 const configWarning = document.getElementById("config-warning");
 const goHomeBtn = document.getElementById("go-home-btn");
 const restaurantNameInput = document.getElementById("restaurant-name");
-const restaurantDescInput = document.getElementById("restaurant-desc");
-const restaurantLinkInput = document.getElementById("restaurant-link");
 
 let restaurants = [];
 let currentAngle = 0;
@@ -100,8 +70,6 @@ function normalizeRestaurant(record) {
     return {
         id: record.id || record.name,
         name: String(record.name || "").trim(),
-        description: String(record.description || record.desc || "").trim(),
-        mapLink: String(record.map_link || record.mapLink || "").trim(),
         createdAt: record.created_at || ""
     };
 }
@@ -129,7 +97,7 @@ function renderConfigState() {
     }
 
     configWarning.style.display = "block";
-    configWarning.innerHTML = "지금은 임시 후보 목록만 보이도록 설정되어 있습니다. <b>Supabase URL</b>과 <b>anon key</b>를 넣으면 방문자가 추가한 식당이 모두에게 저장됩니다.";
+    configWarning.innerHTML = "지금은 임시 모드입니다. Supabase URL과 anon key가 들어가면 모두가 같은 후보 목록을 공유합니다.";
 }
 
 function supabaseHeaders(extra = {}) {
@@ -153,13 +121,13 @@ async function loadRestaurants(options = {}) {
             restaurants = defaultRestaurants.map(normalizeRestaurant);
         } else {
             const response = await fetch(
-                `${SUPABASE_URL}/rest/v1/${RESTAURANTS_TABLE}?select=id,name,description,map_link,created_at&order=created_at.asc`,
+                `${SUPABASE_URL}/rest/v1/${RESTAURANTS_TABLE}?select=id,name,created_at&order=created_at.asc`,
                 { headers: supabaseHeaders() }
             );
 
             if (!response.ok) {
                 const errorText = await response.text();
-                throw new Error(errorText || "식당 목록을 불러오지 못했습니다.");
+                throw new Error(errorText || "후보 목록을 불러오지 못했습니다.");
             }
 
             const data = await response.json();
@@ -167,26 +135,23 @@ async function loadRestaurants(options = {}) {
         }
 
         updateCounters();
-        renderCandidateList(candidateList);
+        renderCandidateList();
         renderSharedList(sharedResult);
         drawWheel();
         updateSpinAvailability();
 
         if (!silent) {
-            const sourceText = hasBackendConfig() ? "공유 저장 후보" : "기본 후보";
-            setMessage(loadMessage, `${sourceText} ${restaurants.length}곳을 불러왔습니다.`, "ok");
+            setMessage(loadMessage, `후보 ${restaurants.length}곳을 불러왔습니다.`, "ok");
         }
     } catch (error) {
         console.error(error);
-        if (!restaurants.length) {
-            restaurants = defaultRestaurants.map(normalizeRestaurant);
-            updateCounters();
-            renderCandidateList(candidateList);
-            renderSharedList(sharedResult);
-            drawWheel();
-            updateSpinAvailability();
-        }
-        setMessage(loadMessage, "후보 목록을 불러오지 못해 기본 목록으로 표시합니다.", "error");
+        restaurants = defaultRestaurants.map(normalizeRestaurant);
+        updateCounters();
+        renderCandidateList();
+        renderSharedList(sharedResult);
+        drawWheel();
+        updateSpinAvailability();
+        setMessage(loadMessage, "후보 목록을 불러오지 못했습니다.", "error");
     }
 }
 
@@ -196,15 +161,13 @@ function updateCounters() {
 }
 
 function renderRestaurantCard(restaurant, options = {}) {
-    const { highlight = false } = options;
+    const { highlight = false, showDelete = false } = options;
     const card = document.createElement("div");
     card.className = "list-item" + (highlight ? " highlight" : "");
 
     const title = document.createElement("h3");
     title.textContent = restaurant.name;
-
-    const desc = document.createElement("p");
-    desc.textContent = restaurant.description || "설명이 아직 등록되지 않았습니다.";
+    card.appendChild(title);
 
     const meta = document.createElement("div");
     meta.className = "list-meta";
@@ -212,42 +175,36 @@ function renderRestaurantCard(restaurant, options = {}) {
     const source = document.createElement("span");
     source.className = "badge";
     source.textContent = "후보";
-
-    const link = document.createElement("a");
-    link.className = "tiny-link";
-    link.href = restaurant.mapLink || "#";
-    link.target = "_blank";
-    link.rel = "noopener noreferrer";
-    link.textContent = restaurant.mapLink ? "지도 열기" : "링크 없음";
-
     meta.appendChild(source);
-    meta.appendChild(link);
 
-    card.appendChild(title);
-    card.appendChild(desc);
+    if (showDelete) {
+        const deleteBtn = document.createElement("button");
+        deleteBtn.type = "button";
+        deleteBtn.className = "delete-btn";
+        deleteBtn.textContent = "삭제";
+        deleteBtn.addEventListener("click", () => deleteRestaurant(restaurant));
+        meta.appendChild(deleteBtn);
+    }
+
     card.appendChild(meta);
-
     return card;
 }
 
-function renderCandidateList(container) {
-    container.innerHTML = "";
+function renderCandidateList() {
+    candidateList.innerHTML = "";
 
     if (!restaurants.length) {
         const empty = document.createElement("div");
         empty.className = "list-item";
         const title = document.createElement("h3");
         title.textContent = "후보가 없습니다";
-        const desc = document.createElement("p");
-        desc.textContent = "식당을 하나 추가하면 모두가 같은 후보 목록을 볼 수 있습니다.";
         empty.appendChild(title);
-        empty.appendChild(desc);
-        container.appendChild(empty);
+        candidateList.appendChild(empty);
         return;
     }
 
     restaurants.forEach((restaurant) => {
-        container.appendChild(renderRestaurantCard(restaurant));
+        candidateList.appendChild(renderRestaurantCard(restaurant, { showDelete: true }));
     });
 }
 
@@ -258,35 +215,15 @@ function renderSharedList(highlightName) {
         const empty = document.createElement("div");
         empty.className = "list-item";
         const title = document.createElement("h3");
-        title.textContent = "아직 등록된 식당이 없습니다";
-        const desc = document.createElement("p");
-        desc.textContent = "식당 후보를 먼저 추가한 뒤 공유하면 여기에 표시됩니다.";
+        title.textContent = "현재 후보가 없습니다";
         empty.appendChild(title);
-        empty.appendChild(desc);
         sharedList.appendChild(empty);
         return;
     }
 
-    let found = false;
     restaurants.forEach((restaurant) => {
-        const isHighlight = restaurant.name === highlightName;
-        if (isHighlight) {
-            found = true;
-        }
-        sharedList.appendChild(renderRestaurantCard(restaurant, { highlight: isHighlight }));
+        sharedList.appendChild(renderRestaurantCard(restaurant, { highlight: restaurant.name === highlightName }));
     });
-
-    if (highlightName && !found) {
-        const warning = document.createElement("div");
-        warning.className = "list-item";
-        const title = document.createElement("h3");
-        title.textContent = `공유된 식당 "${highlightName}"을 현재 목록에서 찾지 못했습니다`;
-        const desc = document.createElement("p");
-        desc.textContent = "공유 링크는 살아 있지만, 현재 저장된 후보 목록에는 없는 이름입니다. 후보 목록을 다시 불러오거나 식당을 다시 추가해보세요.";
-        warning.appendChild(title);
-        warning.appendChild(desc);
-        sharedList.prepend(warning);
-    }
 }
 
 function drawWheelPlaceholder(message) {
@@ -306,7 +243,7 @@ function drawWheelPlaceholder(message) {
 
 function drawWheel() {
     if (!restaurants.length) {
-        drawWheelPlaceholder("후보가 없습니다\n식당을 추가해주세요");
+        drawWheelPlaceholder("후보가 없습니다\n후보를 추가해주세요");
         return;
     }
 
@@ -315,7 +252,6 @@ function drawWheel() {
 
     restaurants.forEach((restaurant, index) => {
         const angle = currentAngle + index * arc;
-
         ctx.beginPath();
         ctx.fillStyle = palette[index % palette.length];
         ctx.moveTo(wheelCanvas.width / 2, wheelCanvas.height / 2);
@@ -346,72 +282,95 @@ function updateSpinAvailability() {
     }
 }
 
-function validateRestaurantInput(name, description, mapLinkValue) {
+function clearResult() {
+    currentSelectedName = "";
+    resultText.textContent = restaurants.length < 2 ? "후보가 2곳 이상 있어야 룰렛을 돌릴 수 있어요." : "";
+    resultName.textContent = "";
+    resultCard.style.display = "none";
+    resultCard.style.opacity = 0;
+}
+
+function validateRestaurantName(name) {
     if (!name || name.length < 2) {
         throw new Error("식당 이름은 2글자 이상 입력해주세요.");
-    }
-    if (!description || description.length < 5) {
-        throw new Error("설명은 5글자 이상 입력해주세요.");
-    }
-    try {
-        const parsed = new URL(mapLinkValue);
-        if (!parsed.protocol.startsWith("http")) {
-            throw new Error("bad protocol");
-        }
-    } catch (error) {
-        throw new Error("지도 링크는 http 또는 https 주소여야 합니다.");
     }
 }
 
 async function addRestaurant(event) {
     event.preventDefault();
-
     const name = restaurantNameInput.value.trim();
-    const description = restaurantDescInput.value.trim();
-    const mapLinkValue = restaurantLinkInput.value.trim();
 
     try {
-        validateRestaurantInput(name, description, mapLinkValue);
+        validateRestaurantName(name);
 
         const duplicate = restaurants.some((restaurant) => restaurant.name.toLowerCase() === name.toLowerCase());
         if (duplicate) {
-            throw new Error("같은 이름의 식당이 이미 등록되어 있습니다.");
+            throw new Error("같은 이름의 후보가 이미 있습니다.");
         }
 
         if (!hasBackendConfig()) {
-            throw new Error("공유 저장을 쓰려면 Supabase 설정값을 먼저 넣어주세요.");
+            throw new Error("Supabase 설정값이 아직 적용되지 않았습니다.");
         }
 
         submitRestaurantBtn.disabled = true;
-        setMessage(formMessage, "식당을 저장하는 중입니다...", "info");
+        setMessage(formMessage, "후보를 저장하는 중입니다...", "info");
 
         const response = await fetch(`${SUPABASE_URL}/rest/v1/${RESTAURANTS_TABLE}`, {
             method: "POST",
             headers: supabaseHeaders({
                 "Prefer": "return=representation"
             }),
-            body: JSON.stringify([
-                {
-                    name,
-                    description,
-                    map_link: mapLinkValue
-                }
-            ])
+            body: JSON.stringify([{ name }])
         });
 
         if (!response.ok) {
             const errorText = await response.text();
-            throw new Error(errorText || "식당을 저장하지 못했습니다.");
+            throw new Error(errorText || "후보를 저장하지 못했습니다.");
         }
 
         restaurantForm.reset();
-        setMessage(formMessage, `"${name}" 식당을 추가했습니다. 모두가 이제 이 후보를 볼 수 있어요.`, "ok");
+        setMessage(formMessage, `"${name}" 후보를 추가했습니다.`, "ok");
         await loadRestaurants({ silent: true });
     } catch (error) {
         console.error(error);
-        setMessage(formMessage, error.message || "식당 저장 중 오류가 발생했습니다.", "error");
+        setMessage(formMessage, error.message || "후보 저장 중 오류가 발생했습니다.", "error");
     } finally {
         submitRestaurantBtn.disabled = false;
+    }
+}
+
+async function deleteRestaurant(restaurant) {
+    if (!confirm(`"${restaurant.name}" 후보를 삭제할까요?`)) {
+        return;
+    }
+
+    try {
+        setMessage(formMessage, `"${restaurant.name}" 후보를 삭제하는 중입니다...`, "info");
+
+        const response = await fetch(
+            `${SUPABASE_URL}/rest/v1/${RESTAURANTS_TABLE}?id=eq.${encodeURIComponent(restaurant.id)}`,
+            {
+                method: "DELETE",
+                headers: supabaseHeaders({
+                    "Prefer": "return=minimal"
+                })
+            }
+        );
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(errorText || "후보를 삭제하지 못했습니다.");
+        }
+
+        if (currentSelectedName === restaurant.name) {
+            clearResult();
+        }
+
+        setMessage(formMessage, `"${restaurant.name}" 후보를 삭제했습니다.`, "ok");
+        await loadRestaurants({ silent: true });
+    } catch (error) {
+        console.error(error);
+        setMessage(formMessage, error.message || "후보 삭제 중 오류가 발생했습니다.", "error");
     }
 }
 
@@ -475,9 +434,6 @@ function stopRotateWheel(arc) {
     currentSelectedName = selectedRestaurant.name;
     resultText.innerHTML = `🎉 <b>${selectedRestaurant.name}</b> 당첨! 🎉`;
     resultName.textContent = selectedRestaurant.name;
-    resultDesc.textContent = selectedRestaurant.description;
-    mapLink.href = selectedRestaurant.mapLink;
-
     resultCard.style.display = "block";
     setTimeout(() => {
         resultCard.style.opacity = 1;
@@ -498,22 +454,15 @@ function handleCopyShare() {
         return;
     }
 
-    const selectedRestaurant = getRestaurantByName(currentSelectedName);
     const shareLink = getCurrentShareLink();
-    const textToShare = `[오늘의 식당: ${currentSelectedName}]\n\n${selectedRestaurant ? selectedRestaurant.description + "\n\n" : ""}전체 후보와 친구의 당첨 결과 보기 👇\n${shareLink}`;
-
+    const textToShare = `[오늘의 식당: ${currentSelectedName}]\n\n친구들과 현재 후보 목록 보기 👇\n${shareLink}`;
     navigator.clipboard.writeText(textToShare).then(() => {
         alert("결과가 복사되었습니다!");
     });
 }
 
 function handleKakaoShare() {
-    if (!currentSelectedName) {
-        return;
-    }
-
-    const selectedRestaurant = getRestaurantByName(currentSelectedName);
-    if (!selectedRestaurant || !window.Kakao || !Kakao.Share) {
+    if (!currentSelectedName || !window.Kakao || !Kakao.Share) {
         return;
     }
 
@@ -523,8 +472,8 @@ function handleKakaoShare() {
     Kakao.Share.sendDefault({
         objectType: "feed",
         content: {
-            title: `오늘의 식당 당첨: ${selectedRestaurant.name} 🎉`,
-            description: selectedRestaurant.description,
+            title: `오늘의 식당 당첨: ${currentSelectedName} 🎉`,
+            description: "친구들과 식당 후보 목록을 함께 확인해보세요.",
             imageUrl,
             link: {
                 mobileWebUrl: shareLink,
@@ -533,17 +482,10 @@ function handleKakaoShare() {
         },
         buttons: [
             {
-                title: "결과 전체보기",
+                title: "후보 목록 보기",
                 link: {
                     mobileWebUrl: shareLink,
                     webUrl: shareLink
-                }
-            },
-            {
-                title: "지도에서 보기",
-                link: {
-                    mobileWebUrl: selectedRestaurant.mapLink,
-                    webUrl: selectedRestaurant.mapLink
                 }
             }
         ]

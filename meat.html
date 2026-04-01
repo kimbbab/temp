@@ -6,7 +6,7 @@
     <title>오늘의 식당 룰렛 🤔</title>
 
     <meta property="og:title" content="오늘의 식당 룰렛 🎰" />
-    <meta property="og:description" content="오늘 뭐 먹지? 고민 해결! 친구들과 식당 후보를 함께 추가하고 룰렛으로 골라보세요." />
+    <meta property="og:description" content="친구들과 식당 후보를 함께 만들고 룰렛으로 골라보세요." />
     <meta property="og:image" content="https://images.unsplash.com/photo-1544025162-d76694265947?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" />
     <meta property="og:url" content="https://kimbbab.github.io/temp/meat.html" />
     <meta property="og:type" content="website" />
@@ -19,7 +19,7 @@
         <div id="roulette-view">
             <div class="intro">
                 <h1>오늘은 어디로 갈까요? 🤔</h1>
-                <p>친구들이 식당 후보를 직접 추가하고, 모두가 같은 후보 목록으로 룰렛을 돌릴 수 있게 만들었습니다.</p>
+                <p>후보를 함께 추가하고, 필요 없는 후보는 삭제하면서 모두가 같은 목록으로 룰렛을 돌릴 수 있습니다.</p>
             </div>
 
             <div class="layout">
@@ -39,9 +39,7 @@
 
                     <div id="result-card">
                         <h3 id="result-name"></h3>
-                        <p id="result-desc"></p>
-                        <a id="map-link" class="map-btn" href="#" target="_blank" rel="noopener noreferrer">네이버 지도에서 보기</a>
-
+                        <p id="result-desc">이 결과를 친구들과 공유해보세요.</p>
                         <div class="share-buttons">
                             <button id="copyBtn" class="share-btn copy-btn">🔗 결과 복사</button>
                             <button id="kakaoBtn" class="share-btn kakao-btn">💬 카톡 공유</button>
@@ -51,31 +49,23 @@
 
                 <section class="panel">
                     <div class="section-head">
-                        <h2>식당 직접 추가하기</h2>
+                        <h2>후보 관리</h2>
                         <div class="inline-actions">
                             <button id="refreshRestaurantsBtn" class="secondary-btn" type="button">후보 새로고침</button>
                         </div>
                     </div>
 
                     <div id="config-warning" class="config-warning"></div>
-                    <p class="helper-text">누구나 후보를 추가할 수 있습니다. 저장된 식당은 다른 사람에게도 보이고, 다음 방문 때도 그대로 남습니다.</p>
+                    <p class="helper-text">식당 이름만 관리합니다. 후보 추가와 삭제는 모두에게 바로 반영됩니다.</p>
 
                     <form id="restaurant-form">
                         <div class="form-grid">
                             <div>
                                 <label for="restaurant-name">식당 이름</label>
-                                <input id="restaurant-name" name="name" maxlength="40" placeholder="예: 철산 회식당" required />
-                            </div>
-                            <div>
-                                <label for="restaurant-desc">설명</label>
-                                <textarea id="restaurant-desc" name="description" maxlength="180" placeholder="추천 메뉴나 분위기를 적어주세요." required></textarea>
-                            </div>
-                            <div>
-                                <label for="restaurant-link">지도 링크</label>
-                                <input id="restaurant-link" name="mapLink" maxlength="400" placeholder="https://map.naver.com/..." required />
+                                <input id="restaurant-name" name="name" maxlength="40" placeholder="예: 철산 고기집" required />
                             </div>
                             <div class="inline-actions">
-                                <button id="submitRestaurantBtn" class="primary-btn" type="submit">식당 추가</button>
+                                <button id="submitRestaurantBtn" class="primary-btn" type="submit">후보 추가</button>
                             </div>
                         </div>
                     </form>
@@ -96,7 +86,7 @@
         <div id="shared-view">
             <div class="intro">
                 <h1>친구가 공유한 오늘의 식당! 🍽️</h1>
-                <p>같은 후보 목록 안에서 친구가 당첨된 식당을 강조해서 보여줍니다.</p>
+                <p>공유된 결과와 현재 후보 목록을 함께 보여줍니다.</p>
             </div>
 
             <section class="panel shared-panel">

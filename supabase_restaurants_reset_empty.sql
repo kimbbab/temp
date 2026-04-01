@@ -11,6 +11,11 @@ create table if not exists public.restaurants (
 alter table public.restaurants alter column description set default '';
 alter table public.restaurants alter column map_link set default '';
 
+update public.restaurants
+set
+    description = coalesce(description, ''),
+    map_link = coalesce(map_link, '');
+
 alter table public.restaurants enable row level security;
 
 drop policy if exists "Public can read restaurants" on public.restaurants;
@@ -34,3 +39,5 @@ create policy "Public can delete restaurants"
 on public.restaurants
 for delete
 using (true);
+
+delete from public.restaurants;

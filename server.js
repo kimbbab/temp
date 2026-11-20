@@ -73,7 +73,9 @@ const SYSTEM = `당신은 수학을 잘 모르는 사람(수포자, 학부모, �
 - 이 문제·수학 학습과 무관한 요청(다른 과제 대행, 코드 작성, 잡담 등)은 정중히 사양하고 이 문제로 돌아오세요.`;
 
 const app = express();
-app.set("trust proxy", 1); // Render 프록시 뒤의 실제 IP
+app.set("trust proxy", true);
+// Render(Cloudflare) 뒤의 실제 접속자 IP
+const clientIp = (req) => String(req.headers["cf-connecting-ip"] || req.headers["true-client-ip"] || req.ip || "").slice(0, 64);
 app.use(express.json({ limit: "32kb" }));
 app.use(express.static(PUB, { maxAge: "1h" }));
 
@@ -94,7 +96,8 @@ app.post("/api/chat", async (req, res) => {
   if (!hist.length || hist[hist.length - 1].role !== "user") return res.status(400).json({ error: "질문을 입력해 주세요." });
   for (let i = 1; i < hist.length; i++) if (hist[i].role === hist[i - 1].role) return res.status(400).json({ error: "대화 형식이 올바르지 않아요." });
 
-  const lim = checkLimit(req.ip);
+  const ip = clientIp(req);
+  const lim = checkLimit(ip);
   if (lim) return res.status(429).json({ error: lim });
 
   const msgs = [
@@ -141,7 +144,7 @@ app.post("/api/chat", async (req, res) => {
     if (final.stop_reason === "refusal") send({ t: "\n\n(이 질문에는 답하기 어려워요. 문제와 관련된 질문으로 다시 물어봐 주세요.)" });
     if (final.stop_reason === "max_tokens") send({ t: "\n\n(답이 길어 여기서 끊었어요. 이어서 물어봐 주세요.)" });
     const u = final.usage || {};
-    console.log(`chat ${d.id} speed=${final.usage?.speed} ip=${req.ip} in=${u.input_tokens} cache_r=${u.cache_read_input_tokens} out=${u.output_tokens} day=${dayCount}`);
+    console.log(`chat ${d.id} speed=${final.usage?.speed} ip=${ip.replace(/[.:][^.:]+$/, ".x")} in=${u.input_tokens} cache_r=${u.cache_read_input_tokens} out=${u.output_tokens} day=${dayCount}`);
     send({ done: true });
   } catch (e) {
     if (ac.signal.aborted) return;

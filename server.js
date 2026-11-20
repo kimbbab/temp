@@ -113,23 +113,35 @@ app.post("/api/chat", async (req, res) => {
 
   const ac = new AbortController();
   res.on("close", () => ac.abort());
-  try {
+  const FAST = process.env.FAST_MODE !== "0"; // 빠른 출력 모드(출력 속도 최대 2.5배, 요금 2배)
+  const run = (fast) => {
     const stream = client.beta.messages.stream({
       model: MODEL,
       max_tokens: MAX_TOKENS,
       system: SYSTEM,
       thinking: { type: "adaptive" },
       output_config: { effort: "low" },
+      ...(fast ? { speed: "fast" } : {}),
       betas: ["server-side-fallback-2026-07-01"],
       fallbacks: "default",
       messages: msgs,
-    }, { signal: ac.signal });
-    stream.on("text", (t) => send({ t }));
-    const final = await stream.finalMessage();
+    }, { signal: ac.signal, maxRetries: fast ? 0 : 2 });
+    let sent = false;
+    stream.on("text", (t) => { sent = true; send({ t }); });
+    return stream.finalMessage().catch((e) => { e.sent = sent; throw e; });
+  };
+  try {
+    let final;
+    try { final = await run(FAST); }
+    catch (e) { // 빠른 모드가 막히면(한도·미지원) 일반 속도로 다시
+      if (!FAST || e.sent || ac.signal.aborted || !(e instanceof Anthropic.APIError)) throw e;
+      console.warn("fast mode failed, retry standard:", e.status, e.message);
+      final = await run(false);
+    }
     if (final.stop_reason === "refusal") send({ t: "\n\n(이 질문에는 답하기 어려워요. 문제와 관련된 질문으로 다시 물어봐 주세요.)" });
     if (final.stop_reason === "max_tokens") send({ t: "\n\n(답이 길어 여기서 끊었어요. 이어서 물어봐 주세요.)" });
     const u = final.usage || {};
-    console.log(`chat ${d.id} ip=${req.ip} in=${u.input_tokens} cache_r=${u.cache_read_input_tokens} out=${u.output_tokens} day=${dayCount}`);
+    console.log(`chat ${d.id} speed=${final.usage?.speed} ip=${req.ip} in=${u.input_tokens} cache_r=${u.cache_read_input_tokens} out=${u.output_tokens} day=${dayCount}`);
     send({ done: true });
   } catch (e) {
     if (ac.signal.aborted) return;
